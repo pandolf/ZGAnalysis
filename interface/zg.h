@@ -30,7 +30,6 @@ public :
    Int_t           isGolden;
    Int_t           isSilver;
    Float_t         xsec;
-   //
    Float_t         HLT_PFMET170;
    Float_t         HLT_Photon90_R9Id90_HE10_IsoM;
    Float_t         HLT_Photon75_R9Id90_HE10_IsoM;
@@ -69,49 +68,6 @@ public :
    Float_t         Flag_goodVertices;
    Float_t         Flag_METFilters;
    Float_t         Flag_eeBadScFilter;
-   // 
-//   Int_t         HLT_PFMET170;
-//   Int_t         HLT_Photon90_R9Id90_HE10_IsoM;
-//   Int_t         HLT_Photon75_R9Id90_HE10_IsoM;
-//   Int_t         HLT_Photon120;
-//   Int_t         HLT_Photon75;
-//   Int_t         HLT_Photon165_HE10;
-//   Int_t         HLT_Photon120_R9Id90_HE10_IsoM;
-//   Int_t         HLT_Photon90;
-//   Int_t         HLT_PFHT350_PFMET100;
-//   Int_t         HLT_PFMET90_PFMHT90;
-//   Int_t         HLT_PFMETNoMu90_PFMHTNoMu90;
-//   Int_t         HLT_PFHT475_Prescale;
-//   Int_t         HLT_PFHT350_Prescale;
-//   Int_t         HLT_ht475prescale;
-//   Int_t         HLT_SingleMu;
-//   Int_t         HLT_MuX_Ele12;
-//   Int_t         HLT_Mu8_EleX;
-//   Int_t         HLT_SingleEl;
-//   Int_t         HLT_PFHT800;
-//   Int_t         HLT_ht350prescale;
-//   Int_t         HLT_Photon155;
-//   Int_t         HLT_PFHT900;
-//   Int_t         HLT_Photon175;
-//   Int_t         HLT_MuEG;
-//   Int_t         HLT_DiJet;
-//   Int_t         HLT_DoubleEl;
-//   Int_t         HLT_DoubleMu;
-//   Int_t         Flag_EcalDeadCellTriggerPrimitiveFilter;
-//   Int_t         Flag_trkPOG_manystripclus53X;
-//   Int_t         Flag_ecalLaserCorrFilter;
-//   Int_t         Flag_trkPOG_toomanystripclus53X;
-//   Int_t         Flag_hcalLaserEventFilter;
-//   Int_t         Flag_trkPOG_logErrorTooManyClusters;
-//   Int_t         Flag_trkPOGFilters;
-//   Int_t         Flag_trackingFailureFilter;
-//   Int_t         Flag_CSCTightHaloFilter;
-//   Int_t         Flag_HBHENoiseFilter;
-//   Int_t         Flag_HBHEIsoNoiseFilter;
-//   Int_t         Flag_goodVertices;
-//   Int_t         Flag_METFilters;
-//   Int_t         Flag_eeBadScFilter;
-   //
    Float_t         puWeight;
    Int_t           nTrueInt;
    Float_t         genWeight;
