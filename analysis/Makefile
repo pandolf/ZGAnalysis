@@ -18,6 +18,9 @@ all: runZGAnalysis
 runZGAnalysis: runZGAnalysis.cpp ZGSample.o ZGConfig.o
 	$(CC) -Wall $(INCLUDES) -o runZGAnalysis runZGAnalysis.cpp ZGSample.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
 
+convertSNTtrees: convertSNTtrees.cpp
+	$(CC) -Wall $(INCLUDES) -o convertSNTtrees convertSNTtrees.cpp $(ROOTFLAG) $(EXTRALIBS)
+
 
 
 
