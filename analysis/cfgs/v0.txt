@@ -1,0 +1,3 @@
+lumi 2.3
+mcSamples Spring15_25ns_miniAODv2
+dataSamples Run2015D_25nsGolden_miniAODv2
