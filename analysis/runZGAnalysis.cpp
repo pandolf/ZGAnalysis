@@ -20,11 +20,12 @@
 #include "interface/zg.h"
 
 
+#define DATABLINDING true
+
 
 
 
 void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSample> samples, const ZGConfig& cfg, int idMin=-1, int idMax=-1 );
-
 
 
 
@@ -82,12 +83,18 @@ int main( int argc, char* argv[] ) {
   system(Form("mkdir -p %s", outputdir.c_str()));
 
 
+  std::string outfileName    (Form("%s/trees.root", outputdir.c_str()));
+  std::string outfileNameSAVE(Form("%s/treesSAVE.root", outputdir.c_str()));
+  system( Form("cp %s %s", outfileName.c_str(), outfileNameSAVE.c_str()) ); // backup jic
+
+  TFile* outfile = TFile::Open(outfileName.c_str(), "recreate");
+  outfile->cd();
+
+
+
+
 
   if( !onlyData && !onlySignal ) { // run on MC
-
-    std::string outfileName(Form("%s/mc.root", outputdir.c_str()));
-    TFile* outfile = TFile::Open(outfileName.c_str(), "recreate");
-    outfile->cd();
 
 
     std::string samplesFileName = "../samples/samples_" + cfg.mcSamples() + ".dat";
@@ -101,13 +108,11 @@ int main( int argc, char* argv[] ) {
     }
 
 
-    addTreeToFile( outfile, "zg" , fSamples, cfg, 851 );
-    addTreeToFile( outfile, "top", fSamples, cfg, 300, 499 );
+    addTreeToFile( outfile, "zg", fSamples, cfg, 851 );
+    //addTreeToFile( outfile, "top", fSamples, cfg, 300, 499 ); // irrelevant
     
-    outfile->Close();
 
     std::cout << "-> Done looping on MC samples." << std::endl;
-    std::cout << "-> Saved trees in: " << outfileName << std::endl;
 
     
   } // if MC samples
@@ -172,34 +177,26 @@ int main( int argc, char* argv[] ) {
 //} // if sig samples
 //
 
-//if( !(cfg.dummyAnalysis()) && cfg.dataSamples()!="" && !onlyMC  && !onlySignal ) {
+  if( !(cfg.dummyAnalysis()) && cfg.dataSamples()!="" && !onlyMC  && !onlySignal ) {
 
-//  std::string samplesFile_data = "../samples/samples_" + cfg.dataSamples() + ".dat";
 
-//  std::cout << std::endl << std::endl;
-//  std::cout << "-> Loading data from file: " << samplesFile_data << std::endl;
+    std::string samplesFile_data = "../samples/samples_" + cfg.dataSamples() + ".dat";
 
-//  //    std::vector<ZGSample> samples_data = ZGSample::loadSamples(samplesFile_data, "JetHTMHT"); //, 1, 99 );
-//  //    std::vector<ZGSample> samples_data = ZGSample::loadSamples(samplesFile_data, 1, 3 );
-//  std::vector<ZGSample> samples_data = ZGSample::loadSamples(samplesFile_data, -1, 0 );
-//  if( samples_data.size()==0 ) {
-//    std::cout << "There must be an error: samples_data is empty!" << std::endl;
-//    exit(1209);
-//  }
+    std::cout << std::endl << std::endl;
+    std::cout << "-> Loading data from file: " << samplesFile_data << std::endl;
 
-//  std::vector< MT2Analysis<MT2EstimateTree>* > EventYield_data;
-//  for( unsigned i=0; i < samples_data.size(); ++i )
-//    EventYield_data.push_back( computeYield<MT2EstimateTree>( samples_data[i], cfg ) );
+    std::vector<ZGSample> samples_data = ZGSample::loadSamples(samplesFile_data);
+    if( samples_data.size()==0 ) {
+      std::cout << "There must be an error: samples_data is empty!" << std::endl;
+      exit(1209);
+    }
 
-//  MT2Analysis<MT2EstimateTree>* dataYield;
-//  //dataYield = EventYield_data[0];
-//  //dataYield->setName("data");
-//  //dataYield   = mergeYields<MT2EstimateTree>( EventYield_data, cfg.regionsSet(), "data", 1, 3 );
-//  dataYield   = mergeYields<MT2EstimateTree>( EventYield_data, cfg.regionsSet(), "data", -1, -1 );
 
-//  yields.push_back( dataYield );
+    addTreeToFile( outfile, "data" , samples_data, cfg );
+    
+    std::cout << "-> Done looping on data." << std::endl;
 
-//}
+  }
 
 
 //if( yields.size()==0 && signals.size()==0 ) {
@@ -222,6 +219,11 @@ int main( int argc, char* argv[] ) {
 //    signals[i]->writeToFile(outputdir + "/analyses.root");
 //}
 //cfg.saveAs(outputdir + "/config.txt");
+
+
+  outfile->Close();
+
+  std::cout << "-> Wrote trees to file: " << outfile->GetName() << std::endl;
 
 
 
@@ -257,7 +259,10 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
 
   file->cd();
 
-  TTree* outTree = new TTree( treeName.c_str(), "" );
+  TTree* outTree = (TTree*)file->Get(treeName.c_str());
+  if( outTree!=0 ) delete tree;
+
+  outTree = new TTree( treeName.c_str(), "" );
 
   int run;
   outTree->Branch( "run", &run, "run/I");
@@ -319,16 +324,17 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     if( iEntry % 50000 == 0 ) std::cout << "    Entry: " << iEntry << " / " << nentries << std::endl;
     
     myTree.GetEntry(iEntry);
-    
-    // filters
-    if( myTree.isData ) {
-      if( !myTree.passFilters() ) continue;
-    }
 
     run   = myTree.run;
     lumi  = myTree.lumi;
     event = myTree.evt;
     id    = myTree.evt_id;
+
+    
+    // filters
+    if( myTree.isData ) {
+      if( !myTree.passFilters() ) continue;
+    }
 
     // hlt
     if(  myTree.isData && !( ( id==5  && myTree.HLT_DoubleMu ) || ( id==4 && myTree.HLT_DoubleEl ) || ( id==7 && !myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && myTree.HLT_Photon165_HE10 ) )  ) continue;
@@ -390,6 +396,7 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     boss_phi  = boss.Phi();
     boss_mass = boss.M();
 
+    if( DATABLINDING && myTree.isData && boss_mass>500. ) continue;
 
     outTree->Fill();
     
