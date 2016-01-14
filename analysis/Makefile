@@ -21,6 +21,10 @@ runZGAnalysis: runZGAnalysis.cpp ZGSample.o ZGConfig.o
 convertSNTtrees: convertSNTtrees.cpp
 	$(CC) -Wall $(INCLUDES) -o convertSNTtrees convertSNTtrees.cpp $(ROOTFLAG) $(EXTRALIBS)
 
+drawZG: drawZG.cpp ZGDrawTools.o ZGConfig.o
+	$(CC) -Wall $(INCLUDES) -o drawZG drawZG.cpp ZGDrawTools.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
+
+
 
 
 
@@ -30,6 +34,9 @@ ZGConfig.o: ../src/ZGConfig.cc
 
 ZGSample.o: ../src/ZGSample.cc 
 	$(CC) -Wall $(INCLUDES) -c ../src/ZGSample.cc $(ROOTFLAG) $(EXTRALIBS)
+
+ZGDrawTools.o: ../src/ZGDrawTools.cc 
+	$(CC) -Wall $(INCLUDES) -c ../src/ZGDrawTools.cc $(ROOTFLAG) $(EXTRALIBS)
 
 #ZGDrawTools.o: ../src/ZGDrawTools.cc ZGRegion.o ZGEstimateTree.o ZGConfig.o
 #	$(CC) -Wall $(INCLUDES) -c ../src/ZGDrawTools.cc ZGRegion.o ZGEstimateTree.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
