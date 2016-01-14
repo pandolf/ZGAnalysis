@@ -4,6 +4,7 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TChain.h"
+#include "TLorentzVector.h"
 
 
 void convertFiles( const std::string& samplesFile, const std::string& expr, int id, bool skim=false, bool prune=false, const std::string& outdir="." );
@@ -16,7 +17,7 @@ int main() {
   std::string samplesFile = "../samples/samples_Run2015_25nsGolden_fromSnT.dat";
 
   bool doSkim = true;
-  bool doPrune = true;
+  bool doPrune = false;
 
   convertFiles(samplesFile, "DoubleEG"    , 4, doSkim, doPrune);
   convertFiles(samplesFile, "DoubleMuon"  , 5, doSkim, doPrune);
@@ -182,7 +183,10 @@ void convertFiles( const std::string& samplesFile, const std::string& expr, int 
 
 
 
-  TFile* outFile = TFile::Open( Form("%s/%s.root", outdir.c_str(), expr.c_str()), "recreate" );
+  std::string outFileName = outdir + "/" + expr;
+  if( skim ) outFileName = outFileName + "_skim";
+  outFileName = outFileName + ".root";
+  TFile* outFile = TFile::Open( outFileName.c_str(), "recreate" );
   outFile->cd();
 
   TTree* outTree = tree->CloneTree(0);
@@ -273,15 +277,45 @@ void convertFiles( const std::string& samplesFile, const std::string& expr, int 
   // for the skimming:
   Int_t           ngamma;
   Float_t         gamma_pt[20];   //[ngamma]
+  Float_t         gamma_eta[20];   //[ngamma]
+  Float_t         gamma_phi[20];   //[ngamma]
+  Float_t         gamma_mass[20];   //[ngamma]
+  Float_t         gamma_chHadIso[20];   //[ngamma]
   TBranch        *b_ngamma;   //!
   TBranch        *b_gamma_pt;   //!
+  TBranch        *b_gamma_eta;   //!
+  TBranch        *b_gamma_phi;   //!
+  TBranch        *b_gamma_mass;   //!
+  TBranch        *b_gamma_chHadIso;   //!
   tree->SetBranchAddress("ngamma", &ngamma, &b_ngamma);
   tree->SetBranchAddress("gamma_pt", gamma_pt, &b_gamma_pt);
+  tree->SetBranchAddress("gamma_eta", gamma_eta, &b_gamma_eta);
+  tree->SetBranchAddress("gamma_phi", gamma_phi, &b_gamma_phi);
+  tree->SetBranchAddress("gamma_mass", gamma_mass, &b_gamma_mass);
+  tree->SetBranchAddress("gamma_chHadIso", gamma_chHadIso, &b_gamma_chHadIso);
+
+  Int_t           nlep;
+  Float_t         lep_pt[20];   //[nlep]
+  Float_t         lep_eta[20];   //[nlep]
+  Float_t         lep_phi[20];   //[nlep]
+  Float_t         lep_mass[20];   //[nlep]
+  TBranch        *b_nlep;   //!
+  TBranch        *b_lep_pt;   //!
+  TBranch        *b_lep_eta;   //!
+  TBranch        *b_lep_phi;   //!
+  TBranch        *b_lep_mass;   //!
+  tree->SetBranchAddress("nlep", &nlep, &b_nlep);
+  tree->SetBranchAddress("lep_pt", lep_pt, &b_lep_pt);
+  tree->SetBranchAddress("lep_eta", lep_eta, &b_lep_eta);
+  tree->SetBranchAddress("lep_phi", lep_phi, &b_lep_phi);
+  tree->SetBranchAddress("lep_mass", lep_mass, &b_lep_mass);
 
 
   int nentries = tree->GetEntries();
 
   for( int iEntry=0; iEntry<nentries; ++iEntry ) {
+
+    if( iEntry % 100000 == 0 ) std::cout << " Entry: " << iEntry << " / " << nentries << std::endl;
 
     tree->GetEntry(iEntry);
 
@@ -326,8 +360,31 @@ void convertFiles( const std::string& samplesFile, const std::string& expr, int 
     Flag_METFilters                         = snt_Flag_METFilters;
     Flag_eeBadScFilter                      = snt_Flag_eeBadScFilter;
 
-    if( skim ) 
-      if( !(ngamma>0 && gamma_pt[0]>30. ) ) continue;
+
+    if( skim ) {
+
+      if( !(Flag_HBHENoiseFilter && Flag_HBHEIsoNoiseFilter && Flag_eeBadScFilter) ) continue;
+      if( ngamma==0 ) continue;
+      if( nlep!=2 ) continue;
+
+      int foundPhot = -1;
+      for( int iph=0; iph<ngamma; ++iph ) {
+        if( gamma_chHadIso[iph]>10. ) continue; // loose iso
+        TLorentzVector phot;
+        phot.SetPtEtaPhiM( gamma_pt[iph], gamma_eta[iph], gamma_phi[iph], gamma_mass[iph] );
+        for( int il=0; il<nlep; ++il ) {
+          TLorentzVector lep;
+          lep.SetPtEtaPhiM( lep_pt[il], lep_eta[il], lep_phi[il], lep_mass[il] );
+          if( phot.DeltaR(lep)<0.3 ) continue;
+        }
+        foundPhot = iph;
+        break;
+      }
+
+      if( foundPhot<0 ) continue;
+      if( gamma_pt[foundPhot]<40. ) continue;
+
+    } // skim
          
     outTree->Fill();
 
