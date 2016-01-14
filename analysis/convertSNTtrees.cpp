@@ -180,7 +180,6 @@ void convertFiles( const std::string& samplesFile, const std::string& expr, int 
   tree->SetBranchAddress("Flag_METFilters", &snt_Flag_METFilters, &b_snt_Flag_METFilters);
   tree->SetBranchAddress("Flag_eeBadScFilter", &snt_Flag_eeBadScFilter, &b_snt_Flag_eeBadScFilter);
 
-std::cout << "done setting snt" << std::endl;
 
 
   TFile* outFile = TFile::Open( Form("%s/%s.root", outdir.c_str(), expr.c_str()), "recreate" );
