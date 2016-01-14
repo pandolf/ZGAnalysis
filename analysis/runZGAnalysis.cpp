@@ -87,7 +87,7 @@ int main( int argc, char* argv[] ) {
   std::string outfileNameSAVE(Form("%s/treesSAVE.root", outputdir.c_str()));
   system( Form("cp %s %s", outfileName.c_str(), outfileNameSAVE.c_str()) ); // backup jic
 
-  TFile* outfile = TFile::Open(outfileName.c_str(), "recreate");
+  TFile* outfile = TFile::Open(outfileName.c_str(), "update");
   outfile->cd();
 
 
@@ -257,12 +257,10 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
   myTree.Init(tree);
 
 
+
   file->cd();
-
-  TTree* outTree = (TTree*)file->Get(treeName.c_str());
-  if( outTree!=0 ) delete tree;
-
-  outTree = new TTree( treeName.c_str(), "" );
+  gDirectory->Delete(Form("%s;*", treeName.c_str()));
+  TTree* outTree = new TTree( treeName.c_str(), "" );
 
   int run;
   outTree->Branch( "run", &run, "run/I");
