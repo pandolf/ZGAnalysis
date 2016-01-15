@@ -274,6 +274,8 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
   outTree->Branch( "id", &id, "id/I");
   int leptType;
   outTree->Branch( "leptType", &leptType, "leptType/I");
+  float met;
+  outTree->Branch( "met", &met, "met/F" );
 
   float lept0_pt;
   outTree->Branch( "lept0_pt", &lept0_pt, "lept0_pt/F" );
@@ -360,7 +362,7 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     TLorentzVector photon;
     photon.SetPtEtaPhiM( myTree.gamma_pt[0], myTree.gamma_eta[0], myTree.gamma_phi[0], myTree.gamma_mass[0] );
 
-    if( photon.Pt()<50. ) continue;
+    if( photon.Pt()<40. ) continue;
     if( fabs(photon.Eta())>1.44 && fabs(photon.Eta())<1.57 ) continue;
     if( myTree.gamma_chHadIso[0]>2.5 ) continue;
     if( photon.DeltaR(lept0)<0.5 || photon.DeltaR(lept1)<0.5 ) continue;
@@ -393,6 +395,8 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     boss_eta  = boss.Eta();
     boss_phi  = boss.Phi();
     boss_mass = boss.M();
+
+    met = myTree.met_pt;
 
     if( DATABLINDING && myTree.isData && boss_mass>500. ) continue;
 
