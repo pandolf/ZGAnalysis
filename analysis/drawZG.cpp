@@ -69,7 +69,22 @@ int main( int argc, char* argv[] ) {
 
   dt.set_lumi( cfg.lumi() );
 
-  dt.drawPlot( "mZg", "boss_mass", "", 50, 200., 1200., "M(Z#gamma)", "GeV" );
+  dt.drawPlot( "mZg"  , "boss_mass", "", 50, 200., 1200., "M(Z#gamma)", "GeV" );
+
+  dt.drawPlot( "mZ"   , "z_mass", ""            , 50, 50., 150., "M(l^{+}l^{-})", "GeV" );
+  dt.drawPlot( "mZee" , "z_mass", "leptType==11", 50, 50., 150., "M(e^{+}e^{-})", "GeV" );
+  dt.drawPlot( "mZmm" , "z_mass", "leptType==13", 50, 50., 150., "M(#mu^{+}#mu^{-})", "GeV" );
+
+  dt.drawPlot( "ptZ"        , "z_pt"    , ""              , 60, 0. , 300., "Z p_{T}"      , "GeV" );
+  dt.drawPlot( "ptZ_metCut" , "z_pt"    , "met<50."       , 60, 0. , 300., "Z p_{T}"      , "GeV" );
+  dt.drawPlot( "ptZ_bossCut", "z_pt"    , "boss_mass>200.", 60, 0. , 300., "Z p_{T}"      , "GeV" );
+
+  dt.drawPlot( "ptGamma" , "gamma_pt", "", 60, 40., 340., "Photon p_{T}" , "GeV" );
+
+  dt.drawPlot( "ptLept0" , "lept0_pt", "", 60, 25., 325., "Leading Lepton p_{T}" , "GeV" );
+  dt.drawPlot( "ptLept1" , "lept1_pt", "", 30, 20., 170., "Trailing Lepton p_{T}" , "GeV" );
+
+  dt.drawPlot( "met"     , "met"     , "", 60, 0. , 300., "Missing E_{T}", "GeV" );
 
   return 0;
 
