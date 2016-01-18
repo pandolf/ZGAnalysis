@@ -27,6 +27,8 @@
 
 void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSample> samples, const ZGConfig& cfg, int idMin=-1, int idMax=-1 );
 
+float getPUweight( int nVert, TH1D* h1_data, TH1D* h1_mc );
+float getSinglePUweight( int nVert, TH1D* h1 );
 
 
 
@@ -83,9 +85,7 @@ int main( int argc, char* argv[] ) {
   system(Form("mkdir -p %s", outputdir.c_str()));
 
 
-  std::string outfileName    (Form("%s/trees.root", outputdir.c_str()));
-  std::string outfileNameSAVE(Form("%s/treesSAVE.root", outputdir.c_str()));
-  system( Form("cp %s %s", outfileName.c_str(), outfileNameSAVE.c_str()) ); // backup jic
+  std::string outfileName(Form("%s/trees_tmp.root", outputdir.c_str()));
 
   TFile* outfile = TFile::Open(outfileName.c_str(), "update");
   outfile->cd();
@@ -223,7 +223,11 @@ int main( int argc, char* argv[] ) {
 
   outfile->Close();
 
-  std::cout << "-> Wrote trees to file: " << outfile->GetName() << std::endl;
+  // move in position
+  std::string finalFileName = outputdir + "/trees.root";
+  system( Form("mv %s %s", outfileName.c_str(), finalFileName.c_str()) );
+
+  std::cout << "-> Wrote trees to file: " << finalFileName << std::endl;
 
 
 
@@ -252,6 +256,13 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     
 
 
+  TFile* puFile_data = TFile::Open("puData.root");
+  TH1D* h1_nVert_data = (TH1D*)puFile_data->Get("nVert");
+
+  TFile* puFile_mc = TFile::Open("puMC.root");
+  TH1D* h1_nVert_mc = (TH1D*)puFile_mc->Get("nVert");
+
+
   ZGTree myTree;
   myTree.loadGenStuff = false;
   myTree.Init(tree);
@@ -276,6 +287,8 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
   outTree->Branch( "leptType", &leptType, "leptType/I");
   float met;
   outTree->Branch( "met", &met, "met/F" );
+  int nVert;
+  outTree->Branch( "nVert", &nVert, "nVert/I" );
 
   float lept0_pt;
   outTree->Branch( "lept0_pt", &lept0_pt, "lept0_pt/F" );
@@ -330,6 +343,9 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     event = myTree.evt;
     id    = myTree.evt_id;
 
+    if( myTree.nVert==0 ) continue;
+    nVert = myTree.nVert;
+
     
     // filters 
     if( myTree.isData ) {
@@ -337,10 +353,16 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     }
 
     // hlt
-    if(  myTree.isData && !( ( id==5  && myTree.HLT_DoubleMu ) || ( id==4 && myTree.HLT_DoubleEl ) || ( id==7 && !myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && myTree.HLT_Photon165_HE10 ) )  ) continue;
+    //if(  myTree.isData && !( ( id==5  && myTree.HLT_DoubleMu ) || ( id==4 && myTree.HLT_DoubleEl ) || ( id==7 && !myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && myTree.HLT_Photon165_HE10 ) )  ) continue;
     if( !myTree.isData && !( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_Photon165_HE10)) continue;
       
     weight = (myTree.isData) ? 1. : myTree.evt_scale1fb*cfg.lumi();
+    // pu reweighting:
+    if( !myTree.isData ) {
+      float puWeight = getPUweight( nVert, h1_nVert_data, h1_nVert_mc );
+      weight *= puWeight;
+    }
+    
 
     if( myTree.nlep!=2 ) continue; // two leptons
     if( myTree.lep_pdgId[0] != -myTree.lep_pdgId[1] ) continue; // same flavour, opposite sign
@@ -364,8 +386,11 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
 
     if( photon.Pt()<40. ) continue;
     if( fabs(photon.Eta())>1.44 && fabs(photon.Eta())<1.57 ) continue;
+    if( fabs(photon.Eta())>2.5 ) continue;
+    if( myTree.gamma_idCutBased[0]==0 ) continue;
     if( myTree.gamma_chHadIso[0]>2.5 ) continue;
-    if( photon.DeltaR(lept0)<0.5 || photon.DeltaR(lept1)<0.5 ) continue;
+    float deltaR_thresh = 0.4;
+    if( photon.DeltaR(lept0)<deltaR_thresh || photon.DeltaR(lept1)<deltaR_thresh ) continue;
 
 
     TLorentzVector zBoson = lept0+lept1;
@@ -409,3 +434,24 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
 
 }
 
+
+
+float getPUweight( int nVert, TH1D* h1_data, TH1D* h1_mc ) {
+
+
+  float w_data = getSinglePUweight( nVert, h1_data );
+  float w_mc   = getSinglePUweight( nVert, h1_mc );
+
+  return w_data/w_mc;
+
+}
+
+
+float getSinglePUweight( int nVert, TH1D* h1 ) {
+
+  int bin = h1->FindBin(nVert);
+  float weight = h1->GetBinContent(bin)/h1->Integral("width");
+
+  return weight;
+
+}
