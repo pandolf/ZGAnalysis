@@ -109,6 +109,7 @@ int main( int argc, char* argv[] ) {
 
 
     addTreeToFile( outfile, "zg", fSamples, cfg, 851 );
+    addTreeToFile( outfile, "dy", fSamples, cfg, 701 );
     //addTreeToFile( outfile, "top", fSamples, cfg, 300, 499 ); // irrelevant
     
 
@@ -225,7 +226,7 @@ int main( int argc, char* argv[] ) {
 
   // move in position
   std::string finalFileName = outputdir + "/trees.root";
-  system( Form("mv %s %s", outfileName.c_str(), finalFileName.c_str()) );
+  system( Form("cp %s %s", outfileName.c_str(), finalFileName.c_str()) );
 
   std::cout << "-> Wrote trees to file: " << finalFileName << std::endl;
 
@@ -289,6 +290,8 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
   outTree->Branch( "met", &met, "met/F" );
   int nVert;
   outTree->Branch( "nVert", &nVert, "nVert/I" );
+  int nGamma;
+  outTree->Branch( "nGamma", &nGamma, "nGamma/I" );
 
   float lept0_pt;
   outTree->Branch( "lept0_pt", &lept0_pt, "lept0_pt/F" );
@@ -310,6 +313,8 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
   outTree->Branch( "gamma_eta", &gamma_eta, "gamma_eta/F" );
   float gamma_phi;
   outTree->Branch( "gamma_phi", &gamma_phi, "gamma_phi/F" );
+  float gamma_iso;
+  outTree->Branch( "gamma_iso", &gamma_iso, "gamma_iso/F" );
 
   float z_pt;
   outTree->Branch( "z_pt", &z_pt, "z_pt/F" );
@@ -343,6 +348,9 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     event = myTree.evt;
     id    = myTree.evt_id;
 
+    // remove overlap
+    if( id==701 && myTree.ngamma>0 && myTree.gamma_mcMatchId[0]==22 ) continue;
+
     if( myTree.nVert==0 ) continue;
     nVert = myTree.nVert;
 
@@ -353,10 +361,12 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     }
 
     // hlt
-    //if(  myTree.isData && !( ( id==5  && myTree.HLT_DoubleMu ) || ( id==4 && myTree.HLT_DoubleEl ) || ( id==7 && !myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && myTree.HLT_Photon165_HE10 ) )  ) continue;
+    if(  myTree.isData && !( ( id==5  && myTree.HLT_DoubleMu ) || ( id==4 && myTree.HLT_DoubleEl ) || ( id==7 && !myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && myTree.HLT_Photon165_HE10 ) )  ) continue;
+    //if(  myTree.isData && !( ( id==5  && myTree.HLT_DoubleMu ) || ( id==4 && (myTree.HLT_DoubleEl || myTree.HLT_SingleEl) ) || ( id==7 && !myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && myTree.HLT_Photon165_HE10 && !myTree.HLT_SingleEl ) )  ) continue;
+    //if( !myTree.isData && !( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu )) continue;
     if( !myTree.isData && !( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_Photon165_HE10)) continue;
       
-    weight = (myTree.isData) ? 1. : myTree.evt_scale1fb*cfg.lumi();
+    weight = (myTree.isData) ? 1. : myTree.evt_scale1fb;
     // pu reweighting:
     if( !myTree.isData ) {
       float puWeight = getPUweight( nVert, h1_nVert_data, h1_nVert_mc );
@@ -370,7 +380,6 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     leptType = abs(myTree.lep_pdgId[0]);
     if( leptType!=11 && leptType!=13 ) continue; // just in case
 
-    if( myTree.ngamma==0 ) continue; // photon
     
     TLorentzVector lept0;
     lept0.SetPtEtaPhiM( myTree.lep_pt[0], myTree.lep_eta[0], myTree.lep_phi[0], myTree.lep_mass[0] );
@@ -382,15 +391,22 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
 
 
     TLorentzVector photon;
-    photon.SetPtEtaPhiM( myTree.gamma_pt[0], myTree.gamma_eta[0], myTree.gamma_phi[0], myTree.gamma_mass[0] );
 
-    if( photon.Pt()<40. ) continue;
-    if( fabs(photon.Eta())>1.44 && fabs(photon.Eta())<1.57 ) continue;
-    if( fabs(photon.Eta())>2.5 ) continue;
-    if( myTree.gamma_idCutBased[0]==0 ) continue;
-    if( myTree.gamma_chHadIso[0]>2.5 ) continue;
-    float deltaR_thresh = 0.4;
-    if( photon.DeltaR(lept0)<deltaR_thresh || photon.DeltaR(lept1)<deltaR_thresh ) continue;
+
+    if( cfg.selection()!="veryloose" ) {
+
+      if( myTree.ngamma==0 ) continue; // photon
+      photon.SetPtEtaPhiM( myTree.gamma_pt[0], myTree.gamma_eta[0], myTree.gamma_phi[0], myTree.gamma_mass[0] );
+   
+      if( photon.Pt()<40. ) continue;
+      if( fabs(photon.Eta())>1.44 && fabs(photon.Eta())<1.57 ) continue;
+      if( fabs(photon.Eta())>2.5 ) continue;
+      if( myTree.gamma_idCutBased[0]==0 ) continue;
+      if( myTree.gamma_chHadIso[0]>2.5 ) continue;
+      float deltaR_thresh = 0.4;
+      if( photon.DeltaR(lept0)<deltaR_thresh || photon.DeltaR(lept1)<deltaR_thresh ) continue;
+
+    }
 
 
     TLorentzVector zBoson = lept0+lept1;
@@ -407,9 +423,23 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     lept1_eta = lept1.Eta();
     lept1_phi = lept1.Phi();
 
-    gamma_pt  = photon.Pt();
-    gamma_eta = photon.Eta();
-    gamma_phi = photon.Phi();
+    nGamma = myTree.ngamma;
+
+    if( photon.Pt()>0. ) {
+
+      gamma_pt  = photon.Pt();
+      gamma_eta = photon.Eta();
+      gamma_phi = photon.Phi();
+      gamma_iso = myTree.gamma_chHadIso[0];
+
+    } else {
+
+      gamma_pt  = 0.;
+      gamma_eta = 0.;
+      gamma_phi = 0.;
+      gamma_iso = -1.;
+
+    }
 
     z_pt   = zBoson.Pt();
     z_eta  = zBoson.Eta();
@@ -442,7 +472,9 @@ float getPUweight( int nVert, TH1D* h1_data, TH1D* h1_mc ) {
   float w_data = getSinglePUweight( nVert, h1_data );
   float w_mc   = getSinglePUweight( nVert, h1_mc );
 
-  return w_data/w_mc;
+  float returnWeight = (w_mc>0.) ? w_data/w_mc : 0.;
+
+  return returnWeight;
 
 }
 
