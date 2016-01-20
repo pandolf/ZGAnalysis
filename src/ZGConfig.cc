@@ -25,21 +25,13 @@ ZGConfig::ZGConfig( const std::string& name ) {
   lumi_DoubleEG_ = 0.;
   lumi_DoubleMu_ = 0.;
 
-  regionsSet_ = "";
   mcSamples_ = "";
   sigSamples_ = "";
   dataSamples_ = "";
   additionalStuff_ = "";
-  analysisType_ = "mt2";
-  crRegionsSet_ = "13TeV_inclusive";
-  qcdRegionsSet_ = "zurich_onlyHT";
+  analysisType_ = "zg";
+  selection_ = "";
 
-  gammaTemplateRegions_ = "13TeV_inclusive"; // default
-  gammaTemplateType_    = "RC"; // default
-  gammaIsoCut_    = 2.5; // default
-  gamma2bMethod_    = "default"; // default
-
-  zllRegions_ = "13TeV_inclusive"; //default
 
   std::ifstream IN(configFileName.c_str());
   char buffer[200];
@@ -70,8 +62,6 @@ ZGConfig::ZGConfig( const std::string& name ) {
       lumi_DoubleEG_ = atof(StringValue);
     else if( this_name=="lumi_DoubleMu" )
       lumi_DoubleMu_ = atof(StringValue);
-    else if( this_name=="regionsSet" )
-      regionsSet_ = std::string(StringValue);
     else if( this_name=="mcSamples" )
       mcSamples_ = std::string(StringValue);
     else if( this_name=="sigSamples" )
@@ -80,22 +70,10 @@ ZGConfig::ZGConfig( const std::string& name ) {
       dataSamples_ = std::string(StringValue);
     else if( this_name=="additionalStuff" )
       additionalStuff_ = std::string(StringValue);
-    else if( this_name=="gammaTemplateRegions" )
-      gammaTemplateRegions_ = std::string(StringValue);
-    else if( this_name=="gammaTemplateType" )
-      gammaTemplateType_ = std::string(StringValue);
-    else if( this_name=="gammaIsoCut" )
-      gammaIsoCut_ = atof(StringValue);
     else if( this_name=="analysisType" )
       analysisType_ = std::string(StringValue);
-    else if( this_name=="crRegionsSet" )
-      crRegionsSet_ = std::string(StringValue);
-    else if( this_name=="qcdRegionsSet" )
-      qcdRegionsSet_ = std::string(StringValue);
-    else if( this_name=="gamma2bMethod" )
-      gamma2bMethod_ = std::string(StringValue);
-    else if( this_name=="zllRegions" )
-      zllRegions_ = std::string(StringValue);
+    else if( this_name=="selection" )
+      selection_ = std::string(StringValue);
 
   } // while getline
 
@@ -108,11 +86,6 @@ ZGConfig::ZGConfig( const std::string& name ) {
     exit(761);
   }
 
-
-  if( gammaTemplateType_!="FR" && gammaTemplateType_!="MC" && gammaTemplateType_!="RC" ) {
-    std::cout << "[ZGConfig::gammaTemplateType] ERROR! gammaTemplateType may only be 'MC' or 'FR' or 'RC'" << std::endl;
-    exit(1111);
-  }
 
      
 }
@@ -196,14 +169,6 @@ std::string ZGConfig::getEventYieldDir() const {
 }
 
 
-std::string ZGConfig::getGammaCRdir() const {
-
-  std::string outputdir = this->getEventYieldDir() + "/gammaControlRegion/";
-
-  return outputdir;
-
-}
-
 
 
 void ZGConfig::saveAs( const std::string& filename ) const {
@@ -220,18 +185,12 @@ void ZGConfig::saveAs( const std::string& filename ) const {
   ofs << "lumi_DoubleEG "     <<   lumi_DoubleEG_       << std::endl;
   ofs << "lumi_DoubleMu "     <<   lumi_DoubleMu_       << std::endl;
 
-  ofs << "regionsSet " << regionsSet_ << std::endl;
   if( mcSamples_!="" )       ofs << "mcSamples " << mcSamples_ << std::endl;
   if( sigSamples_!="" )      ofs << "sigSamples " << sigSamples_ << std::endl;
   if( dataSamples_!="" )     ofs << "dataSamples " << dataSamples_ << std::endl;
   if( additionalStuff_!="" ) ofs << "additionalStuff " << additionalStuff_ << std::endl;
+  if( selection_!="" ) ofs << "selection " << selection_ << std::endl;
 
-  ofs << "gammaTemplateRegions " << gammaTemplateRegions_ << std::endl;
-  ofs << "gammaTemplateType " << gammaTemplateType_ << std::endl;
-  ofs << "gammaIsoCut " << gammaIsoCut_ << std::endl;
-  ofs << "gamma2bMethod " << gamma2bMethod_ << std::endl;
-
-  ofs << "zllRegions " << zllRegions_ << std::endl;
 
   std::cout << "[ZGConfig] Saved config file as '" << filename << "'." << std::endl;
 
