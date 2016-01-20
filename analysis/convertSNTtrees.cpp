@@ -7,6 +7,12 @@
 #include "TLorentzVector.h"
 
 
+
+
+
+bool loose_skim = false;
+
+
 void convertFiles( const std::string& samplesFile, const std::string& expr, int id, bool skim=false, bool prune=false, const std::string& outdir="." );
 
 
@@ -224,6 +230,7 @@ void convertFiles( const std::string& samplesFile, const std::string& expr, int 
 
   std::string outFileName = outdir + "/" + expr;
   if( skim ) outFileName = outFileName + "_skim";
+  if( loose_skim ) outFileName = outFileName + "_loose";
   outFileName = outFileName + ".root";
   TFile* outFile = TFile::Open( outFileName.c_str(), "recreate" );
   outFile->cd();
@@ -404,25 +411,26 @@ void convertFiles( const std::string& samplesFile, const std::string& expr, int 
     if( skim ) {
 
       if( !(Flag_HBHENoiseFilter>0. && Flag_HBHEIsoNoiseFilter>0. && Flag_eeBadScFilter>0.) ) continue;
-      if( ngamma==0 ) continue;
+      if( !loose_skim )
+        if( ngamma==0 ) continue;
       if( nlep!=2 ) continue;
 
-      int foundPhot = -1;
-      for( int iph=0; iph<ngamma; ++iph ) {
-        if( gamma_chHadIso[iph]>10. ) continue; // loose iso
-        TLorentzVector phot;
-        phot.SetPtEtaPhiM( gamma_pt[iph], gamma_eta[iph], gamma_phi[iph], gamma_mass[iph] );
-        for( int il=0; il<nlep; ++il ) {
-          TLorentzVector lep;
-          lep.SetPtEtaPhiM( lep_pt[il], lep_eta[il], lep_phi[il], lep_mass[il] );
-          if( phot.DeltaR(lep)<0.3 ) continue;
-        }
-        foundPhot = iph;
-        break;
-      }
+      //int foundPhot = -1;
+      //for( int iph=0; iph<ngamma; ++iph ) {
+      //  if( gamma_chHadIso[iph]>10. ) continue; // loose iso
+      //  TLorentzVector phot;
+      //  phot.SetPtEtaPhiM( gamma_pt[iph], gamma_eta[iph], gamma_phi[iph], gamma_mass[iph] );
+      //  for( int il=0; il<nlep; ++il ) {
+      //    TLorentzVector lep;
+      //    lep.SetPtEtaPhiM( lep_pt[il], lep_eta[il], lep_phi[il], lep_mass[il] );
+      //    if( phot.DeltaR(lep)<0.3 ) continue;
+      //  }
+      //  foundPhot = iph;
+      //  break;
+      //}
 
-      if( foundPhot<0 ) continue;
-      if( gamma_pt[foundPhot]<40. ) continue;
+      //if( foundPhot<0 ) continue;
+      //if( gamma_pt[foundPhot]<40. ) continue;
 
     } // skim
          
