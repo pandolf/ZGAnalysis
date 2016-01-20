@@ -52,6 +52,8 @@ int main( int argc, char* argv[] ) {
   TTree* tree_data = (TTree*)file->Get("data");
   TTree* tree_zg   = (TTree*)file->Get("zg");
   tree_zg->SetTitle("Z#gamma");
+  TTree* tree_dy   = (TTree*)file->Get("dy");
+  tree_dy->SetTitle("Z+jets");
 
   std::string plotsDir = cfg.getEventYieldDir() + "/plots";
   if( shapeNorm ) plotsDir = plotsDir + "_shape";
@@ -59,6 +61,7 @@ int main( int argc, char* argv[] ) {
 
   std::vector<TTree*> trees_mc;
   trees_mc.push_back( tree_zg );
+  trees_mc.push_back( tree_dy );
 
 
   ZGDrawTools dt(plotsDir, cfg.lumi() );
@@ -72,6 +75,7 @@ int main( int argc, char* argv[] ) {
   dt.drawPlot( "nVert"     , "nVert"     , "", 35, 0 , 35, "Number of Vertexes" );
   dt.drawPlot( "leptType"     , "leptType"     , "", 5, 9.5 , 14.4, "Lepton PDG ID" );
 
+  dt.drawPlot( "mZg_lowMass"  , "boss_mass", "", 40, 200., 600., "M(Z#gamma)", "GeV" );
   dt.drawPlot( "mZg"  , "boss_mass", "", 100, 200., 1200., "M(Z#gamma)", "GeV" );
   dt.drawPlot( "mZg_all"     , "boss_mass", "", 120, 0., 1200., "M(Z#gamma)", "GeV" );
 
@@ -83,13 +87,17 @@ int main( int argc, char* argv[] ) {
   dt.drawPlot( "mZ"   , "z_mass", ""            , 50, 50., 150., "M(l^{+}l^{-})", "GeV" );
   dt.drawPlot( "mZee" , "z_mass", "leptType==11", 50, 50., 150., "M(e^{+}e^{-})", "GeV" );
   dt.drawPlot( "mZmm" , "z_mass", "leptType==13", 50, 50., 150., "M(#mu^{+}#mu^{-})", "GeV" );
+  dt.drawPlot( "mZee_bossCut" , "z_mass", "leptType==11 && boss_mass<500.", 50, 50., 150., "M(e^{+}e^{-})", "GeV" );
+  dt.drawPlot( "mZmm_bossCut" , "z_mass", "leptType==13 && boss_mass<500.", 50, 50., 150., "M(#mu^{+}#mu^{-})", "GeV" );
 
   dt.drawPlot( "ptZ"        , "z_pt"    , ""              , 60, 0. , 300., "Z p_{T}"      , "GeV" );
   dt.drawPlot( "ptZ_metCut" , "z_pt"    , "met<50."       , 60, 0. , 300., "Z p_{T}"      , "GeV" );
   dt.drawPlot( "ptZ_bossCut", "z_pt"    , "boss_mass>150. && boss_mass<500.", 60, 0. , 300., "Z p_{T}"      , "GeV" );
 
+  dt.drawPlot( "nGamma" , "nGamma", "", 6, 0., 6., "Photon Multiplicity" );
   dt.drawPlot( "ptGamma" , "gamma_pt", "", 60, 40., 340., "Photon p_{T}" , "GeV" );
   dt.drawPlot( "etaGamma" , "gamma_eta", "", 50, -3., 3., "Photon #eta" );
+  dt.drawPlot( "isoGamma" , "gamma_iso", "", 50, 0., 10., "Photon Charged Hadron Isolation", "GeV" );
 
   dt.drawPlot( "ptLept0" , "lept0_pt" , "", 60, 25., 325., "Leading Lepton p_{T}" , "GeV" );
   dt.drawPlot( "etaLept0", "lept0_eta", "", 50, -3.,   3., "Leading Lepton #eta" );
@@ -99,6 +107,7 @@ int main( int argc, char* argv[] ) {
 
   dt.drawPlot( "met"     , "met"     , "", 60, 0. , 300., "Missing E_{T}", "GeV" );
   dt.drawPlot( "ptgOmZg", "gamma_pt/boss_mass", "", 50, 0., 2., "", "" );
+  dt.drawPlot( "ptgOmZg_bossCut"  , "gamma_pt/boss_mass", "boss_mass>200.", 50, 0., 2., "", "" );
 
   return 0;
 
