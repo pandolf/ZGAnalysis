@@ -42,6 +42,7 @@ class ZGDrawTools {
   void set_addOverflow( bool addOver );
   void set_displaySF( bool displaySF );
   void set_doPaperPlots( bool doPaperPlots );
+  void set_drawZeros( bool drawZeros );
 
   bool twoPads() const;
 
@@ -58,7 +59,7 @@ class ZGDrawTools {
   static std::string getLumiText( float lumi );
 
   static TGraphAsymmErrors* getPoissonGraph( TH1D* h1, bool drawZeros=true, const std::string& xerrType="0", float nSigma=1. );
-  static TGraphAsymmErrors* getRatioGraph( TH1D* h1, TH1D* h2 );
+  static TGraphAsymmErrors* getRatioGraph( TGraphAsymmErrors* gr_data, TH1D* h2 );
 
   static float getDataMCSF( TCanvas* c1 );
   static float graphIntegral( TGraphAsymmErrors* graph, float xMin = -99999., float xMax=999999. );
@@ -101,6 +102,7 @@ class ZGDrawTools {
   bool addOverflow_;
   bool displaySF_;
   bool doPaperPlots_;
+  bool drawZeros_;
 
   TTree* data_;
   std::vector< TTree* > mc_;

@@ -26,6 +26,8 @@ ZGDrawTools::ZGDrawTools( const std::string& outDir, float lumi ) {
 
   doPaperPlots_ = false;
 
+  drawZeros_ = false;
+
   setStyle();
 
   std::cout << "[ZGDrawTools] Initiating: " << std::endl;
@@ -117,6 +119,17 @@ void ZGDrawTools::set_mcSF( float mcsf ) {
 
   std::cout << "[ZGDrawTools] Setting MC SF to: " << mcsf << std::endl;
   mcSF_ = mcsf;
+
+}
+
+
+void ZGDrawTools::set_drawZeros( bool drawZeros ) { 
+
+  if( drawZeros )
+    std::cout << "[ZGDrawTools] Setting drawZeros: ON" << std::endl;
+  else
+    std::cout << "[ZGDrawTools] Setting drawZeros: OFF" << std::endl;
+  drawZeros_ = drawZeros;
 
 }
 
@@ -310,7 +323,7 @@ TGraphAsymmErrors* ZGDrawTools::getPoissonGraph( TH1D* histo, bool drawZeros, co
   for( unsigned i=1; i < nBins; ++i ) {
     if( histo->GetBinContent(i)==0 ) emptyBins += 1;
   }
-  if( (float)emptyBins/(float)nBins > 0.4 ) drawZeros=false;
+  //if( (float)emptyBins/(float)nBins > 0.4 ) drawZeros=false;
 
   TGraphAsymmErrors* graph = new TGraphAsymmErrors(0);
 
@@ -350,13 +363,12 @@ TGraphAsymmErrors* ZGDrawTools::getPoissonGraph( TH1D* histo, bool drawZeros, co
 }
 
 
-TGraphAsymmErrors* ZGDrawTools::getRatioGraph( TH1D* histo_data, TH1D* histo_mc ){
+TGraphAsymmErrors* ZGDrawTools::getRatioGraph( TGraphAsymmErrors* graph_data, TH1D* histo_mc ) {
 
-  if( !histo_data || !histo_mc ) return 0;
+  if( !graph_data || !histo_mc ) return 0;
 
   TGraphAsymmErrors* graph  = new TGraphAsymmErrors();
   
-  TGraphAsymmErrors* graph_data = ZGDrawTools::getPoissonGraph(histo_data, false);
   
   for( int i=0; i < graph_data->GetN(); ++i){
     
@@ -778,7 +790,7 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
     //tree_data->Project( "h1_data", varName.c_str(), Form("%f*(%s)", data_->getWeight(), selection.c_str()) );
     if( addOverflow_ )
       ZGDrawTools::addOverflowSingleHisto(h1_data);
-    gr_data = ZGDrawTools::getPoissonGraph(h1_data);
+    gr_data = ZGDrawTools::getPoissonGraph(h1_data, drawZeros_);
     gr_data->SetMarkerStyle(20);
     gr_data->SetMarkerSize(1.2);
   }
@@ -847,7 +859,7 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
   TH1D* mcBand = ZGDrawTools::getMCBandHisto( histo_mc, lumiErr_ );
   
   TGraphAsymmErrors* g_ratio = 0;
-  if( data_ ) g_ratio = ZGDrawTools::getRatioGraph(h1_data, mcBand);
+  if( data_ ) g_ratio = ZGDrawTools::getRatioGraph(gr_data, mcBand );
   
   TLine* lineCentral = new TLine(xMin, 1.0, xMax, 1.0);
   lineCentral->SetLineColor(1);
