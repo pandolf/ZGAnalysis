@@ -28,11 +28,15 @@ int main( int argc, char* argv[] ) {
   ZGConfig cfg(configFileName);
 
   bool shapeNorm = false;
+  bool onlyMC = false;
   if( argc>2 ) {
     std::string normType(argv[2]);
     if( normType=="lumi" ) shapeNorm=false;
     else if( normType=="shape" ) shapeNorm=true;
-    else {
+    else if( normType=="onlyMC" ) {
+      shapeNorm=false;
+      onlyMC=true;
+    } else {
       std::cout << "-> Only 'lumi' and 'shape' are supported normTypes." << std::endl;
       exit(17);
     }
@@ -44,6 +48,9 @@ int main( int argc, char* argv[] ) {
   else
     std::cout << "-> Using lumi normalization." << std::endl;
 
+  if( onlyMC )
+    std::cout << "-> Plotting only MC." << std::endl;
+
 
   std::string treesFile = cfg.getEventYieldDir() + "/trees.root";
 
@@ -54,26 +61,32 @@ int main( int argc, char* argv[] ) {
   tree_zg->SetTitle("Z#gamma");
   TTree* tree_dy   = (TTree*)file->Get("dy");
   tree_dy->SetTitle("Z+jets");
+  TTree* tree_top   = (TTree*)file->Get("top");
+  tree_top->SetTitle("Top");
 
   std::string plotsDir = cfg.getEventYieldDir() + "/plots";
   if( shapeNorm ) plotsDir = plotsDir + "_shape";
+  if( onlyMC ) plotsDir = plotsDir + "_MConly";
   system( Form("mkdir -p %s", plotsDir.c_str()) );
 
   std::vector<TTree*> trees_mc;
   trees_mc.push_back( tree_zg );
   trees_mc.push_back( tree_dy );
+  //trees_mc.push_back( tree_top );
 
 
   ZGDrawTools dt(plotsDir, cfg.lumi() );
   dt.set_shapeNorm( shapeNorm );
 
-  dt.set_data( tree_data );
+  if( !onlyMC )
+    dt.set_data( tree_data );
   dt.set_mc( trees_mc );
 
   dt.set_lumi( cfg.lumi() );
 
   dt.drawPlot( "nVert"     , "nVert"     , "", 35, 0 , 35, "Number of Vertexes" );
-  dt.drawPlot( "leptType"     , "leptType"     , "", 5, 9.5 , 14.4, "Lepton PDG ID" );
+  dt.drawPlot( "leptType"     , "leptType"     , "", 5, 9.5 , 14.5, "Lepton PDG ID" );
+  dt.drawPlot( "leptType_bossCut"     , "leptType"     , "boss_mass<500.", 5, 9.5 , 14.5, "Lepton PDG ID" );
 
   dt.drawPlot( "mZg_lowMass"  , "boss_mass", "", 40, 200., 600., "M(Z#gamma)", "GeV" );
   dt.drawPlot( "mZg"  , "boss_mass", "", 100, 200., 1200., "M(Z#gamma)", "GeV" );
@@ -92,22 +105,21 @@ int main( int argc, char* argv[] ) {
 
   dt.drawPlot( "ptZ"        , "z_pt"    , ""              , 60, 0. , 300., "Z p_{T}"      , "GeV" );
   dt.drawPlot( "ptZ_metCut" , "z_pt"    , "met<50."       , 60, 0. , 300., "Z p_{T}"      , "GeV" );
-  dt.drawPlot( "ptZ_bossCut", "z_pt"    , "boss_mass>150. && boss_mass<500.", 60, 0. , 300., "Z p_{T}"      , "GeV" );
+  dt.drawPlot( "ptZ_bossCut", "z_pt"    , "boss_mass<500.", 60, 0. , 300., "Z p_{T}"      , "GeV" );
 
   dt.drawPlot( "nGamma" , "nGamma", "", 6, 0., 6., "Photon Multiplicity" );
   dt.drawPlot( "ptGamma" , "gamma_pt", "", 60, 40., 340., "Photon p_{T}" , "GeV" );
   dt.drawPlot( "etaGamma" , "gamma_eta", "", 50, -3., 3., "Photon #eta" );
   dt.drawPlot( "isoGamma" , "gamma_iso", "", 50, 0., 10., "Photon Charged Hadron Isolation", "GeV" );
 
-  dt.drawPlot( "ptLept0" , "lept0_pt" , "", 60, 25., 325., "Leading Lepton p_{T}" , "GeV" );
-  dt.drawPlot( "etaLept0", "lept0_eta", "", 50, -3.,   3., "Leading Lepton #eta" );
+  dt.drawPlot( "ptLept0" , "lept0_pt" , "", 30, 25., 325., "Leading Lepton p_{T}" , "GeV" );
+  dt.drawPlot( "etaLept0", "lept0_eta", "", 30, -3.,   3., "Leading Lepton #eta" );
 
   dt.drawPlot( "ptLept1"  , "lept1_pt" , "", 30, 20., 170., "Trailing Lepton p_{T}" , "GeV" );
-  dt.drawPlot( "etaLept1" , "lept1_eta", "", 50, -3.,   3., "Trailing Lepton #eta" );
+  dt.drawPlot( "etaLept1" , "lept1_eta", "", 30, -3.,   3., "Trailing Lepton #eta" );
 
   dt.drawPlot( "met"     , "met"     , "", 60, 0. , 300., "Missing E_{T}", "GeV" );
-  dt.drawPlot( "ptgOmZg", "gamma_pt/boss_mass", "", 50, 0., 2., "", "" );
-  dt.drawPlot( "ptgOmZg_bossCut"  , "gamma_pt/boss_mass", "boss_mass>200.", 50, 0., 2., "", "" );
+  dt.drawPlot( "ptgOmZg", "gamma_pt/boss_mass", "", 25, 0., 1., "p_{T}(#gamma) / M(Z#gamma)", "" );
 
   return 0;
 
