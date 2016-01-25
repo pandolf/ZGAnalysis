@@ -766,6 +766,12 @@ TH1D* ZGDrawTools::getBand(TF1 *f, TMatrixD const& m, std::string name, bool get
 
 TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& varName, const std::string& selection, int nBins, float xMin, float xMax, std::string axisName, const std::string& units ) {
 
+  std::vector<int> colors;
+  colors.push_back(411);
+  colors.push_back(401);
+  colors.push_back(38);
+  colors.push_back(46);
+
 
   TString sel_tstr(selection);
   if( sel_tstr.Contains("weight") ) {
@@ -845,7 +851,7 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
   THStack* bgStack = new THStack("bgStack", "");
   for( unsigned i=0; i<histos_mc.size(); ++i ) { 
     int index = mc_.size() - i - 1;
-    histos_mc[index]->SetFillColor( kZG+i*10 );
+    histos_mc[index]->SetFillColor( colors[index] );
     histos_mc[index]->SetLineColor( kBlack );
     //if( shapeNorm_ && data_ )
     histos_mc[index]->Scale( scaleFactor );
@@ -1020,7 +1026,7 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
   //    ratioText->Draw("same");
 
 
-  (data_) ? ZGDrawTools::addLabels( (TCanvas*)pad1, lumi_, CMStext.c_str() ) : ZGDrawTools::addLabels( (TCanvas*)pad1, lumi_, "CMS Simulation"); 
+  (data_) ? ZGDrawTools::addLabels( (TCanvas*)pad1, lumi_, CMStext.c_str() ) : ZGDrawTools::addLabels( c1, lumi_, "CMS Simulation"); 
 
   gPad->RedrawAxis();
 
@@ -1036,7 +1042,7 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
   if( !shapeNorm_ && fitText )
     fitText->Draw("same");
   //    ratioText->Draw("same");
-  (data_) ? ZGDrawTools::addLabels( (TCanvas*)pad1_log, lumi_, CMStext.c_str() ) : ZGDrawTools::addLabels( (TCanvas*)pad1_log, lumi_, "CMS Simulation"); 
+  (data_) ? ZGDrawTools::addLabels( (TCanvas*)pad1_log, lumi_, CMStext.c_str() ) : ZGDrawTools::addLabels( (TCanvas*)c1_log, lumi_, "CMS Simulation"); 
 
   gPad->RedrawAxis();
   
