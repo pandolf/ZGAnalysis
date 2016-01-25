@@ -15,8 +15,8 @@ EXTRALIBS := -L$(ROOTSYS)/lib -L$(ROOFIT_LIBDIR)/ -L$(CMSSW_BASE)/lib/slc6_amd64
 
 all: runZGAnalysis
 
-runZGAnalysis: runZGAnalysis.cpp ZGSample.o ZGConfig.o
-	$(CC) -Wall $(INCLUDES) -o runZGAnalysis runZGAnalysis.cpp ZGSample.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
+runZGAnalysis: runZGAnalysis.cpp ZGSample.o ZGConfig.o ZGCommonTools.o
+	$(CC) -Wall $(INCLUDES) -o runZGAnalysis runZGAnalysis.cpp ZGSample.o ZGConfig.o ZGCommonTools.o  $(ROOTFLAG) $(EXTRALIBS)
 
 convertSNTtrees: convertSNTtrees.cpp
 	$(CC) -Wall $(INCLUDES) -o convertSNTtrees convertSNTtrees.cpp $(ROOTFLAG) $(EXTRALIBS)
@@ -26,6 +26,9 @@ drawZG: drawZG.cpp ZGDrawTools.o ZGConfig.o
 
 drawLimitPlot: drawLimitPlot.cpp ZGDrawTools.o ZGConfig.o
 	$(CC) -Wall $(INCLUDES) -o drawLimitPlot drawLimitPlot.cpp ZGDrawTools.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
+
+computeGenEfficiency: computeGenEfficiency.cpp ZGCommonTools.o 
+	$(CC) -Wall $(INCLUDES) -o computeGenEfficiency computeGenEfficiency.cpp ZGCommonTools.o  $(ROOTFLAG) $(EXTRALIBS)
 
 
 
@@ -41,8 +44,9 @@ ZGSample.o: ../src/ZGSample.cc
 ZGDrawTools.o: ../src/ZGDrawTools.cc 
 	$(CC) -Wall $(INCLUDES) -c ../src/ZGDrawTools.cc $(ROOTFLAG) $(EXTRALIBS)
 
-#ZGDrawTools.o: ../src/ZGDrawTools.cc ZGRegion.o ZGEstimateTree.o ZGConfig.o
-#	$(CC) -Wall $(INCLUDES) -c ../src/ZGDrawTools.cc ZGRegion.o ZGEstimateTree.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
+ZGCommonTools.o: ../src/ZGCommonTools.cc 
+	$(CC) -Wall $(INCLUDES) -c ../src/ZGCommonTools.cc $(ROOTFLAG) $(EXTRALIBS)
+
 
 
 
