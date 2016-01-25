@@ -19,7 +19,6 @@
 
 
 
-#define kZG 401
 
 
 
