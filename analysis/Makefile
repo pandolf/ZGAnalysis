@@ -27,6 +27,9 @@ drawZG: drawZG.cpp ZGDrawTools.o ZGConfig.o
 drawLimitPlot: drawLimitPlot.cpp ZGDrawTools.o ZGConfig.o
 	$(CC) -Wall $(INCLUDES) -o drawLimitPlot drawLimitPlot.cpp ZGDrawTools.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
 
+drawGenEfficiency: drawGenEfficiency.cpp ZGDrawTools.o 
+	$(CC) -Wall $(INCLUDES) -o drawGenEfficiency drawGenEfficiency.cpp ZGDrawTools.o $(ROOTFLAG) $(EXTRALIBS)
+
 computeGenEfficiency: computeGenEfficiency.cpp ZGCommonTools.o 
 	$(CC) -Wall $(INCLUDES) -o computeGenEfficiency computeGenEfficiency.cpp ZGCommonTools.o  $(ROOTFLAG) $(EXTRALIBS)
 
