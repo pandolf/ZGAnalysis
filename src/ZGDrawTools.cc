@@ -143,6 +143,7 @@ TStyle* ZGDrawTools::setStyle() {
   style->SetFrameFillColor(0);
   style->SetStatColor(0);
   style->SetOptStat(0);
+  style->SetOptFit(0);
   style->SetTitleFillColor(0);
   style->SetCanvasBorderMode(0);
   style->SetPadBorderMode(0);
@@ -237,8 +238,10 @@ std::string ZGDrawTools::getLumiText( float lumi ) {
 TPaveText* ZGDrawTools::getLabelTop( float lumi ) {
 
   char text[300];
-  sprintf( text, "%s (13 TeV)", getLumiText(lumi).c_str() );
-  //  sprintf( text, "CMS Preliminary, %s at #sqrt{s} = 13 TeV", getLumiText(lumi).c_str() );
+  if( lumi>0. )
+    sprintf( text, "%s (13 TeV)", getLumiText(lumi).c_str() );
+  else
+    sprintf( text, "13 TeV" );
   std::string text_str(text);
   return getLabelTop(text_str);
 
