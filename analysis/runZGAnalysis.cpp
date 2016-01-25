@@ -13,6 +13,7 @@
 
 #include "interface/ZGSample.h"
 #include "interface/ZGConfig.h"
+#include "interface/ZGCommonTools.h"
 
 
 
@@ -27,8 +28,6 @@
 
 void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSample> samples, const ZGConfig& cfg, int idMin=-1, int idMax=-1 );
 
-float getPUweight( int nVert, TH1D* h1_data, TH1D* h1_mc );
-float getSinglePUweight( int nVert, TH1D* h1 );
 
 
 
@@ -363,13 +362,16 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     // hlt
     if(  myTree.isData && !( ( id==5  && myTree.HLT_DoubleMu ) || ( id==4 && myTree.HLT_DoubleEl ) || ( id==7 && !myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && myTree.HLT_Photon165_HE10 ) )  ) continue;
     //if(  myTree.isData && !( ( id==5  && myTree.HLT_DoubleMu ) || ( id==4 && (myTree.HLT_DoubleEl || myTree.HLT_SingleEl) ) || ( id==7 && !myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && myTree.HLT_Photon165_HE10 && !myTree.HLT_SingleEl ) )  ) continue;
+    //if(  myTree.isData && !( ( id==5  && myTree.HLT_DoubleMu ) || ( id==4 ) || ( id==7 && !myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && myTree.HLT_Photon165_HE10 ) )  ) continue;
+
     //if( !myTree.isData && !( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu )) continue;
     if( !myTree.isData && !( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_Photon165_HE10)) continue;
+    //if( !myTree.isData && !( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_Photon165_HE10 || myTree.HLT_SingleEl)) continue;
       
     weight = (myTree.isData) ? 1. : myTree.evt_scale1fb;
     // pu reweighting:
     if( !myTree.isData ) {
-      float puWeight = getPUweight( nVert, h1_nVert_data, h1_nVert_mc );
+      float puWeight = ZGCommonTools::getPUweight( nVert, h1_nVert_data, h1_nVert_mc );
       weight *= puWeight;
     }
     
@@ -389,6 +391,9 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     if( lept0.Pt()<25. ) continue;
     if( lept1.Pt()<20. ) continue; 
 
+    if( leptType==11 ) {
+      if( myTree.lep_tightId[0]==0 || myTree.lep_tightId[1]==0 ) continue; // loose electron ID
+    }
 
     TLorentzVector photon;
 
@@ -452,6 +457,7 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     boss_mass = boss.M();
 
     met = myTree.met_pt;
+    //if( met > 80. ) continue;
 
     if( DATABLINDING && myTree.isData && boss_mass>500. ) continue;
 
@@ -466,24 +472,3 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
 
 
 
-float getPUweight( int nVert, TH1D* h1_data, TH1D* h1_mc ) {
-
-
-  float w_data = getSinglePUweight( nVert, h1_data );
-  float w_mc   = getSinglePUweight( nVert, h1_mc );
-
-  float returnWeight = (w_mc>0.) ? w_data/w_mc : 0.;
-
-  return returnWeight;
-
-}
-
-
-float getSinglePUweight( int nVert, TH1D* h1 ) {
-
-  int bin = h1->FindBin(nVert);
-  float weight = h1->GetBinContent(bin)/h1->Integral("width");
-
-  return weight;
-
-}
