@@ -19,7 +19,7 @@ int main( int argc, char* argv[] ) {
 
 
   if( argc==1 ) {
-    std::cout << " USAGE: ./drawLimitPlot [cfg]" << std::endl;
+    std::cout << " USAGE: ./drawLimitPlot [cfg] [eff=0.4]" << std::endl;
     exit(1);
   }
   
@@ -27,12 +27,19 @@ int main( int argc, char* argv[] ) {
   std::string configFileName(argv[1]);
   ZGConfig cfg(configFileName);
 
+  int eff = 40;
+  if( argc>2 ) {
+    std::string eff_str(argv[2]);
+    eff = atoi(eff_str.c_str());
+  }
+
+
 
   ZGDrawTools::setStyle();
 
   std::string dir = cfg.getEventYieldDir() + "_fit_v0_default_shapes_combination_pcorr_lumi_2.3";
   std::string fullPath = "../../diphotons/Analysis/macros/" + dir;
-  std::string limitsFile = fullPath + "/limits.txt";
+  std::string limitsFile( Form( "%s/limits_eff%d.txt", fullPath.c_str(), eff) );
 
   
   TGraph* gr_obs = new TGraph(0);
@@ -110,8 +117,8 @@ int main( int argc, char* argv[] ) {
 
   gPad->RedrawAxis();
 
-  c1->SaveAs( Form("%s/limit.eps", cfg.getEventYieldDir().c_str()) );
-  c1->SaveAs( Form("%s/limit.pdf", cfg.getEventYieldDir().c_str()) );
+  c1->SaveAs( Form("%s/limit_eff%d.eps", cfg.getEventYieldDir().c_str(), eff) );
+  c1->SaveAs( Form("%s/limit_eff%d.pdf", cfg.getEventYieldDir().c_str(), eff) );
 
   return 0;
 
