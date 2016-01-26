@@ -64,8 +64,7 @@ void drawEfficiency( const std::string& outdir, TFile* file ) {
   line->SetLineWidth(2);
   gr_eff->Fit( line, "QR0" );
 
-  TH1D* h1_band = new TH1D("band", "", 500, 300., 1000.);
-  (TVirtualFitter::GetFitter())->GetConfidenceIntervals(h1_band, 0.68);
+  TH1D* h1_band = ZGDrawTools::getBand( line );
   h1_band->SetFillColor(18);
   h1_band->Draw("C E3 same");
   line->Draw("same");
@@ -83,6 +82,7 @@ void drawEfficiency( const std::string& outdir, TFile* file ) {
 
   delete c1;
   delete h2_axes;
+  delete h1_band;
 
 }
 
@@ -105,9 +105,21 @@ void drawVsMass( const std::string& outdir, TFile* file ) {
     TH1D* h1_reso = (TH1D*)file->Get( Form("reso_%d", i) );
     if( h1_reso==0 ) break;
 
-    TF1* f1 = new TF1("gaussian", "gaus", -0.5, 0.5);
+    TF1* f1 = new TF1("gaussian", "gaus", -0.2, 0.2);
     f1->SetParameters( h1_reso->Integral(), h1_reso->GetMean(), h1_reso->GetRMS() );
-    h1_reso->Fit( f1, "LQR" );
+    h1_reso->Fit( f1, "LQR0" );
+
+    int maxiter = 3;
+    float nSigma = 3.;
+    for( int iter=0; iter<maxiter; iter++ ) {
+      float imean = f1->GetParameter(1);
+      float irms = f1->GetParameter(2);
+      f1->SetRange( imean-nSigma*irms, imean+nSigma*irms );
+      if( iter==maxiter-1 )
+        h1_reso->Fit( f1, "LQR" );
+      else
+        h1_reso->Fit( f1, "LQR0" );
+    }
 
     h1_reso->Draw();
     c1->SaveAs( Form("%s/fit_%d.eps", outdir.c_str(), i) );
@@ -130,7 +142,7 @@ void drawVsMass( const std::string& outdir, TFile* file ) {
   }
 
   drawSingleGraph( outdir, gr_resp, -0.1, 0.1, "(M_{gen} - M_{reco}) / M_{gen}", 0. );
-  drawSingleGraph( outdir, gr_reso, 0., 0.2, "Mass Resolution" );
+  drawSingleGraph( outdir, gr_reso, 0., 0.1, "Mass Resolution" );
 
 }
 
@@ -146,12 +158,23 @@ void drawSingleGraph( const std::string& outdir, TGraphErrors* graph, float yMin
   h2_axes->SetYTitle( axisName.c_str() );
   h2_axes->Draw();
 
-  TLine* line = new TLine( xMin, lineY, xMax, lineY );
-  line->Draw("same");
+  TLine* lineHorizontal = new TLine( xMin, lineY, xMax, lineY );
+  lineHorizontal->Draw("same");
   
 
   graph->SetMarkerStyle(20);
   graph->SetMarkerSize(2.);
+
+  TF1* line = new TF1( "line", "[0] + [1]*x", xMin, xMax );
+  line->SetLineColor(46);
+  line->SetLineWidth(2);
+  graph->Fit( line, "QR0" );
+
+  TH1D* h1_band = ZGDrawTools::getBand( line );
+  h1_band->SetFillColor(18);
+  h1_band->Draw("C E3 same");
+  line->Draw("same");
+
   graph->Draw("p same" );
   
   ZGDrawTools::addLabels( c1, -1., "CMS Simulation" );
@@ -163,5 +186,6 @@ void drawSingleGraph( const std::string& outdir, TGraphErrors* graph, float yMin
 
   delete c1;
   delete h2_axes;
+  delete h1_band;
 
 }
