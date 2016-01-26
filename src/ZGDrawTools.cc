@@ -5,6 +5,7 @@
 #include "THStack.h"
 #include "TMinuit.h"
 #include "TROOT.h"
+#include "TVirtualFitter.h"
 
 
 
@@ -663,13 +664,26 @@ void ZGDrawTools::addOverflowSingleHisto( TH3D* yield3d ) {
 
 
 
-TH1D* ZGDrawTools::getBand( TF1* f, const std::string& name ) {
+TH1D* ZGDrawTools::getBand( TF1* f ) {
+
+  Double_t xMin, xMax;
+  f->GetRange( xMin, xMax );
+  TH1D* h1_band = new TH1D(Form("band_%s", f->GetName()), "", 500, xMin, xMax );
+  (TVirtualFitter::GetFitter())->GetConfidenceIntervals(h1_band, 0.683);
+ 
+  return h1_band;
+
+}
+
+
+
+TH1D* ZGDrawTools::getBand_partialDerivatives( TF1* f, const std::string& name ) {
 
  const int ndim_resp_q = f->GetNpar();
  TMatrixD emat_resp_q(ndim_resp_q, ndim_resp_q);
  gMinuit->mnemat(&emat_resp_q[0][0], ndim_resp_q);
 
- return getBand(f, emat_resp_q, name);
+ return getBand_partialDerivatives(f, emat_resp_q, name);
 
 }
 
@@ -677,7 +691,7 @@ TH1D* ZGDrawTools::getBand( TF1* f, const std::string& name ) {
 
 // Create uncertainty band (histogram) for a given function and error matrix
 // in the range of the function.
-TH1D* ZGDrawTools::getBand(TF1 *f, TMatrixD const& m, std::string name, bool getRelativeBand, int npx) {
+TH1D* ZGDrawTools::getBand_partialDerivatives(TF1 *f, TMatrixD const& m, std::string name, bool getRelativeBand, int npx) {
 
  Bool_t islog = true;
  //double xmin = f->GetXmin()*0.9;

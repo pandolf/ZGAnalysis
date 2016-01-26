@@ -86,8 +86,9 @@ class ZGDrawTools {
   static void addOverflowSingleHisto( TH1D* yield );
   static void addOverflowSingleHisto( TH3D* yield3d );
 
-  static TH1D* getBand(TF1* f, const std::string& name ); // the TH1D then needs to be draw with the option "C E3"
-  static TH1D* getBand(TF1 *f, TMatrixD const& m, std::string name, bool getRelativeBand=false, int npx=100); 
+  static TH1D* getBand(TF1* f ); // to be called *RIGHT AFTER* the fit! the TH1D then needs to be draw with the option "C E3"
+  static TH1D* getBand_partialDerivatives(TF1* f, const std::string& name ); // the TH1D then needs to be draw with the option "C E3"
+  static TH1D* getBand_partialDerivatives(TF1 *f, TMatrixD const& m, std::string name, bool getRelativeBand=false, int npx=100); 
 
 
   TCanvas* drawPlot( const std::string& saveName, const std::string& varName, const std::string& selection, int nBins, float xMin, float xMax, std::string axisName="", const std::string& units="" );
