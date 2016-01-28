@@ -20,7 +20,7 @@ float xMax = 1000.;
 
 
 
-void drawEfficiency( const std::string& outdir, TFile* file );
+void drawEfficiency( const std::string& outdir, TFile* file, const std::string& suffix1, const std::string& suffix2="", const std::string& legendName1="", const std::string& legendName2="" );
 void drawVsMass( const std::string& outdir, TFile* file );
 void drawSingleGraph( const std::string& outdir, TGraphErrors* graph, float yMin, float yMax, const std::string& axisName, float lineY=-999. );
 
@@ -35,7 +35,11 @@ int main() {
   std::string outdir = "plotsGenEfficiency";
   system( Form("mkdir -p %s", outdir.c_str()) );
 
-  drawEfficiency( outdir, file );  
+  drawEfficiency( outdir, file, "all" );  
+  drawEfficiency( outdir, file, "noHLT" );  
+  drawEfficiency( outdir, file, "noIso" );  
+
+  drawEfficiency( outdir, file, "noIso", "all", "Before Photon Isolation", "After Photon Isolation" );  
 
   drawVsMass( outdir, file );
 
@@ -44,7 +48,7 @@ int main() {
 }
 
 
-void drawEfficiency( const std::string& outdir, TFile* file ) {
+void drawEfficiency( const std::string& outdir, TFile* file, const std::string& suffix1, const std::string& suffix2, const std::string& legendName1, const std::string& legendName2 ) {
 
   TCanvas* c1 = new TCanvas( "c1", "", 600, 600 );
   c1->cd();
@@ -54,7 +58,10 @@ void drawEfficiency( const std::string& outdir, TFile* file ) {
   h2_axes->SetYTitle("Reconstruction Efficiency");
   h2_axes->Draw();
 
-  TEfficiency* eff = (TEfficiency*)file->Get("eff");
+  std::string fullName = "eff";
+  if( suffix1 != "" ) fullName = fullName + "_" + suffix1;
+
+  TEfficiency* eff = (TEfficiency*)file->Get(fullName.c_str());
   TGraphAsymmErrors* gr_eff = eff->CreateGraph();
   gr_eff->SetMarkerStyle(20);
   gr_eff->SetMarkerSize(1.3);
@@ -71,14 +78,40 @@ void drawEfficiency( const std::string& outdir, TFile* file ) {
 
   gr_eff->Draw("p same");
 
+  if( suffix2!="" ) {
+
+    std::string fullName2 = "eff";
+    if( suffix2!="" ) fullName2 = fullName2 + "_" +  suffix2;
+    TEfficiency* eff2 = (TEfficiency*)file->Get(fullName2.c_str());
+    TGraphAsymmErrors* gr_eff2 = eff2->CreateGraph();
+    gr_eff2->SetMarkerStyle(24);
+    gr_eff2->SetMarkerSize(1.3);
+
+    gr_eff2->Draw("p same");
+
+    TLegend* legend = new TLegend( 0.2, 0.2, 0.55, 0.35 );
+    legend->SetFillColor(0);
+    legend->SetTextSize(0.038);
+    legend->SetTextFont(42);
+    legend->AddEntry( gr_eff , legendName1.c_str(), "P" );
+    legend->AddEntry( gr_eff2, legendName2.c_str(), "P" );
+    legend->Draw("same");
+
+  }
+
   
 
   ZGDrawTools::addLabels( c1, -1., "CMS Simulation");
 
   gPad->RedrawAxis();
 
-  c1->SaveAs( Form("%s/eff.eps", outdir.c_str()) );
-  c1->SaveAs( Form("%s/eff.pdf", outdir.c_str()) );
+  if( suffix2=="" ) {
+    c1->SaveAs( Form("%s/%s.eps", outdir.c_str(), fullName.c_str()) );
+    c1->SaveAs( Form("%s/%s.pdf", outdir.c_str(), fullName.c_str()) );
+  } else {
+    c1->SaveAs( Form("%s/eff_%s_vs_%s.eps", outdir.c_str(), suffix1.c_str(), suffix2.c_str()) );
+    c1->SaveAs( Form("%s/eff_%s_vs_%s.pdf", outdir.c_str(), suffix1.c_str(), suffix2.c_str()) );
+  }
 
   delete c1;
   delete h2_axes;
@@ -163,7 +196,7 @@ void drawSingleGraph( const std::string& outdir, TGraphErrors* graph, float yMin
   
 
   graph->SetMarkerStyle(20);
-  graph->SetMarkerSize(2.);
+  graph->SetMarkerSize(1.5);
 
   TF1* line = new TF1( "line", "[0] + [1]*x", xMin, xMax );
   line->SetLineColor(46);
