@@ -281,6 +281,8 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
   outTree->Branch( "event", &event, "event/i");
   float weight;
   outTree->Branch( "weight", &weight, "weight/F");
+  float puWeight;
+  outTree->Branch( "puWeight", &puWeight, "puWeight/F");
   int id;
   outTree->Branch( "id", &id, "id/I");
   int leptType;
@@ -368,11 +370,12 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     if( !myTree.isData && !( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_Photon165_HE10)) continue;
     //if( !myTree.isData && !( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_Photon165_HE10 || myTree.HLT_SingleEl)) continue;
       
-    weight = (myTree.isData) ? 1. : myTree.evt_scale1fb;
+    weight = 1.;
+    puWeight = 1.;
     // pu reweighting:
     if( !myTree.isData ) {
-      float puWeight = ZGCommonTools::getPUweight( nVert, h1_nVert_data, h1_nVert_mc );
-      weight *= puWeight;
+      puWeight = ZGCommonTools::getPUweight( nVert, h1_nVert_data, h1_nVert_mc );
+      weight = myTree.evt_scale1fb*puWeight;
     }
     
 
@@ -458,6 +461,7 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
 
     met = myTree.met_pt;
     //if( met > 80. ) continue;
+    if( gamma_pt/boss_mass< 40./150. ) continue;
 
     if( DATABLINDING && myTree.isData && boss_mass>500. ) continue;
 
