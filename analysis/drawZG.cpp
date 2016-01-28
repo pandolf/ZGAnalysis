@@ -85,11 +85,12 @@ int main( int argc, char* argv[] ) {
   dt.set_lumi( cfg.lumi() );
 
   dt.drawPlot( "nVert"     , "nVert"     , "", 35, 0 , 35, "Number of Vertexes" );
+  dt.drawPlot( "nVert_noPU"     , "nVert"     , "1./puWeight", 35, 0 , 35, "Number of Vertexes" );
   dt.drawPlot( "leptType"     , "leptType"     , "", 5, 9.5 , 14.5, "Lepton PDG ID" );
   dt.drawPlot( "leptType_bossCut"     , "leptType"     , "boss_mass<500.", 5, 9.5 , 14.5, "Lepton PDG ID" );
 
   dt.drawPlot( "mZg_lowMass"  , "boss_mass", "", 40, 200., 600., "M(Z#gamma)", "GeV" );
-  dt.drawPlot( "mZg"  , "boss_mass", "", 100, 200., 1200., "M(Z#gamma)", "GeV" );
+  dt.drawPlot( "mZg"  , "boss_mass", "", 40, 200., 1000., "M(Z#gamma)", "GeV" );
   dt.drawPlot( "mZg_all"     , "boss_mass", "", 120, 0., 1200., "M(Z#gamma)", "GeV" );
 
   dt.drawPlot( "mZg_lowptZ"  , "boss_mass", "z_pt<30.", 50, 0., 500., "M(Z#gamma)", "GeV" );
