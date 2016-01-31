@@ -33,8 +33,8 @@ drawGenEfficiency: drawGenEfficiency.cpp ZGDrawTools.o
 computeGenEfficiency: computeGenEfficiency.cpp ZGCommonTools.o 
 	$(CC) -Wall $(INCLUDES) -o computeGenEfficiency computeGenEfficiency.cpp ZGCommonTools.o  $(ROOTFLAG) $(EXTRALIBS)
 
-computeGenAcceptance: computeGenAcceptance.cpp ZGCommonTools.o 
-	$(CC) -Wall $(INCLUDES) -o computeGenAcceptance computeGenAcceptance.cpp ZGCommonTools.o  $(ROOTFLAG) $(EXTRALIBS)
+computeGenAcceptance: computeGenAcceptance.cpp ZGCommonTools.o ZGDrawTools.o
+	$(CC) -Wall $(INCLUDES) -o computeGenAcceptance computeGenAcceptance.cpp ZGCommonTools.o ZGDrawTools.o  $(ROOTFLAG) $(EXTRALIBS)
 
 
 
