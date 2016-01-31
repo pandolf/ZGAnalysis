@@ -1,0 +1,4 @@
+lumi 2.3
+mcSamples Spring15_25ns_miniAODv2_veryloose
+dataSamples Run2015_25nsGolden_fromSnT_conv_veryloose
+selection veryloose
