@@ -215,11 +215,17 @@ TGraphErrors* getSingleWidthMasses( const std::string& basedir, std::vector<floa
       if( ptMax<25. ) continue;
       if( ptMin<20. ) continue;
       if( fabs( photon.Eta() ) > 2.5 ) continue;
+      if( fabs( photon.Eta())>1.44 && fabs( photon.Eta())<1.57 ) continue;
       if( fabs( leptPlus.Eta() ) > 2.4 ) continue;
       if( fabs( leptMinus.Eta() ) > 2.4 ) continue;
+      if( photon.DeltaR( leptPlus  ) < 0.4 ) continue;
+      if( photon.DeltaR( leptMinus ) < 0.4 ) continue;
 
       TLorentzVector zBoson = leptPlus + leptMinus;
       if( zBoson.M() < 50. ) continue;
+
+      TLorentzVector boss = zBoson + photon;
+      if( boss.M() < 200. ) continue;
 
       eff_num += 1.;
 
