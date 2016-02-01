@@ -63,7 +63,7 @@ int main() {
   h2_axes->SetYTitle( "Generator Acceptance" );
   h2_axes->Draw();
 
-  TLegend* legend = new TLegend( 0.2, 0.7, 0.5, 0.91 );
+  TLegend* legend = new TLegend( 0.2, 0.2, 0.5, 0.41 );
   legend->SetFillColor( 0 );
   legend->SetTextFont( 42 );
   legend->SetTextSize( 0.038 );
@@ -73,9 +73,12 @@ int main() {
   colors.push_back(42);
   colors.push_back(38);
 
+
+  std::vector<TF1*> functions;
+
   for( unsigned i=0; i<graphs.size(); ++i ) {
 
-    TF1* f1 = new TF1( Form("f1_%d", i), "[0] + [1]*x + [2]*x*x + [3]*x*x*x + [4]*x*x*x*x + [5]*x*x*x*x*x", xMin, xMax );
+    TF1* f1 = new TF1( Form("f1_%s", graphs[i]->GetName()), "[0] + [1]*x + [2]*x*x + [3]*x*x*x + [4]*x*x*x*x + [5]*x*x*x*x*x", xMin, xMax );
     f1->SetLineColor( colors[i] );
     graphs[i]->Fit( f1, "QR" );
 
@@ -85,6 +88,8 @@ int main() {
     graphs[i]->Draw(" p same " );
 
     legend->AddEntry( graphs[i], graphs[i]->GetTitle(), "P" );
+
+    functions.push_back(f1);
 
   }
 
@@ -102,6 +107,12 @@ int main() {
   h2_axes->GetXaxis()->SetMoreLogLabels();
   c1->SaveAs( "genAcceptance_logx.eps" );
   c1->SaveAs( "genAcceptance_logx.pdf" );
+
+  TFile* outfile = TFile::Open("genAcceptance.root", "recreate");
+  outfile->cd();
+  for( unsigned i=0; i<functions.size(); ++i )
+    functions[i]->Write();
+  outfile->Close();
   
 
 //TFile* file = TFile::Open("prova.root", "recreate" );
@@ -142,12 +153,12 @@ TGraphErrors* getSingleWidthMasses( const std::string& basedir, std::vector<floa
 
     float mass = masses[imass];
 
-    if( width=="1p4" ) {
-      if( mass==1000. || mass==2000. ) {
-        std::cout << " Skipping..." << std::endl;
-        continue;
-      }
-    }
+    //if( width=="1p4" ) {
+    //  if( mass==1000. || mass==2000. ) {
+    //    std::cout << " Skipping..." << std::endl;
+    //    continue;
+    //  }
+    //}
 
     std::string dataset( Form( "GluGluSpin0ToZGamma_ZToLL_W_%s_M_%.0f_TuneCUEP8M1_13TeV_pythia8", width.c_str(), mass ) );
     std::cout << "-> Starting: " << dataset << std::endl;
@@ -192,22 +203,35 @@ TGraphErrors* getSingleWidthMasses( const std::string& basedir, std::vector<floa
 
       tree->GetEntry(iEntry);
 
-      eff_denom += 1.;
-
       TLorentzVector leptPlus;
       TLorentzVector leptMinus;
       TLorentzVector photon;
+      bool foundLeptPlus = false;
+      bool foundLeptMinus = false;
+      bool foundPhoton = false;
 
       for( int iPart=0; iPart<ngenPart; ++iPart ) {
 
-        if( genPart_pdgId[iPart]==+11 || genPart_pdgId[iPart]==+13 )
+        if( genPart_pdgId[iPart]==+11 || genPart_pdgId[iPart]==+13 ) {
           leptMinus.SetPtEtaPhiM( genPart_pt[iPart], genPart_eta[iPart], genPart_phi[iPart], genPart_mass[iPart] );
-        if( genPart_pdgId[iPart]==-11 || genPart_pdgId[iPart]==-13 )
+          foundLeptMinus = true;
+        }
+        if( genPart_pdgId[iPart]==-11 || genPart_pdgId[iPart]==-13 ) {
           leptPlus.SetPtEtaPhiM( genPart_pt[iPart], genPart_eta[iPart], genPart_phi[iPart], genPart_mass[iPart] );
-        if( genPart_pdgId[iPart]==22 )
+          foundLeptPlus = true;
+        }
+        if( genPart_pdgId[iPart]==22 ) {
           photon.SetPtEtaPhiM( genPart_pt[iPart], genPart_eta[iPart], genPart_phi[iPart], genPart_mass[iPart] );
+          foundPhoton = true;
+        }
 
       } // for genparts
+
+
+      if( !foundLeptPlus || !foundLeptMinus || !foundPhoton ) continue;
+
+      eff_denom += 1.;
+
 
       if( photon.Pt() < 40. ) continue;
       float ptMax = TMath::Max( leptPlus.Pt(), leptMinus.Pt() );
