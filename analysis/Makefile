@@ -30,6 +30,9 @@ drawLimitPlot: drawLimitPlot.cpp ZGDrawTools.o ZGConfig.o
 drawGenEfficiency: drawGenEfficiency.cpp ZGDrawTools.o 
 	$(CC) -Wall $(INCLUDES) -o drawGenEfficiency drawGenEfficiency.cpp ZGDrawTools.o $(ROOTFLAG) $(EXTRALIBS)
 
+drawAcceptanceTimesEfficiency: drawAcceptanceTimesEfficiency.cpp ZGDrawTools.o 
+	$(CC) -Wall $(INCLUDES) -o drawAcceptanceTimesEfficiency drawAcceptanceTimesEfficiency.cpp ZGDrawTools.o $(ROOTFLAG) $(EXTRALIBS)
+
 computeGenEfficiency: computeGenEfficiency.cpp ZGCommonTools.o 
 	$(CC) -Wall $(INCLUDES) -o computeGenEfficiency computeGenEfficiency.cpp ZGCommonTools.o  $(ROOTFLAG) $(EXTRALIBS)
 
