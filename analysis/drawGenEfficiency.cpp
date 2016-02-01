@@ -20,7 +20,7 @@ float xMax = 1000.;
 
 
 
-void drawEfficiency( const std::string& outdir, TFile* file, const std::string& suffix1, const std::string& suffix2="", const std::string& legendName1="", const std::string& legendName2="" );
+TF1* drawEfficiency( const std::string& outdir, TFile* file, const std::string& suffix1, const std::string& suffix2="", const std::string& legendName1="", const std::string& legendName2="" );
 void drawVsMass( const std::string& outdir, TFile* file );
 void drawSingleGraph( const std::string& outdir, TGraphErrors* graph, float yMin, float yMax, const std::string& axisName, float lineY=-999. );
 
@@ -35,20 +35,30 @@ int main() {
   std::string outdir = "plotsGenEfficiency";
   system( Form("mkdir -p %s", outdir.c_str()) );
 
-  drawEfficiency( outdir, file, "all" );  
-  drawEfficiency( outdir, file, "noHLT" );  
-  drawEfficiency( outdir, file, "noIso" );  
+  TFile* outfile = TFile::Open( "genEfficiency.root", "recreate" );
+  //TFile* outfile = TFile::Open( Form( "%s/efficiency.root", outdir.c_str() ), "recreate" );
+
+  TF1* f1_all   = drawEfficiency( outdir, file, "all"   );  
+  TF1* f1_noHLT = drawEfficiency( outdir, file, "noHLT" );  
+  TF1* f1_noIso = drawEfficiency( outdir, file, "noIso" );  
+
+  f1_all   ->Write();
+  f1_noHLT ->Write();
+  f1_noIso ->Write();
+  outfile->Close();
 
   drawEfficiency( outdir, file, "noIso", "all", "Before Photon Isolation", "After Photon Isolation" );  
 
   drawVsMass( outdir, file );
+
+
 
   return 0;
 
 }
 
 
-void drawEfficiency( const std::string& outdir, TFile* file, const std::string& suffix1, const std::string& suffix2, const std::string& legendName1, const std::string& legendName2 ) {
+TF1* drawEfficiency( const std::string& outdir, TFile* file, const std::string& suffix1, const std::string& suffix2, const std::string& legendName1, const std::string& legendName2 ) {
 
   TCanvas* c1 = new TCanvas( "c1", "", 600, 600 );
   c1->cd();
@@ -66,7 +76,7 @@ void drawEfficiency( const std::string& outdir, TFile* file, const std::string& 
   gr_eff->SetMarkerStyle(20);
   gr_eff->SetMarkerSize(1.3);
 
-  TF1* line = new TF1( "line", "[0] + [1]*x", xMin, xMax );
+  TF1* line = new TF1( Form("line_%s", suffix1.c_str()), "[0] + [1]*x", xMin, xMax );
   line->SetLineColor(46);
   line->SetLineWidth(2);
   gr_eff->Fit( line, "QR0" );
@@ -116,6 +126,8 @@ void drawEfficiency( const std::string& outdir, TFile* file, const std::string& 
   delete c1;
   delete h2_axes;
   delete h1_band;
+
+  return line;
 
 }
 
