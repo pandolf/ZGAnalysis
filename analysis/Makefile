@@ -39,6 +39,9 @@ computeGenEfficiency: computeGenEfficiency.cpp ZGCommonTools.o
 computeGenAcceptance: computeGenAcceptance.cpp ZGCommonTools.o ZGDrawTools.o
 	$(CC) -Wall $(INCLUDES) -o computeGenAcceptance computeGenAcceptance.cpp ZGCommonTools.o ZGDrawTools.o  $(ROOTFLAG) $(EXTRALIBS)
 
+compareMassShape: compareMassShape.cpp ZGCommonTools.o ZGDrawTools.o
+	$(CC) -Wall $(INCLUDES) -o compareMassShape compareMassShape.cpp ZGCommonTools.o ZGDrawTools.o  $(ROOTFLAG) $(EXTRALIBS)
+
 
 
 
