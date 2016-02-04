@@ -42,6 +42,12 @@ computeGenAcceptance: computeGenAcceptance.cpp ZGCommonTools.o ZGDrawTools.o
 compareMassShape: compareMassShape.cpp ZGCommonTools.o ZGDrawTools.o
 	$(CC) -Wall $(INCLUDES) -o compareMassShape compareMassShape.cpp ZGCommonTools.o ZGDrawTools.o  $(ROOTFLAG) $(EXTRALIBS)
 
+generateSignalToys: generateSignalToys.cpp ZGCommonTools.o ZGDrawTools.o
+	$(CC) -Wall $(INCLUDES) -o generateSignalToys generateSignalToys.cpp ZGCommonTools.o ZGDrawTools.o  $(ROOTFLAG) $(EXTRALIBS)
+
+fitSignalShapes: fitSignalShapes.cpp ZGCommonTools.o ZGDrawTools.o
+	$(CC) -Wall $(INCLUDES) -o fitSignalShapes fitSignalShapes.cpp ZGCommonTools.o ZGDrawTools.o  $(ROOTFLAG) $(EXTRALIBS)
+
 
 
 
