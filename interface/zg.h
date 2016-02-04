@@ -447,6 +447,7 @@ public :
    Float_t weight_scales_DN;
    Float_t weight_pdfs_UP;
    Float_t weight_pdfs_DN;
+   Int_t nLHEweight;
    Int_t LHEweight_id[1000];
    Float_t LHEweight_wgt[1000];
    Float_t LHEweight_original;
@@ -875,6 +876,7 @@ public :
    TBranch *b_weight_scales_DN;
    TBranch *b_weight_pdfs_UP;
    TBranch *b_weight_pdfs_DN;
+   TBranch *b_nLHEweight;
    TBranch *b_LHEweight_id;
    TBranch *b_LHEweight_wgt;
    TBranch *b_LHEweight_original;
@@ -1370,6 +1372,7 @@ void ZGTree::Init(TTree *tree)
    fChain->SetBranchAddress("weight_scales_DN", &weight_scales_DN, &b_weight_scales_DN);
    fChain->SetBranchAddress("weight_pdfs_UP", &weight_pdfs_UP, &b_weight_pdfs_UP);
    fChain->SetBranchAddress("weight_pdfs_DN", &weight_pdfs_UP, &b_weight_pdfs_UP);
+   fChain->SetBranchAddress("nLHEweight", &nLHEweight, &b_nLHEweight);
    fChain->SetBranchAddress("LHEweight_id", LHEweight_id, &b_LHEweight_id);
    fChain->SetBranchAddress("LHEweight_wgt", LHEweight_wgt, &b_LHEweight_wgt);
    fChain->SetBranchAddress("LHEweight_original", &LHEweight_original, &b_LHEweight_original);
