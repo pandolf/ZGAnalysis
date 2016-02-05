@@ -48,6 +48,9 @@ generateSignalToys: generateSignalToys.cpp ZGCommonTools.o ZGDrawTools.o
 fitSignalShapes: fitSignalShapes.cpp ZGCommonTools.o ZGDrawTools.o
 	$(CC) -Wall $(INCLUDES) -o fitSignalShapes fitSignalShapes.cpp ZGCommonTools.o ZGDrawTools.o  $(ROOTFLAG) $(EXTRALIBS)
 
+computeSyst: computeSyst.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o
+	$(CC) -Wall $(INCLUDES) -o computeSyst computeSyst.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o  $(ROOTFLAG) $(EXTRALIBS)
+
 
 
 
