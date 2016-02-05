@@ -2,6 +2,7 @@
 #include "TTree.h"
 #include "TH1D.h"
 #include "TCanvas.h"
+#include "TProfile.h"
 
 #include "../interface/ZGDrawTools.h"
 #include "../interface/ZGConfig.h"
@@ -30,8 +31,11 @@ int main( int argc, char* argv[] ) {
 
   std::string outputdir = cfg.getEventYieldDir();
 
+  std::cout << "-> Starting PDF..." << std::endl;
   computeSyst( outputdir, tree, "weight_pdf", "PDF" );
+  std::cout << "-> Starting Scale..." << std::endl;
   computeSyst( outputdir, tree, "weight_scale", "Scale" );
+  std::cout << "DONE." << std::endl;
 
 
   return 0;
@@ -59,20 +63,16 @@ void computeSyst( const std::string& outputdir, TTree* tree, const std::string& 
   TH1D* h1_syst = new TH1D("syst", "", nBins, bins );
   h1_syst->Sumw2();
 
+
   tree->Project( "ref" , "boss_mass", "weight" );
   tree->Project( "syst", "boss_mass", weightvar.c_str() );
 
-TFile* prova = TFile::Open("prova.root", "recreate");
-prova->cd();
-h1_ref->Write();
-h1_syst->Write();
-prova->Close();
-exit(1);
 
   h1_syst->Divide( h1_ref );
-  for( int iBin=1; iBin<h1_syst->GetXaxis()->GetNbins()+1; ++iBin ) 
+  for( int iBin=1; iBin<h1_syst->GetXaxis()->GetNbins()+1; ++iBin ) {
     h1_syst->SetBinContent(iBin, h1_syst->GetBinContent(iBin)-1. );
-
+    h1_syst->SetBinError(iBin, h1_ref->GetBinError(iBin)/h1_ref->GetBinContent(iBin)*h1_syst->GetBinContent(iBin) );
+  }
 
   h1_syst->Scale(100.); // in percent
 
@@ -80,7 +80,7 @@ exit(1);
   c1->cd();
 
   TF1* line = new TF1( "f1", "[0] + [1]*x", bins[0], bins[nBins] );
-  h1_syst->Fit( line, "QR" );
+  h1_syst->Fit( line, "QR0" );
   TH1D* band = ZGDrawTools::getBand( line );
 
 
@@ -90,12 +90,13 @@ exit(1);
   h2_axes->Draw();
 
   h1_syst->SetMarkerStyle( 20 );
+  h1_syst->SetMarkerColor( 46 );
+  h1_syst->SetLineColor( 46 );
   h1_syst->SetMarkerSize( 1.3 );
 
-  TLine* lineZero = new TLine( bins[0], 0., bins[nBins], 0. );
-  lineZero->Draw("same");
 
   band->Draw("C E3 same" );
+  line->Draw("same");
   h1_syst->Draw("p same");
 
   ZGDrawTools::addLabels( c1, -1., "CMS Simulation" );
