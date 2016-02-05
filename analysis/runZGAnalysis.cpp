@@ -23,7 +23,7 @@
 
 #define DATABLINDING true
 
-
+bool doSyst = true;
 
 
 void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSample> samples, const ZGConfig& cfg, int idMin=-1, int idMax=-1 );
@@ -294,6 +294,13 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
   int nGamma;
   outTree->Branch( "nGamma", &nGamma, "nGamma/I" );
 
+  float weight_scale;
+  outTree->Branch( "weight_scale", &weight_scale, "weight_scale/F");
+  float weight_pdf;
+  outTree->Branch( "weight_pdf", &weight_pdf, "weight_pdf/F");
+  float weight_lep;
+  outTree->Branch( "weight_lep", &weight_lep, "weight_lep/F");
+
   float lept0_pt;
   outTree->Branch( "lept0_pt", &lept0_pt, "lept0_pt/F" );
   float lept0_eta;
@@ -372,10 +379,22 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
       
     weight = 1.;
     puWeight = 1.;
+    weight_scale = 1.;
+    weight_pdf = 1.;
+    weight_lep = 1.;
     // pu reweighting:
     if( !myTree.isData ) {
       puWeight = ZGCommonTools::getPUweight( nVert, h1_nVert_data, h1_nVert_mc );
       weight = myTree.evt_scale1fb*puWeight;
+      weight *= myTree.weight_lepsf;
+      float lepSF_relUP = (myTree.weight_lepsf_UP-myTree.weight_lepsf   )/myTree.weight_lepsf;
+      float lepSF_relDN = (myTree.weight_lepsf   -myTree.weight_lepsf_DN)/myTree.weight_lepsf;
+      if( lepSF_relUP>lepSF_relDN )
+        weight_lep = weight*myTree.weight_lepsf_UP/myTree.weight_lepsf;
+      else
+        weight_lep = weight*myTree.weight_lepsf_DN/myTree.weight_lepsf;
+      weight_scale = weight;
+      weight_pdf = weight;
     }
     
 
@@ -460,10 +479,45 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     boss_mass = boss.M();
 
     met = myTree.met_pt;
-    //if( met > 80. ) continue;
+
     if( gamma_pt/boss_mass< 40./150. ) continue;
 
     if( DATABLINDING && myTree.isData && boss_mass>500. ) continue;
+
+    if( id==851 && doSyst ) { // systematic uncertainties
+
+      // first scale
+      float ref = myTree.LHEweight_original;
+
+      float maxScaleDiff = 0.;
+
+      TH1D* h1_pdf = new TH1D("pdf", "", 1000, -3000., 3000.);
+
+      for( int i=0; i<myTree.nLHEweight; ++i ) {
+
+        if( myTree.LHEweight_id[i]>=1000 && myTree.LHEweight_id[i]<1010 ) {
+          float thisScaleDiff = fabs( (myTree.LHEweight_wgt[i]-ref)/ref );
+          if( thisScaleDiff>maxScaleDiff) 
+            maxScaleDiff = thisScaleDiff+1.;
+        }
+
+        if( myTree.LHEweight_id[i]>=2000 ) {
+          if( myTree.LHEweight_wgt[i] > h1_pdf->GetXaxis()->GetXmax() || myTree.LHEweight_wgt[i] < h1_pdf->GetXaxis()->GetXmin() )
+            std::cout << "WARNING!! PDF weight out of bounds: " << myTree.LHEweight_wgt[i] << std::endl;
+          h1_pdf->Fill( myTree.LHEweight_wgt[i]/ref );
+        }
+
+      } // for lhe weights
+
+      float meanPdfWgt = h1_pdf->GetMean();
+      float rmsPdfWgt = h1_pdf->GetRMS();
+      weight_pdf *= (1.+rmsPdfWgt/meanPdfWgt);
+
+      weight_scale *= maxScaleDiff;
+
+      delete h1_pdf;
+
+    } // if correct sample
 
     outTree->Fill();
     
