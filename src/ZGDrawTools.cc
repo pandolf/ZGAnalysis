@@ -670,6 +670,7 @@ TH1D* ZGDrawTools::getBand( TF1* f ) {
   f->GetRange( xMin, xMax );
   TH1D* h1_band = new TH1D(Form("band_%s", f->GetName()), "", 500, xMin, xMax );
   (TVirtualFitter::GetFitter())->GetConfidenceIntervals(h1_band, 0.683);
+  h1_band->SetFillColor(18);
  
   return h1_band;
 
