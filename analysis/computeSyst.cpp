@@ -9,7 +9,7 @@
 
 
 
-void computeSyst( const std::string& outputdir, TTree* tree, const std::string& weightvar, const std::string& systName );
+void computeSyst( const std::string& outputdir, TTree* tree, const std::string& weightvar, const std::string& systName, const std::string& sel="" );
 
 
 
@@ -35,6 +35,10 @@ int main( int argc, char* argv[] ) {
   computeSyst( outputdir, tree, "weight_pdf", "PDF" );
   std::cout << "-> Starting Scale..." << std::endl;
   computeSyst( outputdir, tree, "weight_scale", "Scale" );
+  std::cout << "-> Starting Electron..." << std::endl;
+  computeSyst( outputdir, tree, "weight_scale", "Electron", "leptType==11" );
+  std::cout << "-> Starting Muon..." << std::endl;
+  computeSyst( outputdir, tree, "weight_scale", "Muon", "leptType==13" );
   std::cout << "DONE." << std::endl;
 
 
@@ -44,7 +48,7 @@ int main( int argc, char* argv[] ) {
 
 
 
-void computeSyst( const std::string& outputdir, TTree* tree, const std::string& weightvar, const std::string& systName ) {
+void computeSyst( const std::string& outputdir, TTree* tree, const std::string& weightvar, const std::string& systName, const std::string& sel ) {
 
   int nBins = 7;
   Double_t bins[nBins+1];
@@ -64,8 +68,13 @@ void computeSyst( const std::string& outputdir, TTree* tree, const std::string& 
   h1_syst->Sumw2();
 
 
-  tree->Project( "ref" , "boss_mass", "weight" );
-  tree->Project( "syst", "boss_mass", weightvar.c_str() );
+  if( sel=="" ) {
+    tree->Project( "ref" , "boss_mass", "weight" );
+    tree->Project( "syst", "boss_mass", weightvar.c_str() );
+  } else {
+    tree->Project( "ref" , "boss_mass", Form("weight*(%s)", sel.c_str()) );
+    tree->Project( "syst", "boss_mass", Form("%s*(%s)", weightvar.c_str(), sel.c_str()) );
+  }
 
 
   h1_syst->Divide( h1_ref );
@@ -90,12 +99,13 @@ void computeSyst( const std::string& outputdir, TTree* tree, const std::string& 
   h2_axes->Draw();
 
   h1_syst->SetMarkerStyle( 20 );
-  h1_syst->SetMarkerColor( 46 );
-  h1_syst->SetLineColor( 46 );
+  //h1_syst->SetMarkerColor( 46 );
+  //h1_syst->SetLineColor( 46 );
   h1_syst->SetMarkerSize( 1.3 );
 
 
   band->Draw("C E3 same" );
+  line->SetLineColor(46);
   line->Draw("same");
   h1_syst->Draw("p same");
 
