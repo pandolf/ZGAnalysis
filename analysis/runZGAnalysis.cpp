@@ -376,33 +376,41 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     //if( !myTree.isData && !( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu )) continue;
     if( !myTree.isData && !( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_Photon165_HE10)) continue;
     //if( !myTree.isData && !( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_Photon165_HE10 || myTree.HLT_SingleEl)) continue;
-      
-    weight = 1.;
-    puWeight = 1.;
-    weight_scale = 1.;
-    weight_pdf = 1.;
-    weight_lep = 1.;
-    // pu reweighting:
-    if( !myTree.isData ) {
-      puWeight = ZGCommonTools::getPUweight( nVert, h1_nVert_data, h1_nVert_mc );
-      weight = myTree.evt_scale1fb*puWeight;
-      weight *= myTree.weight_lepsf;
-      float lepSF_relUP = (myTree.weight_lepsf_UP-myTree.weight_lepsf   )/myTree.weight_lepsf;
-      float lepSF_relDN = (myTree.weight_lepsf   -myTree.weight_lepsf_DN)/myTree.weight_lepsf;
-      if( lepSF_relUP>lepSF_relDN )
-        weight_lep = weight*myTree.weight_lepsf_UP/myTree.weight_lepsf;
-      else
-        weight_lep = weight*myTree.weight_lepsf_DN/myTree.weight_lepsf;
-      weight_scale = weight;
-      weight_pdf = weight;
-    }
-    
+
 
     if( myTree.nlep!=2 ) continue; // two leptons
     if( myTree.lep_pdgId[0] != -myTree.lep_pdgId[1] ) continue; // same flavour, opposite sign
 
     leptType = abs(myTree.lep_pdgId[0]);
     if( leptType!=11 && leptType!=13 ) continue; // just in case
+
+
+
+      
+    weight = 1.;
+    puWeight = 1.;
+    weight_scale = 1.;
+    weight_pdf = 1.;
+    weight_lep = 1.;
+    
+    if( !myTree.isData ) {
+      weight = myTree.evt_scale1fb;
+      // pu reweighting:
+      puWeight = ZGCommonTools::getPUweight( nVert, h1_nVert_data, h1_nVert_mc );
+      weight *= puWeight;
+      // lepton SF:
+      weight *= myTree.weight_lepsf;
+      // hlt SF:
+      float hltSF = (leptType==11) ? 1.02 : 0.94;
+      weight *= hltSF;
+
+      weight_lep = myTree.weight_lepsf_UP;
+      weight_scale = weight; // will compute later
+      weight_pdf = weight; // will compute later
+
+    }
+    
+
 
     
     TLorentzVector lept0;
