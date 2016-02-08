@@ -15,6 +15,9 @@
 #include "interface/ZGConfig.h"
 #include "interface/ZGCommonTools.h"
 
+// muon rochester corrections:
+#include "../interface/rochcor2015.h"
+#include "../interface/muresolution_run2.h"
 
 
 #define zg_cxx
@@ -342,6 +345,12 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
   float boss_mass;
   outTree->Branch( "boss_mass", &boss_mass, "boss_mass/F" );
 
+
+
+  // for muon rochester corrections
+  rochcor2015 *rmcor = new rochcor2015();
+
+
  
   int nentries = tree->GetEntries();
   
@@ -424,6 +433,24 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     if( leptType==11 ) {
       if( myTree.lep_tightId[0]==0 || myTree.lep_tightId[1]==0 ) continue; // loose electron ID
     }
+
+    // apply rochester corrections for muons:
+    if( leptType==13 ) {
+
+      // instructions taken from https://twiki.cern.ch/twiki/pub/CMS/RochcorMuon/manual_rochcor_run2.pdf
+      // linked from twiki: https://twiki.cern.ch/twiki/bin/viewauth/CMS/RochcorMuon
+      float qter = 1.0; 
+
+      if( !myTree.isData ) {
+        rmcor->momcor_mc(lept0, myTree.lep_pdgId[0]/(abs(myTree.lep_pdgId[0])), 0, qter);
+        rmcor->momcor_mc(lept1, myTree.lep_pdgId[1]/(abs(myTree.lep_pdgId[1])), 0, qter);
+      } else {
+        rmcor->momcor_data(lept0, myTree.lep_pdgId[0]/(abs(myTree.lep_pdgId[0])), 0, qter);
+        rmcor->momcor_data(lept1, myTree.lep_pdgId[1]/(abs(myTree.lep_pdgId[1])), 0, qter);
+      }
+
+    }
+
 
     TLorentzVector photon;
 

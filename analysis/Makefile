@@ -15,8 +15,8 @@ EXTRALIBS := -L$(ROOTSYS)/lib -L$(ROOFIT_LIBDIR)/ -L$(CMSSW_BASE)/lib/slc6_amd64
 
 all: runZGAnalysis
 
-runZGAnalysis: runZGAnalysis.cpp ZGSample.o ZGConfig.o ZGCommonTools.o
-	$(CC) -Wall $(INCLUDES) -o runZGAnalysis runZGAnalysis.cpp ZGSample.o ZGConfig.o ZGCommonTools.o  $(ROOTFLAG) $(EXTRALIBS)
+runZGAnalysis: runZGAnalysis.cpp ZGSample.o ZGConfig.o ZGCommonTools.o muresolution_run2.o rochcor2015.o
+	$(CC) -Wall $(INCLUDES) -o runZGAnalysis runZGAnalysis.cpp ZGSample.o ZGConfig.o ZGCommonTools.o muresolution_run2.o rochcor2015.o $(ROOTFLAG) $(EXTRALIBS)
 
 convertSNTtrees: convertSNTtrees.cpp
 	$(CC) -Wall $(INCLUDES) -o convertSNTtrees convertSNTtrees.cpp $(ROOTFLAG) $(EXTRALIBS)
@@ -71,7 +71,11 @@ ZGCommonTools.o: ../src/ZGCommonTools.cc
 
 
 
+muresolution_run2.o: ../src/muresolution_run2.cc
+	$(CC) -Wall $(INCLUDES) -c ../src/muresolution_run2.cc $(ROOTFLAG) $(EXTRALIBS)
 
+rochcor2015.o: ../src/rochcor2015.cc
+	$(CC) -Wall $(INCLUDES) -c ../src/rochcor2015.cc $(ROOTFLAG) $(EXTRALIBS)
 
 
 clean:
