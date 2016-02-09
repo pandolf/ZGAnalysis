@@ -19,8 +19,9 @@
 
 
 
-std::vector< TGraphErrors* > getEfficiencyGraphs( const std::string& basedir, std::vector<float> masses );
-TGraphErrors* getSingleWidthMasses( const std::string& basedir, std::vector<float> masses, const std::string& width, const std::string& name );
+std::vector< TGraphErrors* > getEfficiencyGraphs( const std::string& basedir, std::vector<float> masses, bool applyRunningCut=true );
+TGraphErrors* getSingleWidthMasses( const std::string& basedir, std::vector<float> masses, const std::string& width, const std::string& name, bool applyCut=true );
+void drawRelativeEfficiency( std::vector<TGraphErrors*> graphs_denom, std::vector<TGraphErrors*> graphs_num );
 
 
 
@@ -51,9 +52,12 @@ int main() {
   masses.push_back( 6000. );
   masses.push_back( 7000. );
 
-  std::vector< TGraphErrors* > graphs = getEfficiencyGraphs( "/pnfs/psi.ch/cms/trivcat/store/user/pandolf/crab/", masses );
+  std::vector< TGraphErrors* > graphs_noCut = getEfficiencyGraphs( "/pnfs/psi.ch/cms/trivcat/store/user/pandolf/crab/", masses, false );
+  std::vector< TGraphErrors* > graphs       = getEfficiencyGraphs( "/pnfs/psi.ch/cms/trivcat/store/user/pandolf/crab/", masses, true  );
 
   ZGDrawTools::setStyle();
+
+  drawRelativeEfficiency( graphs_noCut, graphs );
 
   TCanvas* c1 = new TCanvas( "c1", "", 600, 600 );
   c1->cd();
@@ -131,12 +135,12 @@ int main() {
 
 
 
-std::vector< TGraphErrors* > getEfficiencyGraphs( const std::string& basedir, std::vector<float> masses ) {
+std::vector< TGraphErrors* > getEfficiencyGraphs( const std::string& basedir, std::vector<float> masses, bool applyRunningCut ) {
 
   std::vector<TGraphErrors*> graphs;
-  graphs.push_back( getSingleWidthMasses( basedir, masses, "0p014", "W = 0.014\%" ) );
-  graphs.push_back( getSingleWidthMasses( basedir, masses, "1p4", "W = 1.4\%" ) );
-  graphs.push_back( getSingleWidthMasses( basedir, masses, "5p6", "W = 5.6\%" ) );
+  graphs.push_back( getSingleWidthMasses( basedir, masses, "0p014", "W = 0.014\%", applyRunningCut ) );
+  graphs.push_back( getSingleWidthMasses( basedir, masses, "1p4"  , "W = 1.4\%"  , applyRunningCut ) );
+  graphs.push_back( getSingleWidthMasses( basedir, masses, "5p6"  , "W = 5.6\%"  , applyRunningCut ) );
 
   return graphs;
 
@@ -145,11 +149,14 @@ std::vector< TGraphErrors* > getEfficiencyGraphs( const std::string& basedir, st
 
 
 
-TGraphErrors* getSingleWidthMasses( const std::string& basedir, std::vector<float> masses, const std::string& width, const std::string& name ) {
+TGraphErrors* getSingleWidthMasses( const std::string& basedir, std::vector<float> masses, const std::string& width, const std::string& name, bool applyCut ) {
 
 
   TGraphErrors* graph = new TGraphErrors(0);
-  graph->SetName( Form("gr_%s", width.c_str()) );
+  if( applyCut )
+    graph->SetName( Form("gr_%s", width.c_str()) );
+  else
+    graph->SetName( Form("gr_%s_noCut", width.c_str()) );
   graph->SetTitle( name.c_str() );
 
   for( unsigned imass = 0; imass<masses.size(); ++imass ) {
@@ -258,8 +265,10 @@ TGraphErrors* getSingleWidthMasses( const std::string& basedir, std::vector<floa
       TLorentzVector boss = zBoson + photon;
       if( boss.M() < 200. ) continue;
 
-      if( photon.Pt()/boss.M()< 40./150. ) continue;
-      if( fabs(photon.Eta())>1.44 ) continue;
+      if( applyCut ) 
+        if( photon.Pt()/boss.M()< 40./150. ) continue;
+      //if( fabs(photon.Eta())>1.44 ) continue;
+
       eff_num += 1.;
 
 
@@ -283,4 +292,85 @@ TGraphErrors* getSingleWidthMasses( const std::string& basedir, std::vector<floa
 }
     
 
+
+void drawRelativeEfficiency( std::vector<TGraphErrors*> graphs_denom, std::vector<TGraphErrors*> graphs_num ) {
+
+  TCanvas* c1 = new TCanvas( "c2", "", 600, 600 );
+  c1->cd();
+
+  TH2D* h2_axes = new TH2D("axes", "", 10, xMin, xMax, 10, 0., 1.0001 );
+  h2_axes->SetXTitle( "Mass [GeV]" );
+  h2_axes->SetYTitle( "Selection Efficiency" );
+  h2_axes->Draw();
+
+  TLegend* legend = new TLegend( 0.2, 0.2, 0.5, 0.41 );
+  legend->SetFillColor( 0 );
+  legend->SetTextFont( 42 );
+  legend->SetTextSize( 0.038 );
+
+  std::vector<int> colors;
+  colors.push_back(46);
+  colors.push_back(42);
+  colors.push_back(38);
+
+
+
+  for( unsigned i=0; i<graphs_denom.size(); ++i ) {
+
+    TGraphErrors* gr_ratio = new TGraphErrors(0);
+    gr_ratio->SetName( Form("%s_cutEff", graphs_num[i]->GetName()) );
+    gr_ratio->SetTitle( graphs_num[i]->GetTitle() );
+
+    for( unsigned iPoint=0; iPoint<graphs_denom[i]->GetN(); ++iPoint ) {
+
+      Double_t x,effnum;
+      graphs_num[i]->GetPoint(iPoint, x, effnum);
+      Double_t effnum_err = graphs_num[i]->GetErrorY(iPoint);
+
+      Double_t effdenom;
+      graphs_denom[i]->GetPoint(iPoint, x, effdenom);
+      Double_t effdenom_err = graphs_denom[i]->GetErrorY(iPoint);
+
+      Double_t eff = effnum/effdenom;
+      Double_t eff_err = sqrt( effnum_err*effnum_err/(effdenom*effdenom) + effnum*effnum*effdenom_err*effdenom_err/(effdenom*effdenom*effdenom*effdenom) );
+      gr_ratio->SetPoint( iPoint, x, eff );
+      gr_ratio->SetPointError( iPoint, 0., eff_err );
+
+    }
+
+    TF1* f1 = new TF1( Form("f1_%s", gr_ratio->GetName()), "[0] + [1]*x + [2]*x*x + [3]*x*x*x + [4]*x*x*x*x + [5]*x*x*x*x*x", xMin, xMax );
+    f1->SetLineColor( colors[i] );
+    gr_ratio->Fit( f1, "QR" );
+
+    gr_ratio->SetMarkerSize( 1.3 );
+    gr_ratio->SetMarkerStyle( 20+i );
+    gr_ratio->SetMarkerColor( colors[i] );
+    gr_ratio->Draw(" p same " );
+
+    legend->AddEntry( gr_ratio, gr_ratio->GetTitle(), "P" );
+
+  }
+
+  legend->Draw("same");
+  
+  ZGDrawTools::addLabels( c1, -1., "CMS Simulation");
+
+  gPad->RedrawAxis(); 
+
+  std::string outputdir = "genAcceptance";
+  system( Form("mkdir -p %s", outputdir.c_str()) );
+
+  c1->SaveAs( Form("%s/cutEff.eps", outputdir.c_str()) );
+  c1->SaveAs( Form("%s/cutEff.pdf", outputdir.c_str()) );
+  
+  c1->SetLogx();
+  h2_axes->GetXaxis()->SetNoExponent();
+  h2_axes->GetXaxis()->SetMoreLogLabels();
+  c1->SaveAs( Form("%s/cutEff_logx.eps", outputdir.c_str()) );
+  c1->SaveAs( Form("%s/cutEff_logx.pdf", outputdir.c_str()) );
+
+  delete c1;
+  delete h2_axes;
+
+}
 
