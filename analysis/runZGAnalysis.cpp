@@ -9,6 +9,7 @@
 #include "TH1D.h"
 #include "TH2D.h"
 #include "TLorentzVector.h"
+#include "TRandom3.h"
 
 
 #include "interface/ZGSample.h"
@@ -30,8 +31,12 @@ bool doSyst = true;
 
 
 void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSample> samples, const ZGConfig& cfg, int idMin=-1, int idMax=-1 );
+void smearEmEnergy     ( TLorentzVector& p );
+void applyEmEnergyScale( TLorentzVector& p );
 
 
+
+TRandom3 myRandom_(13);
 
 
 int main( int argc, char* argv[] ) {
@@ -449,6 +454,17 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
         rmcor->momcor_data(lept1, myTree.lep_pdgId[1]/(abs(myTree.lep_pdgId[1])), 0, qter);
       }
 
+    } else if( leptType==11 ) {
+
+      // already applied at heppy level
+      //if( !myTree.isData ) {
+      //  smearEmEnergy( lept0 );
+      //  smearEmEnergy( lept1 );
+      //} else {
+      //  applyEmEnergyScale( lept0 );
+      //  applyEmEnergyScale( lept1 );
+      //}
+      
     }
 
 
@@ -467,6 +483,13 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
       if( myTree.gamma_chHadIso[0]>2.5 ) continue;
       float deltaR_thresh = 0.4;
       if( photon.DeltaR(lept0)<deltaR_thresh || photon.DeltaR(lept1)<deltaR_thresh ) continue;
+
+      // photon energy corrections/smearing NOT done at heppy (in 74X, will be in for 76X)
+      if( !myTree.isData ) {
+        smearEmEnergy( photon );
+      } else {
+        applyEmEnergyScale( photon );
+      }
 
     }
 
@@ -565,3 +588,43 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
 
 
 
+void smearEmEnergy( TLorentzVector& p ) {
+
+  float smearEBlowEta     = 0.013898;
+  float smearEBhighEta    = 0.0189895;
+  float smearEElowEta     = 0.027686;
+  float smearEEhighEta    = 0.031312;
+  float theGaussMean      = 1.;
+  float pt = p.Pt();
+  float eta = p.Eta();
+  float phi = p.Phi();
+  float mass = p.M();
+  float theSmear = 0.;
+  if      (fabs(eta)<1.                   )  theSmear = smearEBlowEta;
+  else if (fabs(eta)>=1.  && fabs(eta)<1.5)  theSmear = smearEBhighEta;
+  else if (fabs(eta)>=1.5 && fabs(eta)<2. )  theSmear = smearEElowEta;
+  else if (fabs(eta)>=2.  && fabs(eta)<2.5)  theSmear = smearEEhighEta;
+  float fromGauss = myRandom_.Gaus(theGaussMean,theSmear);
+  p.SetPtEtaPhiM( fromGauss*pt, eta, phi, mass ); // keep mass and direction same
+
+}
+
+
+void applyEmEnergyScale( TLorentzVector& p ) {
+
+  float scaleEBlowEta  = 2./(0.99544 + 0.99882);
+  float scaleEBhighEta = 2./(0.99662 + 1.0065);
+  float scaleEElowEta  = 2./(0.98633 + 0.99536);
+  float scaleEEhighEta = 2./(0.97859 + 0.98567);
+  float pt = p.Pt();
+  float eta = p.Eta();
+  float phi = p.Phi();
+  float mass = p.M();
+  float theScale = 1.;
+  if      (fabs(eta)<1.                     ) theScale = scaleEBlowEta;
+  else if (fabs(eta)>=1.  && fabs(eta)<1.5  ) theScale = scaleEBhighEta;
+  else if (fabs(eta)>=1.5 && fabs(eta)<2.   ) theScale = scaleEElowEta;
+  else if (fabs(eta)>=2.  && fabs(eta)<2.5  ) theScale = scaleEEhighEta;
+  p.SetPtEtaPhiM( theScale*pt, eta, phi, mass ); // keep mass and direction same
+
+}
