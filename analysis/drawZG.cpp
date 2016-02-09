@@ -62,7 +62,8 @@ int main( int argc, char* argv[] ) {
   TTree* tree_dy   = (TTree*)file->Get("dy");
   tree_dy->SetTitle("Z+jets");
   TTree* tree_top   = (TTree*)file->Get("top");
-  tree_top->SetTitle("Top");
+  if( tree_top )
+    tree_top->SetTitle("Top");
 
   std::string plotsDir = cfg.getEventYieldDir() + "/plots";
   if( shapeNorm ) plotsDir = plotsDir + "_shape";
@@ -89,9 +90,11 @@ int main( int argc, char* argv[] ) {
   dt.drawPlot( "leptType"     , "leptType"     , "", 5, 9.5 , 14.5, "Lepton PDG ID" );
   dt.drawPlot( "leptType_bossCut"     , "leptType"     , "boss_mass<500.", 5, 9.5 , 14.5, "Lepton PDG ID" );
 
+  dt.drawPlot( "mZg_all"     , "boss_mass", "", 120, 0., 1200., "M(Z#gamma)", "GeV" );
   dt.drawPlot( "mZg_lowMass"  , "boss_mass", "", 40, 200., 600., "M(Z#gamma)", "GeV" );
   dt.drawPlot( "mZg"  , "boss_mass", "", 40, 200., 1000., "M(Z#gamma)", "GeV" );
-  dt.drawPlot( "mZg_all"     , "boss_mass", "", 120, 0., 1200., "M(Z#gamma)", "GeV" );
+  dt.drawPlot( "mZg_ee"  , "boss_mass", "leptType==11", 40, 200., 1000., "M(e^{+}e^{-}#gamma)", "GeV" );
+  dt.drawPlot( "mZg_mm"  , "boss_mass", "leptType==13", 40, 200., 1000., "M(#mu^{+}#mu^{-}#gamma)", "GeV" );
 
   dt.drawPlot( "mZg_lowptZ"  , "boss_mass", "z_pt<30.", 50, 0., 500., "M(Z#gamma)", "GeV" );
   dt.drawPlot( "mZ_lowptZ"  , "z_mass", "z_pt<30.", 50, 0., 500., "M(Z)", "GeV" );
