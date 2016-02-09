@@ -28,8 +28,11 @@ int main( int argc, char* argv[] ) {
 
 
 
-  TFile* file = TFile::Open("dcap://t3se01.psi.ch:22125//pnfs/psi.ch/cms/trivcat/store/user/mmasciov/MT2production/74X/Spring15/PostProcessed/20Dec2015_forGunther/ZGTo2LG_post.root");
+  std::string filename = "dcap://t3se01.psi.ch:22125//pnfs/psi.ch/cms/trivcat/store/user/mmasciov/MT2production/74X/Spring15/PostProcessed/20Dec2015_forGunther/ZGTo2LG_post.root";
+  TFile* file = TFile::Open(filename.c_str());
   TTree* tree = (TTree*)file->Get("mt2");
+
+  std::cout << "-> Opened file: " << filename << std::endl;
 
 
 
@@ -49,16 +52,17 @@ int main( int argc, char* argv[] ) {
   TFile* outFile = TFile::Open("provaGenEfficiency.root", "recreate");
   outFile->cd();
 
-  int nBins = 7;
+  int nBins = 8;
   Double_t bins[nBins+1];
-  bins[0] = 350.;
-  bins[1] = 400.;
-  bins[2] = 450.;
-  bins[3] = 500.;
-  bins[4] = 600.;
-  bins[5] = 700.;
-  bins[6] = 800.;
-  bins[7] = 950.;
+  bins[0] = 300.;
+  bins[1] = 350.;
+  bins[2] = 400.;
+  bins[3] = 450.;
+  bins[4] = 500.;
+  bins[5] = 600.;
+  bins[6] = 700.;
+  bins[7] = 800.;
+  bins[8] = 950.;
   
   TH1D* h1_eff_denom = new TH1D( "eff_denom", "", nBins, bins );
   h1_eff_denom->Sumw2();
@@ -126,22 +130,44 @@ int main( int argc, char* argv[] ) {
 
     for( int iGen=0; iGen<myTree.ngenPart && !foundGenPhoton; ++iGen ) {
 
-      //if( myTree.genPart_pt[iGen]<40. ) continue;
-      //if( fabs(myTree.genPart_eta[iGen])>2.5 ) continue;
-   
-      if( myTree.genPart_pdgId[iGen]==22 && myTree.genPart_motherId[iGen]==22 ) {
+      if( myTree.genPart_pdgId[iGen]!=22 ) continue;
+      if( myTree.genPart_status[iGen]!=1 ) continue;
+      if( myTree.genPart_pt[iGen]<40. ) continue;
+      if( fabs(myTree.genPart_eta[iGen])>2.5 ) continue;
 
-        TLorentzVector photon_temp;
-        photon_temp.SetPtEtaPhiM( myTree.genPart_pt[iGen], myTree.genPart_eta[iGen], myTree.genPart_phi[iGen], myTree.genPart_mass[iGen] );
+      TLorentzVector photon_temp;
+      photon_temp.SetPtEtaPhiM( myTree.genPart_pt[iGen], myTree.genPart_eta[iGen], myTree.genPart_phi[iGen], myTree.genPart_mass[iGen] );
 
-        if( photon_temp.DeltaR( genLep0 ) > 0.4 && photon_temp.DeltaR( genLep1 ) > 0.4 ) {
-          genPhoton.SetPtEtaPhiM( myTree.genPart_pt[iGen], myTree.genPart_eta[iGen], myTree.genPart_phi[iGen], myTree.genPart_mass[iGen] );
-          foundGenPhoton = true;
+      float deltaRmin_part = 999.;
+      // look for closest parton
+      for( int jGen=0; jGen<myTree.ngenPart && iGen!=jGen; ++jGen ) {
+
+        if( myTree.genPart_status[jGen]<=21 ) continue;
+        bool isParton = ( myTree.genPart_pdgId[jGen]==21 || abs(myTree.genPart_pdgId[jGen])<7 );
+        if( !isParton ) continue;
+
+        TLorentzVector thisparton;
+        thisparton.SetPtEtaPhiM( myTree.genPart_pt[jGen], myTree.genPart_eta[jGen], myTree.genPart_phi[jGen], myTree.genPart_mass[jGen] );
+
+        float thisDeltaR = thisparton.DeltaR(photon_temp);
+        if( thisDeltaR<deltaRmin_part ) {
+          deltaRmin_part = thisDeltaR;
         }
+    
+      }
 
+      // far away from partons
+      if( deltaRmin_part<0.4 ) continue;
+
+
+      // far away from leptons
+      if( photon_temp.DeltaR( genLep0 ) > 0.4 && photon_temp.DeltaR( genLep1 ) > 0.4 ) {
+        genPhoton.SetPtEtaPhiM( myTree.genPart_pt[iGen], myTree.genPart_eta[iGen], myTree.genPart_phi[iGen], myTree.genPart_mass[iGen] );
+        foundGenPhoton = true;
       }
 
     }
+
 
     if( !foundGenPhoton ) continue;
     if( genPhoton.Pt()<40. ) continue;
