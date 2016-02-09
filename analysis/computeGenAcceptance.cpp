@@ -99,16 +99,19 @@ int main() {
 
   gPad->RedrawAxis(); 
 
-  c1->SaveAs( "genAcceptance.eps" );
-  c1->SaveAs( "genAcceptance.pdf" );
+  std::string outputdir = "genAcceptance";
+  system( Form("mkdir -p %s", outputdir.c_str()) );
+
+  c1->SaveAs( Form("%s/genAcceptance.eps", outputdir.c_str()) );
+  c1->SaveAs( Form("%s/genAcceptance.pdf", outputdir.c_str()) );
   
   c1->SetLogx();
   h2_axes->GetXaxis()->SetNoExponent();
   h2_axes->GetXaxis()->SetMoreLogLabels();
-  c1->SaveAs( "genAcceptance_logx.eps" );
-  c1->SaveAs( "genAcceptance_logx.pdf" );
+  c1->SaveAs( Form("%s/genAcceptance_logx.eps", outputdir.c_str()) );
+  c1->SaveAs( Form("%s/genAcceptance_logx.pdf", outputdir.c_str()) );
 
-  TFile* outfile = TFile::Open("genAcceptance.root", "recreate");
+  TFile* outfile = TFile::Open( Form("%s/genAcceptance.root", outputdir.c_str()), "recreate");
   outfile->cd();
   for( unsigned i=0; i<functions.size(); ++i )
     functions[i]->Write();
@@ -189,12 +192,14 @@ TGraphErrors* getSingleWidthMasses( const std::string& basedir, std::vector<floa
     tree->SetBranchAddress( "genPart_mass", genPart_mass );
     int genPart_pdgId[100];
     tree->SetBranchAddress( "genPart_pdgId", genPart_pdgId );
+    int genPart_status[100];
+    tree->SetBranchAddress( "genPart_status", genPart_status );
 
 
     int nentries = tree->GetEntries();
 
-    float eff_num = 0.;
     float eff_denom = 0.;
+    float eff_num = 0.;
 
 
     for( int iEntry = 0; iEntry<nentries; ++iEntry ) {
@@ -211,6 +216,8 @@ TGraphErrors* getSingleWidthMasses( const std::string& basedir, std::vector<floa
       bool foundPhoton = false;
 
       for( int iPart=0; iPart<ngenPart; ++iPart ) {
+
+        if( genPart_status[iPart]!=1 ) continue;
 
         if( genPart_pdgId[iPart]==+11 || genPart_pdgId[iPart]==+13 ) {
           leptMinus.SetPtEtaPhiM( genPart_pt[iPart], genPart_eta[iPart], genPart_phi[iPart], genPart_mass[iPart] );
@@ -251,12 +258,17 @@ TGraphErrors* getSingleWidthMasses( const std::string& basedir, std::vector<floa
       TLorentzVector boss = zBoson + photon;
       if( boss.M() < 200. ) continue;
 
+      if( photon.Pt()/boss.M()< 40./150. ) continue;
+      if( fabs(photon.Eta())>1.44 ) continue;
       eff_num += 1.;
+
 
     } // for entries
 
+
     float eff = (eff_denom>0. ) ? eff_num/eff_denom : -1.;
     if( eff<0. ) continue;
+
     graph->SetPoint( imass, mass, eff );
     graph->SetPointError( imass, 0., sqrt( eff*(1.-eff)/eff_denom ) );
 
@@ -270,3 +282,5 @@ TGraphErrors* getSingleWidthMasses( const std::string& basedir, std::vector<floa
 
 }
     
+
+
