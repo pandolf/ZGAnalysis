@@ -1,17 +1,20 @@
 scp \
-    EventYields_v0/plots/nVert.pdf \
-    EventYields_v0/plots/nVert_noPU.pdf \
-    EventYields_v0/plots/mZee.pdf \
-    EventYields_v0/plots/mZmm.pdf \
-    EventYields_v0/plots/ptLept0_log.pdf \
-    EventYields_v0/plots/ptLept1_log.pdf \
-    EventYields_v0/plots/ptZ_log.pdf \
-    EventYields_v0/plots/ptGamma_log.pdf \
+    EventYields_presel/plots/nVert.pdf \
+    EventYields_presel/plots/nVert_noPU.pdf \
+    EventYields_presel/plots/mZee.pdf \
+    EventYields_presel/plots/mZmm.pdf \
+    EventYields_presel/plots/ptLept0_log.pdf \
+    EventYields_presel/plots/ptLept1_log.pdf \
+    EventYields_presel/plots/ptZ_log.pdf \
+    EventYields_presel/plots/ptGamma_log.pdf \
+    EventYields_presel/plots/ptgOmZg_bossCut.pdf \
+    EventYields_v0/eff_ptCut.pdf \
     plotsGenEfficiency/genresp.pdf \
     plotsGenEfficiency/genreso.pdf \
-    plotsGenEfficiency/geneff_all_vs_noIso.pdf \
-    genAcceptance.pdf \
+    plotsGenEfficiency/geneff_all.pdf \
+    genAcceptance/genAcceptance.pdf \
+    genAcceptance/cutEffSignal.pdf \
     genAcceptanceTimesEfficiency.pdf \
     massWeightCompare_log.pdf \
-    EventYields_v0/syst*pdf \
+    EventYields_presel/syst*pdf \
     lxplus.cern.ch:~/tdr2/notes/AN-16-057/trunk/figures/
