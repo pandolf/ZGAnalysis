@@ -40,14 +40,16 @@ int main() {
 
   ZGDrawTools::setStyle();
 
-  TFile* file_acc = TFile::Open("genAcceptance.root");
-  TFile* file_eff = TFile::Open("genEfficiency.root");
+  TFile* file_acc = TFile::Open("genAcceptance/genAcceptance.root");
 
   f1_acc_0p014 = (TF1*)file_acc->Get("f1_gr_0p014");
   f1_acc_1p4   = (TF1*)file_acc->Get("f1_gr_1p4");
   f1_acc_5p6   = (TF1*)file_acc->Get("f1_gr_5p6");
 
-  f1_eff       = (TF1*)file_eff->Get("line_all");
+  //TFile* file_eff = TFile::Open("genEfficiency.root");
+  //f1_eff       = (TF1*)file_eff->Get("line_all");
+  f1_eff = new TF1( "f1_eff", "[0]", xMin, xMax );
+  f1_eff->SetParameter(0, 0.6);
 
   TF1* f1_aXe_0p014 = new TF1( "aXe_0p014", f1_prod_0p014, xMin, xMax, 0 );
   TF1* f1_aXe_1p4 = new TF1( "aXe_1p4", f1_prod_1p4, xMin, xMax, 0 );
@@ -61,6 +63,10 @@ int main() {
   h2_axes->SetYTitle( "Acceptance #times Efficiency" );
   h2_axes->Draw("");
 
+  f1_aXe_0p014->SetName("aXe_0p014");
+  f1_aXe_1p4  ->SetName("aXe_1p4"  );
+  f1_aXe_5p6  ->SetName("aXe_5p6"  );
+  
   f1_aXe_0p014->SetLineColor(46);
   f1_aXe_1p4  ->SetLineColor(42);
   f1_aXe_5p6  ->SetLineColor(38);
@@ -95,6 +101,17 @@ int main() {
   h2_axes->GetXaxis()->SetMoreLogLabels();
   c1->SaveAs( "genAcceptanceTimesEfficiency_logx.eps" );
   c1->SaveAs( "genAcceptanceTimesEfficiency_logx.pdf" );
+
+  TFile* file = TFile::Open("genAcceptanceTimesEfficiency.root", "recreate");
+  file->cd();
+
+  f1_aXe_0p014->Write();
+  f1_aXe_1p4  ->Write();
+  f1_aXe_5p6  ->Write();
+
+  file->Close();
+  
+  std::cout << "-> Saved function in file: " << file->GetName() << std::endl;
 
   return 0;
 
