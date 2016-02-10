@@ -27,22 +27,28 @@ int main( int argc, char* argv[] ) {
   std::string configFileName(argv[1]);
   ZGConfig cfg(configFileName);
 
-  int eff = 40;
-  if( argc>2 ) {
-    std::string eff_str(argv[2]);
-    float eff_float = atof(eff_str.c_str());
-    if( eff_float<1. ) eff_float *= 100.;
-    eff = eff_float;
-    std::cout << "-> Setting efficiency to " << eff << "%" << std::endl;
-  }
+  //int eff = 40;
+  //if( argc>2 ) {
+  //  std::string eff_str(argv[2]);
+  //  float eff_float = atof(eff_str.c_str());
+  //  if( eff_float<1. ) eff_float *= 100.;
+  //  eff = eff_float;
+  //  std::cout << "-> Setting efficiency to " << eff << "%" << std::endl;
+  //}
 
   float reso_percent = 1.5;
-  if( argc>3 ) {
-    std::string reso_str(argv[3]);
-    reso_percent = atof(reso_str.c_str());
-    std::cout << "-> Setting resolution to " << reso_percent << "%" << std::endl;
-  }
+  //if( argc>3 ) {
+  //  std::string reso_str(argv[3]);
+  //  reso_percent = atof(reso_str.c_str());
+  //  std::cout << "-> Setting resolution to " << reso_percent << "%" << std::endl;
+  //}
 
+
+  float lumi = 2.3;
+  TFile* file_eff = TFile::Open("genAcceptanceTimesEfficiency.root");
+  TF1* f1_eff = (TF1*)file_eff->Get("aXe_0p014");
+  //float eff = 0.4;
+  //float lumi = 20.0;
 
   //float reso_percent = 2;
   //float reso_percent = 5;
@@ -51,9 +57,11 @@ int main( int argc, char* argv[] ) {
 
   std::string suffix = "";
   if( reso_percent!=1.5 ) suffix = std::string(Form("_%.0fpercent", reso_percent));
-  std::string dir = cfg.getEventYieldDir() + "_fit_v0_default_shapes_combination_pcorr_lumi_2.3" + suffix;
-  std::string fullPath = "../../diphotons/Analysis/macros/" + dir;
-  std::string limitsFile( Form( "%s/limits_eff%d.txt", fullPath.c_str(), eff) );
+  //std::string dir( Form("%s_fit_v0_default_shapes_combination_pcorr_lumi_%.1f%s", cfg.getEventYieldDir().c_str(), lumi, suffix.c_str()) );
+  //std::string fullPath = "../../diphotons/Analysis/macros/" + dir;
+  //std::string limitsFile( Form( "%s/limits_eff%d.txt", fullPath.c_str(), eff) );
+
+  std::string limitsFile( Form( "%s/limits.txt", cfg.getEventYieldDir().c_str() ) );
 
   
   TGraph* gr_obs = new TGraph(0);
@@ -75,12 +83,16 @@ int main( int argc, char* argv[] ) {
     if( m==lastMass ) continue;
     std::cout << "m: " << m << " obs: " << obs << " exp: " << exp << " exp_m1s: " << exp_m1s << " exp_m2s: " << exp_m2s << " exp_p1s: " << exp_p1s << " exp_p2s: " << exp_p2s << std::endl;
 
-    obs/=2.;
-    exp/=2.;
-    exp_m1s/=2.;
-    exp_m2s/=2.;
-    exp_p1s/=2.;
-    exp_p2s/=2.;
+    float thisEff = f1_eff->Eval(m);
+    float conversion = 2.*thisEff*lumi;
+    //float conversion = 2.*eff*lumi;
+
+    obs    /=conversion;
+    exp    /=conversion;
+    exp_m1s/=conversion;
+    exp_m2s/=conversion;
+    exp_p1s/=conversion;
+    exp_p2s/=conversion;
 
     gr_obs       ->SetPoint( iPoint, m, obs );
     gr_exp       ->SetPoint( iPoint, m, exp );
@@ -109,7 +121,9 @@ int main( int argc, char* argv[] ) {
   TCanvas* c1 = new TCanvas( "c1", "", 600, 600 );
   c1->cd();
 
-  TH2D* h2_axes = new TH2D("axes", "", 10, 350., 950., 10, 0., 9. );
+  float yMax = (lumi<10.) ? 10. : 2.;
+
+  TH2D* h2_axes = new TH2D("axes", "", 10, 350., 950., 10, 0., yMax );
   h2_axes->SetYTitle( "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma#rightarrowl^{+}l^{-}#gamma) [fb]");
   //h2_axes->SetYTitle( "95\% CL UL [fb]");
   h2_axes->SetXTitle( "Resonance Mass [GeV]");
@@ -138,13 +152,13 @@ int main( int argc, char* argv[] ) {
   legend->Draw("same");
 
 
-  ZGDrawTools::addLabels( c1, 2.3, "CMS Simulation");
+  ZGDrawTools::addLabels( c1, lumi, "CMS Simulation");
 
 
   gPad->RedrawAxis();
 
-  c1->SaveAs( Form("%s/limit_eff%d%s.eps", cfg.getEventYieldDir().c_str(), eff, suffix.c_str()) );
-  c1->SaveAs( Form("%s/limit_eff%d%s.pdf", cfg.getEventYieldDir().c_str(), eff, suffix.c_str()) );
+  c1->SaveAs( Form("%s/limit%s.eps", cfg.getEventYieldDir().c_str(), suffix.c_str()) );
+  c1->SaveAs( Form("%s/limit%s.pdf", cfg.getEventYieldDir().c_str(), suffix.c_str()) );
 
   return 0;
 
