@@ -58,18 +58,10 @@ if __name__ == '__main__':
       if "Expected 97.5%" in line: exp_p2s = float(limit)
 
     lines.append( "m: " + str(mass) + " obs: " + str(obs) + " exp: " + str(exp) + " exp_m1s: " + str(exp_m1s) + " exp_m2s: " + str(exp_m2s) + " exp_p1s: " + str(exp_p1s) + " exp_p2s: " + str(exp_p2s) + "\n" )
-# % (mass, obs, exp, exp_m1s, exp_m2s, exp_p1s, exp_p2s) )
-    #logfile.write( "\n" )
-    #logfile.write( "start_here" )
-    #logfile.write( "exp_m2s " + exp_m2s)
-    #logfile.write( "exp_m1s " + exp_m1s)
-    #logfile.write( "exp " + exp )
-    #logfile.write( "exp_p1s " + exp_p1s)
-    #logfile.write( "exp_p2s " + exp_p2s)
 
   lines.sort()
 
-  outfile = open( thisdir + "/limits_eff40.txt", "w" )
+  outfile = open( thisdir + "/limits.txt", "w" )
   for line in lines: outfile.write(line)
 
   
