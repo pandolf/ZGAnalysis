@@ -14,12 +14,14 @@
 #include "../interface/ZGConfig.h"
 
 
+void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF1* f1_eff, float factor, const std::string& cat, const std::string& name, const std::string& axisName );
+
 
 int main( int argc, char* argv[] ) {
 
 
-  if( argc==1 ) {
-    std::cout << " USAGE: ./drawLimitPlot [cfg] [eff=0.4]" << std::endl;
+  if( argc<2 ) {
+    std::cout << " USAGE: ./drawLimitPlot [cfg] [fitName=\"fit_v0\"]" << std::endl;
     exit(1);
   }
   
@@ -27,21 +29,13 @@ int main( int argc, char* argv[] ) {
   std::string configFileName(argv[1]);
   ZGConfig cfg(configFileName);
 
-  //int eff = 40;
-  //if( argc>2 ) {
-  //  std::string eff_str(argv[2]);
-  //  float eff_float = atof(eff_str.c_str());
-  //  if( eff_float<1. ) eff_float *= 100.;
-  //  eff = eff_float;
-  //  std::cout << "-> Setting efficiency to " << eff << "%" << std::endl;
-  //}
+  std::string fitName = "fit_v0";
+  if( argc>2 ) {
+    fitName = std::string((argv[2]));
+  }
+
 
   float reso_percent = 1.5;
-  //if( argc>3 ) {
-  //  std::string reso_str(argv[3]);
-  //  reso_percent = atof(reso_str.c_str());
-  //  std::cout << "-> Setting resolution to " << reso_percent << "%" << std::endl;
-  //}
 
 
   float lumi = 2.3;
@@ -61,7 +55,18 @@ int main( int argc, char* argv[] ) {
   //std::string fullPath = "../../diphotons/Analysis/macros/" + dir;
   //std::string limitsFile( Form( "%s/limits_eff%d.txt", fullPath.c_str(), eff) );
 
-  std::string limitsFile( Form( "%s/limits.txt", cfg.getEventYieldDir().c_str() ) );
+  std::string limitsFile( Form( "%s/limits_%s.txt", cfg.getEventYieldDir().c_str(), fitName.c_str() ) );
+
+  drawSingleLimitPlot( cfg, limitsFile, f1_eff, 2.*lumi      , fitName, "Zllgamma", "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma#rightarrowl^{+}l^{-}#gamma) [fb]" );
+  drawSingleLimitPlot( cfg, limitsFile, f1_eff, 2.*lumi*0.033, fitName, "Zgamma"  , "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma) [fb]" );
+
+  return 0;
+
+}
+
+
+
+void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF1* f1_eff, float factor, const std::string& cat, const std::string& name, const std::string& axisName ) {
 
   
   TGraph* gr_obs = new TGraph(0);
@@ -84,7 +89,7 @@ int main( int argc, char* argv[] ) {
     std::cout << "m: " << m << " obs: " << obs << " exp: " << exp << " exp_m1s: " << exp_m1s << " exp_m2s: " << exp_m2s << " exp_p1s: " << exp_p1s << " exp_p2s: " << exp_p2s << std::endl;
 
     float thisEff = f1_eff->Eval(m);
-    float conversion = 2.*thisEff*lumi;
+    float conversion = thisEff*factor;
     //float conversion = 2.*eff*lumi;
 
     obs    /=conversion;
@@ -121,11 +126,13 @@ int main( int argc, char* argv[] ) {
   TCanvas* c1 = new TCanvas( "c1", "", 600, 600 );
   c1->cd();
 
-  float yMax = (lumi<10.) ? 10. : 2.;
+  float yMax = (cfg.lumi()<10.) ? 10. : 2.;
+  if( factor<1. ) yMax = 300.;
+  if( cat=="fit_ee" || cat=="fit_mm" ) yMax *= 2.;
 
   TH2D* h2_axes = new TH2D("axes", "", 10, 350., 950., 10, 0., yMax );
-  h2_axes->SetYTitle( "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma#rightarrowl^{+}l^{-}#gamma) [fb]");
-  //h2_axes->SetYTitle( "95\% CL UL [fb]");
+  h2_axes->SetYTitle( axisName.c_str() );
+  //h2_axes->SetYTitle( "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma#rightarrowl^{+}l^{-}#gamma) [fb]");
   h2_axes->SetXTitle( "Resonance Mass [GeV]");
   h2_axes->Draw();
 
@@ -141,7 +148,19 @@ int main( int argc, char* argv[] ) {
   gr_exp_2sigma->SetLineWidth(2);
   gr_exp_2sigma->SetLineStyle(2);
 
-  TLegend* legend = new TLegend( 0.55, 0.7, 0.9, 0.9 );
+  TLegend* legend;
+  std::string title = "";
+  if( cat=="fit_em" ) {
+    title = "ee/#mu#mu Combination";
+  } else if( cat=="fit_ee" ) {
+    title = "ee Channel";
+  } else if( cat=="fit_mm" ) {
+    title = "#mu#mu Channel";
+  }
+  if( title!= "" )
+    legend = new TLegend( 0.55, 0.65, 0.9, 0.9, title.c_str() );
+  else
+    legend = new TLegend( 0.55, 0.7, 0.9, 0.9 );
   legend->SetFillColor(0);
   legend->SetTextSize(0.038);
   legend->SetTextFont(42);
@@ -152,14 +171,15 @@ int main( int argc, char* argv[] ) {
   legend->Draw("same");
 
 
-  ZGDrawTools::addLabels( c1, lumi, "CMS Simulation");
+  ZGDrawTools::addLabels( c1, cfg.lumi(), "CMS Simulation");
 
 
   gPad->RedrawAxis();
 
-  c1->SaveAs( Form("%s/limit%s.eps", cfg.getEventYieldDir().c_str(), suffix.c_str()) );
-  c1->SaveAs( Form("%s/limit%s.pdf", cfg.getEventYieldDir().c_str(), suffix.c_str()) );
+  c1->SaveAs( Form("%s/limit_%s_%s.eps", cfg.getEventYieldDir().c_str(), name.c_str(), cat.c_str()) );
+  c1->SaveAs( Form("%s/limit_%s_%s.pdf", cfg.getEventYieldDir().c_str(), name.c_str(), cat.c_str()) );
 
-  return 0;
+  delete c1;
+  delete h2_axes;
 
 }
