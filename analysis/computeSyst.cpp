@@ -50,16 +50,18 @@ int main( int argc, char* argv[] ) {
 
 void computeSyst( const std::string& outputdir, TTree* tree, const std::string& weightvar, const std::string& systName, const std::string& sel ) {
 
-  int nBins = 7;
+  int nBins = 8;
   Double_t bins[nBins+1];
-  bins[0] = 350.;
-  bins[1] = 400.;
-  bins[2] = 450.;
-  bins[3] = 500.;
-  bins[4] = 600.;
-  bins[5] = 700.;
-  bins[6] = 800.;
-  bins[7] = 950.;
+  bins[0] = 300.;
+  bins[1] = 350.;
+  bins[2] = 400.;
+  bins[3] = 450.;
+  bins[4] = 500.;
+  bins[5] = 600.;
+  bins[6] = 700.;
+  bins[7] = 800.;
+  bins[8] = 950.;
+
 
   TH1D* h1_ref = new TH1D("ref", "", nBins, bins );
   h1_ref->Sumw2();
