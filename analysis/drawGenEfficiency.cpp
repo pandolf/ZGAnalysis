@@ -21,7 +21,8 @@ float xMax = 1000.;
 
 
 TF1* drawEfficiency( const std::string& outdir, TFile* file, const std::string& suffix1, const std::string& suffix2="", const std::string& legendName1="", const std::string& legendName2="" );
-void drawVsMass( const std::string& outdir, TFile* file, const std::string& suffix="" );
+//void drawVsMass( const std::string& outdir, TFile* file, const std::string& suffix="" );
+void drawVsMass( const std::string& outdir, TTree* tree, const std::string& suffix="", const std::string& sel="" );
 void drawSingleGraph( const std::string& outdir, TGraphErrors* graph, float yMin, float yMax, const std::string& axisName, float lineY=-999. );
 void drawResoFromTree( const std::string& outdir, TTree* tree, const std::string& saveName, const std::string& particle, const std::string& var, const std::string& axisName, const std::string& sel="" );
 
@@ -56,12 +57,13 @@ int main() {
   drawEfficiency( outdir, file, "noIso", "all"  , "Before Photon Isolation", "After Photon Isolation" );  
   drawEfficiency( outdir, file, "all"  , "noIso", "Full Selection"         , "Without Photon Isolation" );  
 
-  drawVsMass( outdir, file );
-  drawVsMass( outdir, file, "ee" );
-  drawVsMass( outdir, file, "mm" );
-
 
   TTree* gentree = (TTree*)file->Get("genTree");
+
+  drawVsMass( outdir, gentree );
+  drawVsMass( outdir, gentree, "ee", "leptType==11" );
+  drawVsMass( outdir, gentree, "mm", "leptType==13" );
+
 
   drawResoFromTree( outdir, gentree, "gammaPt"   , "gamma", "pt"  , "Photon p_{T}" );
   drawResoFromTree( outdir, gentree, "gammaEta"  , "gamma", "eta" , "Photon #eta" );
@@ -188,13 +190,27 @@ TF1* drawEfficiency( const std::string& outdir, TFile* file, const std::string& 
 
 
 
-void drawVsMass( const std::string& outdir, TFile* file, const std::string& suffix ) {
+void drawVsMass( const std::string& outdir, TTree* tree, const std::string& suffix, const std::string& sel ) {
+
+
+  int nBins = 8;
+  Double_t bins[nBins+1];
+  bins[0] = 300.;
+  bins[1] = 350.;
+  bins[2] = 400.;
+  bins[3] = 450.;
+  bins[4] = 500.;
+  bins[5] = 600.;
+  bins[6] = 700.;
+  bins[7] = 800.;
+  bins[8] = 950.;
+  
 
   std::string suffix2 = suffix;
   if( suffix2 != "" ) suffix2 = "_" + suffix2;
 
-  std::string getName = "massReso" + suffix2;
-  TH1D* h1_all = (TH1D*)file->Get(getName.c_str());
+  //std::string getName = "massReso" + suffix2;
+  //TH1D* h1_all = (TH1D*)file->Get(getName.c_str());
 
   TGraphErrors* gr_resp = new TGraphErrors(0);
   TGraphErrors* gr_reso = new TGraphErrors(0);
@@ -202,20 +218,25 @@ void drawVsMass( const std::string& outdir, TFile* file, const std::string& suff
   gr_reso->SetName( Form("reso%s", suffix2.c_str()) );
 
 
-  for( unsigned i=0; i<100; i++ ) {
+  for( unsigned i=0; i<nBins; i++ ) {
 
     TCanvas* c1 = new TCanvas( Form("fit_%d", i), "", 600, 600 );
     c1->cd();
 
-    TH1D* h1_reso = (TH1D*)file->Get( Form("reso%s_%d", suffix2.c_str(), i) );
-    if( h1_reso==0 ) break;
+    TH1D* h1_reso = new TH1D( Form("reso_%d", i), "", 50, -0.2, 0.2 );
+    if( sel!="" )
+      tree->Project( h1_reso->GetName(), "(bossReco_mass-bossGen_mass)/bossGen_mass", Form("bossGen_mass>%f && bossGen_mass<%f && %s", bins[i], bins[i+1], sel.c_str()) );
+    else
+      tree->Project( h1_reso->GetName(), "(bossReco_mass-bossGen_mass)/bossGen_mass", Form("bossGen_mass>%f && bossGen_mass<%f", bins[i], bins[i+1]) );
+    //TH1D* h1_reso = (TH1D*)file->Get( Form("reso%s_%d", suffix2.c_str(), i) );
+    //if( h1_reso==0 ) break;
 
     TF1* f1 = new TF1("gaussian", "gaus", -0.2, 0.2);
     f1->SetParameters( h1_reso->Integral(), h1_reso->GetMean(), h1_reso->GetRMS() );
     h1_reso->Fit( f1, "LQR0" );
 
     int maxiter = 3;
-    float nSigma = 3.;
+    float nSigma = 1.8;
     for( int iter=0; iter<maxiter; iter++ ) {
       float imean = f1->GetParameter(1);
       float irms = f1->GetParameter(2);
@@ -227,27 +248,36 @@ void drawVsMass( const std::string& outdir, TFile* file, const std::string& suff
     }
 
     h1_reso->Draw();
+    TPaveText* fitResult = new TPaveText( 0.2, 0.6, 0.5, 0.9, "brNDC" );
+    fitResult->SetFillColor(0);
+    fitResult->SetTextSize(0.038);
+    fitResult->AddText( "Gaussian Fit" );
+    fitResult->AddText( Form("#mu = %.2f #pm %.2f %%"   , 100.*f1->GetParameter(1), 100.*f1->GetParError(1)) );
+    fitResult->AddText( Form("#sigma = %.2f #pm %.2f %%", 100.*f1->GetParameter(2), 100.*f1->GetParError(2)) );
+    fitResult->Draw("same");
     c1->SaveAs( Form("%s/fit%s_%d.eps", outdir.c_str(), suffix2.c_str(), i) );
     c1->SaveAs( Form("%s/fit%s_%d.pdf", outdir.c_str(), suffix2.c_str(), i) );
 
-    float xmass = h1_all->GetBinCenter( i+1 );
+    float binWidth = bins[i+1]-bins[i];
+    float xmass = bins[i] + 0.5*binWidth;
+    //float xmass = h1_all->GetBinCenter( i+1 );
     float mean = f1->GetParameter(1);
     float mean_err = f1->GetParError(1);
     gr_resp->SetPoint(i, xmass, mean );
-    gr_resp->SetPointError(i, h1_all->GetBinWidth( i+1 )/sqrt(12.), mean_err );
+    gr_resp->SetPointError(i, binWidth/sqrt(12.), mean_err );
 
     float sigma = f1->GetParameter(2);
     float sigma_err = f1->GetParError(2);
     gr_reso->SetPoint(i, xmass, sigma );
-    gr_reso->SetPointError(i, h1_all->GetBinWidth( i+1 )/sqrt(12.), sigma_err );
+    gr_reso->SetPointError(i, binWidth/sqrt(12.), sigma_err );
     //gr_reso->SetPointError(i, h1_all->GetBinWidth( i+1 )/sqrt(12.), sqrt( sigma_err*sigma_err/(mean*mean) + sigma*sigma*mean_err*mean_err/(mean*mean*mean*mean) ) );
 
     delete c1;
 
   }
 
-  drawSingleGraph( outdir, gr_resp, -0.1, 0.1, "(M_{gen} - M_{reco}) / M_{gen}", 0. );
-  drawSingleGraph( outdir, gr_reso, 0., 0.1, "Mass Resolution" );
+  drawSingleGraph( outdir, gr_resp, -0.01, 0.01, "(M_{gen} - M_{reco}) / M_{gen}", 0. );
+  drawSingleGraph( outdir, gr_reso, 0., 0.05, "Mass Resolution" );
 
 }
 
