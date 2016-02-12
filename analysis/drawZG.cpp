@@ -88,7 +88,7 @@ int main( int argc, char* argv[] ) {
   dt.drawPlot( "nVert"     , "nVert"     , "", 35, 0 , 35, "Number of Vertexes" );
   dt.drawPlot( "nVert_noPU"     , "nVert"     , "1./puWeight", 35, 0 , 35, "Number of Vertexes" );
   dt.drawPlot( "leptType"     , "leptType"     , "", 5, 9.5 , 14.5, "Lepton PDG ID" );
-  dt.drawPlot( "leptType_bossCut"     , "leptType"     , "boss_mass<500.", 5, 9.5 , 14.5, "Lepton PDG ID" );
+  dt.drawPlot( "leptType_bossCut"     , "leptType"     , "boss_mass>200. && boss_mass<500.", 5, 9.5 , 14.5, "Lepton PDG ID" );
 
   dt.drawPlot( "mZg_all"     , "boss_mass", "", 120, 0., 1200., "M(Z#gamma)", "GeV" );
   dt.drawPlot( "mZg_lowMass"  , "boss_mass", "", 40, 200., 600., "M(Z#gamma)", "GeV" );
@@ -96,20 +96,15 @@ int main( int argc, char* argv[] ) {
   dt.drawPlot( "mZg_ee"  , "boss_mass", "leptType==11", 40, 200., 1000., "M(e^{+}e^{-}#gamma)", "GeV" );
   dt.drawPlot( "mZg_mm"  , "boss_mass", "leptType==13", 40, 200., 1000., "M(#mu^{+}#mu^{-}#gamma)", "GeV" );
 
-  dt.drawPlot( "mZg_lowptZ"  , "boss_mass", "z_pt<30.", 50, 0., 500., "M(Z#gamma)", "GeV" );
-  dt.drawPlot( "mZ_lowptZ"  , "z_mass", "z_pt<30.", 50, 0., 500., "M(Z)", "GeV" );
-  dt.drawPlot( "ptGamma_lowptZ"  , "gamma_pt", "z_pt<30.", 50, 0., 500., "Photon p_{T}", "GeV" );
-  dt.drawPlot( "ptgOmZg_lowptZ"  , "gamma_pt/boss_mass", "z_pt<30.", 50, 0., 2., "", "" );
-
   dt.drawPlot( "mZ"   , "z_mass", ""            , 50, 50., 150., "M(l^{+}l^{-})", "GeV" );
   dt.drawPlot( "mZee" , "z_mass", "leptType==11", 50, 50., 150., "M(e^{+}e^{-})", "GeV" );
   dt.drawPlot( "mZmm" , "z_mass", "leptType==13", 50, 50., 150., "M(#mu^{+}#mu^{-})", "GeV" );
-  dt.drawPlot( "mZee_bossCut" , "z_mass", "leptType==11 && boss_mass<500.", 50, 50., 150., "M(e^{+}e^{-})", "GeV" );
-  dt.drawPlot( "mZmm_bossCut" , "z_mass", "leptType==13 && boss_mass<500.", 50, 50., 150., "M(#mu^{+}#mu^{-})", "GeV" );
+  dt.drawPlot( "mZee_bossCut" , "z_mass", "leptType==11 && boss_mass>200. && boss_mass<500.", 50, 50., 150., "M(e^{+}e^{-})", "GeV" );
+  dt.drawPlot( "mZmm_bossCut" , "z_mass", "leptType==13 && boss_mass>200. && boss_mass<500.", 50, 50., 150., "M(#mu^{+}#mu^{-})", "GeV" );
 
   dt.drawPlot( "ptZ"        , "z_pt"    , ""              , 60, 0. , 300., "Z p_{T}"      , "GeV" );
   dt.drawPlot( "ptZ_metCut" , "z_pt"    , "met<50."       , 60, 0. , 300., "Z p_{T}"      , "GeV" );
-  dt.drawPlot( "ptZ_bossCut", "z_pt"    , "boss_mass<500.", 60, 0. , 300., "Z p_{T}"      , "GeV" );
+  dt.drawPlot( "ptZ_bossCut", "z_pt"    , "boss_mass>200. && boss_mass<500.", 60, 0. , 300., "Z p_{T}"      , "GeV" );
 
   dt.drawPlot( "nGamma" , "nGamma", "", 6, 0., 6., "Photon Multiplicity" );
   dt.drawPlot( "ptGamma" , "gamma_pt", "", 60, 40., 340., "Photon p_{T}" , "GeV" );
@@ -124,6 +119,7 @@ int main( int argc, char* argv[] ) {
 
   dt.drawPlot( "met"     , "met"     , "", 60, 0. , 300., "Missing E_{T}", "GeV" );
   dt.drawPlot( "ptgOmZg", "gamma_pt/boss_mass", "", 25, 0., 1., "p_{T}(#gamma) / M(Z#gamma)", "" );
+  dt.drawPlot( "ptgOmZg_bossCut", "gamma_pt/boss_mass", "boss_mass>200. && boss_mass<500.", 25, 0., 1., "p_{T}(#gamma) / M(Z#gamma)", "" );
 
   return 0;
 
