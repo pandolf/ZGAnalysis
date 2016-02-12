@@ -33,8 +33,8 @@ drawGenEfficiency: drawGenEfficiency.cpp ZGDrawTools.o
 drawAcceptanceTimesEfficiency: drawAcceptanceTimesEfficiency.cpp ZGDrawTools.o 
 	$(CC) -Wall $(INCLUDES) -o drawAcceptanceTimesEfficiency drawAcceptanceTimesEfficiency.cpp ZGDrawTools.o $(ROOTFLAG) $(EXTRALIBS)
 
-computeGenEfficiency: computeGenEfficiency.cpp ZGCommonTools.o 
-	$(CC) -Wall $(INCLUDES) -o computeGenEfficiency computeGenEfficiency.cpp ZGCommonTools.o  $(ROOTFLAG) $(EXTRALIBS)
+computeGenEfficiency: computeGenEfficiency.cpp ZGCommonTools.o muresolution_run2.o rochcor2015.o
+	$(CC) -Wall $(INCLUDES) -o computeGenEfficiency computeGenEfficiency.cpp ZGCommonTools.o muresolution_run2.o rochcor2015.o $(ROOTFLAG) $(EXTRALIBS)
 
 computeGenAcceptance: computeGenAcceptance.cpp ZGCommonTools.o ZGDrawTools.o
 	$(CC) -Wall $(INCLUDES) -o computeGenAcceptance computeGenAcceptance.cpp ZGCommonTools.o ZGDrawTools.o  $(ROOTFLAG) $(EXTRALIBS)
@@ -50,6 +50,9 @@ fitSignalShapes: fitSignalShapes.cpp ZGCommonTools.o ZGDrawTools.o
 
 computeSyst: computeSyst.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o
 	$(CC) -Wall $(INCLUDES) -o computeSyst computeSyst.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o  $(ROOTFLAG) $(EXTRALIBS)
+
+drawCutEfficiency: drawCutEfficiency.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o
+	$(CC) -Wall $(INCLUDES) -o drawCutEfficiency drawCutEfficiency.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o  $(ROOTFLAG) $(EXTRALIBS)
 
 
 
