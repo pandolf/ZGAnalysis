@@ -14,7 +14,7 @@
 #include "../interface/ZGConfig.h"
 
 
-void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF1* f1_eff, float factor, const std::string& cat, const std::string& name, const std::string& axisName );
+void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF1* f1_eff, const std::string& cat, const std::string& name );
 
 
 int main( int argc, char* argv[] ) {
@@ -38,7 +38,6 @@ int main( int argc, char* argv[] ) {
   float reso_percent = 1.5;
 
 
-  float lumi = 2.3;
   TFile* file_eff = TFile::Open("genAcceptanceTimesEfficiency.root");
   TF1* f1_eff = (TF1*)file_eff->Get("aXe_0p014");
   //float eff = 0.4;
@@ -57,8 +56,8 @@ int main( int argc, char* argv[] ) {
 
   std::string limitsFile( Form( "%s/limits_%s.txt", cfg.getEventYieldDir().c_str(), fitName.c_str() ) );
 
-  drawSingleLimitPlot( cfg, limitsFile, f1_eff, 2.*lumi      , fitName, "Zllgamma", "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma#rightarrowl^{+}l^{-}#gamma) [fb]" );
-  drawSingleLimitPlot( cfg, limitsFile, f1_eff, 2.*lumi*0.033, fitName, "Zgamma"  , "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma) [fb]" );
+  drawSingleLimitPlot( cfg, limitsFile, f1_eff, fitName, "Zllgamma" );
+  drawSingleLimitPlot( cfg, limitsFile, f1_eff, fitName, "Zgamma"   );
 
   return 0;
 
@@ -66,7 +65,24 @@ int main( int argc, char* argv[] ) {
 
 
 
-void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF1* f1_eff, float factor, const std::string& cat, const std::string& name, const std::string& axisName ) {
+
+
+void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF1* f1_eff, const std::string& cat, const std::string& name ) {
+
+
+  std::string axisName;
+  float factor;
+  if( name=="Zgamma" ) {
+    axisName = "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma) [fb]";
+    factor = 2.*cfg.lumi()*0.033;
+  } else if( name=="Zllgamma" ) {
+    axisName = "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma#rightarrowl^{+}l^{-}#gamma) [fb]";
+    factor = 2.*cfg.lumi();
+  } else {
+    std::cout << "UNKNOWN NAME! (" << name << ")" << std::endl;
+    return;
+  }
+
 
   
   TGraph* gr_obs = new TGraph(0);
@@ -84,7 +100,6 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
     float m, obs, exp, exp_m1s, exp_m2s, exp_p1s, exp_p2s;
     std::string s_m, s_obs, s_exp, s_exp_m1s, s_exp_m2s, s_exp_p1s, s_exp_p2s;
     ifs >> s_m >> m >> s_obs >> obs >> s_exp >> exp >> s_exp_m1s >> exp_m1s >> s_exp_m2s >> exp_m2s >> s_exp_p1s >>  exp_p1s >> s_exp_p2s >> exp_p2s;
-    if( m>=1000. ) continue;
     if( m==lastMass ) continue;
     std::cout << "m: " << m << " obs: " << obs << " exp: " << exp << " exp_m1s: " << exp_m1s << " exp_m2s: " << exp_m2s << " exp_p1s: " << exp_p1s << " exp_p2s: " << exp_p2s << std::endl;
 
@@ -179,7 +194,31 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
   c1->SaveAs( Form("%s/limit_%s_%s.eps", cfg.getEventYieldDir().c_str(), name.c_str(), cat.c_str()) );
   c1->SaveAs( Form("%s/limit_%s_%s.pdf", cfg.getEventYieldDir().c_str(), name.c_str(), cat.c_str()) );
 
+  c1->Clear();
+
+  TH2D* h2_axes_long = new TH2D("axes_long", "", 10, 350., 2000., 10, 0., yMax );
+  h2_axes_long->SetYTitle( axisName.c_str() );
+  h2_axes_long->SetXTitle( "Resonance Mass [GeV]");
+  h2_axes_long->Draw();
+
+
+  gr_exp_2sigma->Draw("E3 same");
+  gr_exp_1sigma->Draw("E3 same");
+  gr_exp       ->Draw("L  same");
+  //gr_obs       ->Draw("L  same");
+
+
+  legend->Draw("same");
+
+  ZGDrawTools::addLabels( c1, cfg.lumi(), "CMS Simulation");
+
+  gPad->RedrawAxis();
+
+  c1->SaveAs( Form("%s/limit_%s_%s_long.eps", cfg.getEventYieldDir().c_str(), name.c_str(), cat.c_str()) );
+  c1->SaveAs( Form("%s/limit_%s_%s_long.pdf", cfg.getEventYieldDir().c_str(), name.c_str(), cat.c_str()) );
+
   delete c1;
   delete h2_axes;
+  delete h2_axes_long;
 
 }
