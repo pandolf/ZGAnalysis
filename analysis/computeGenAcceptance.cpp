@@ -265,9 +265,10 @@ TGraphErrors* getSingleWidthMasses( const std::string& basedir, std::vector<floa
       TLorentzVector boss = zBoson + photon;
       if( boss.M() < 200. ) continue;
 
-      if( applyCut ) 
+      if( applyCut ) {
         if( photon.Pt()/boss.M()< 40./150. ) continue;
-      //if( fabs(photon.Eta())>1.44 ) continue;
+        //if( fabs(photon.Eta())>1.44 ) continue;
+      }
 
       eff_num += 1.;
 
@@ -338,7 +339,7 @@ void drawRelativeEfficiency( std::vector<TGraphErrors*> graphs_denom, std::vecto
 
     }
 
-    TF1* f1 = new TF1( Form("f1_%s", gr_ratio->GetName()), "[0] + [1]*x + [2]*x*x + [3]*x*x*x + [4]*x*x*x*x + [5]*x*x*x*x*x", xMin, xMax );
+    TF1* f1 = new TF1( Form("f2_%s", gr_ratio->GetName()), "[0] + [1]*x + [2]*x*x + [3]*x*x*x + [4]*x*x*x*x + [5]*x*x*x*x*x", xMin, xMax );
     f1->SetLineColor( colors[i] );
     gr_ratio->Fit( f1, "QR" );
 
@@ -360,14 +361,14 @@ void drawRelativeEfficiency( std::vector<TGraphErrors*> graphs_denom, std::vecto
   std::string outputdir = "genAcceptance";
   system( Form("mkdir -p %s", outputdir.c_str()) );
 
-  c1->SaveAs( Form("%s/cutEff.eps", outputdir.c_str()) );
-  c1->SaveAs( Form("%s/cutEff.pdf", outputdir.c_str()) );
+  c1->SaveAs( Form("%s/cutEffSignal.eps", outputdir.c_str()) );
+  c1->SaveAs( Form("%s/cutEffSignal.pdf", outputdir.c_str()) );
   
   c1->SetLogx();
   h2_axes->GetXaxis()->SetNoExponent();
   h2_axes->GetXaxis()->SetMoreLogLabels();
-  c1->SaveAs( Form("%s/cutEff_logx.eps", outputdir.c_str()) );
-  c1->SaveAs( Form("%s/cutEff_logx.pdf", outputdir.c_str()) );
+  c1->SaveAs( Form("%s/cutEffSignal_logx.eps", outputdir.c_str()) );
+  c1->SaveAs( Form("%s/cutEffSignal_logx.pdf", outputdir.c_str()) );
 
   delete c1;
   delete h2_axes;
