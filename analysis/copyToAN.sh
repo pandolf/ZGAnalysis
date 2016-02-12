@@ -9,6 +9,8 @@ scp \
     EventYields_presel/plots/ptGamma_log.pdf \
     EventYields_presel/plots/ptgOmZg_bossCut.pdf \
     EventYields_v0/eff_ptCut.pdf \
+    EventYields_v0/limit_Zllgamma.pdf \
+    EventYields_v0/limit_Zgamma.pdf \
     plotsGenEfficiency/genresp.pdf \
     plotsGenEfficiency/genreso.pdf \
     plotsGenEfficiency/geneff_all.pdf \
