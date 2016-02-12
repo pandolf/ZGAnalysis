@@ -116,7 +116,7 @@ int main( int argc, char* argv[] ) {
 
 
     addTreeToFile( outfile, "zg", fSamples, cfg, 851 );
-    addTreeToFile( outfile, "dy", fSamples, cfg, 701 );
+    addTreeToFile( outfile, "dy", fSamples, cfg, 700, 710 );
     //addTreeToFile( outfile, "top", fSamples, cfg, 300, 499 ); // irrelevant
     
 
@@ -301,6 +301,8 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
   outTree->Branch( "nVert", &nVert, "nVert/I" );
   int nGamma;
   outTree->Branch( "nGamma", &nGamma, "nGamma/I" );
+  bool isGolden;
+  outTree->Branch( "isGolden", &isGolden, "isGolden/O");
 
   float weight_scale;
   outTree->Branch( "weight_scale", &weight_scale, "weight_scale/F");
@@ -370,8 +372,14 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     event = myTree.evt;
     id    = myTree.evt_id;
 
-    // remove overlap
-    if( id==701 && myTree.ngamma>0 && myTree.gamma_mcMatchId[0]==22 ) continue;
+    // remove overlap from DY:
+    if( id>=700 && id<710 ) {
+      if( myTree.ngamma>0 && myTree.gamma_mcMatchId[0]==22 ) continue;
+      //if( myTree.ngamma==0 ) continue;
+      //bool isFake = myTree.gamma_mcMatchId[0]!=22;
+      //bool okFromDY = isFake || (!isFake && myTree.gamma_drMinParton[0]<0.05);
+      //if( !okFromDY ) continue;
+    }
 
     if( myTree.nVert==0 ) continue;
     nVert = myTree.nVert;
@@ -382,14 +390,24 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
       if( !myTree.passFilters() ) continue;
     }
 
-    // hlt
-    if(  myTree.isData && !( ( id==5  && myTree.HLT_DoubleMu ) || ( id==4 && myTree.HLT_DoubleEl ) || ( id==7 && !myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && myTree.HLT_Photon165_HE10 ) )  ) continue;
-    //if(  myTree.isData && !( ( id==5  && myTree.HLT_DoubleMu ) || ( id==4 && (myTree.HLT_DoubleEl || myTree.HLT_SingleEl) ) || ( id==7 && !myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && myTree.HLT_Photon165_HE10 && !myTree.HLT_SingleEl ) )  ) continue;
-    //if(  myTree.isData && !( ( id==5  && myTree.HLT_DoubleMu ) || ( id==4 ) || ( id==7 && !myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && myTree.HLT_Photon165_HE10 ) )  ) continue;
+    isGolden = myTree.isGolden;
 
-    //if( !myTree.isData && !( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu )) continue;
-    if( !myTree.isData && !( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_Photon165_HE10)) continue;
-    //if( !myTree.isData && !( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_Photon165_HE10 || myTree.HLT_SingleEl)) continue;
+    // hlt on data:
+    if( myTree.isData ) {
+      //if( !myTree.isGolden ) continue;
+      if( !myTree.isSilver ) continue;
+      bool hltOK = false;
+      if( id==5 ) hltOK = myTree.HLT_DoubleMu; //DoubleMu PD
+      if( id==8 ) hltOK = myTree.HLT_SingleMu && !myTree.HLT_DoubleMu; //SingleMu PD
+      if( id==4 ) hltOK = myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && !myTree.HLT_SingleMu; //DoubleEG PD
+      if( id==9 ) hltOK = myTree.HLT_SingleEl && !myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && !myTree.HLT_SingleMu; //SingleElectron PD
+      //|| ( id==4 && myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu ) || ( id==7 && !myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && myTree.HLT_Photon165_HE10 ) )  ) continue;
+      if( !hltOK ) continue;
+    } else {
+    // hlt on mc:
+      if( !( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_SingleEl || myTree.HLT_SingleMu ) ) continue;
+      //if( !myTree.isData && !( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_Photon165_HE10)) continue;
+    }
 
 
     if( myTree.nlep!=2 ) continue; // two leptons
@@ -408,15 +426,16 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     weight_lep = 1.;
     
     if( !myTree.isData ) {
+
       weight = myTree.evt_scale1fb;
       // pu reweighting:
       puWeight = ZGCommonTools::getPUweight( nVert, h1_nVert_data, h1_nVert_mc );
       weight *= puWeight;
       // lepton SF:
       weight *= myTree.weight_lepsf;
-      // hlt SF:
-      float hltSF = (leptType==11) ? 1.02 : 0.94;
-      weight *= hltSF;
+      //// hlt SF:
+      //float hltSF = (leptType==11) ? 1.02 : 0.94;
+      //weight *= hltSF;
 
       weight_lep = myTree.weight_lepsf_UP;
       weight_scale = weight; // will compute later
@@ -538,7 +557,8 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
 
     met = myTree.met_pt;
 
-    if( gamma_pt/boss_mass< 40./150. ) continue;
+    if( cfg.selection()!="veryloose" && cfg.selection()!="presel" )
+      if( gamma_pt/boss_mass< 40./150. ) continue;
 
     if( DATABLINDING && myTree.isData && boss_mass>500. ) continue;
 
