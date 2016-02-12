@@ -46,7 +46,7 @@ int main() {
   f1_acc_1p4   = (TF1*)file_acc->Get("f1_gr_1p4");
   f1_acc_5p6   = (TF1*)file_acc->Get("f1_gr_5p6");
 
-  //TFile* file_eff = TFile::Open("genEfficiency.root");
+  //TFile* file_eff = TFile::Open("genEfficiencyFunctions.root");
   //f1_eff       = (TF1*)file_eff->Get("line_all");
   f1_eff = new TF1( "f1_eff", "[0]", xMin, xMax );
   f1_eff->SetParameter(0, 0.6);
