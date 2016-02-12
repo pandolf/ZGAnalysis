@@ -1,5 +1,11 @@
 #! /usr/bin/python
 
+
+def mass_keys(text):
+    return int(text.split()[1])
+
+
+
 if __name__ == '__main__':
 
   import os
@@ -19,6 +25,11 @@ if __name__ == '__main__':
 
   thisdir = args[0]
   while thisdir.endswith("/"): thisdir = thisdir[:-1]
+
+  fitname = "fit" +  thisdir.split("fit")[1]
+  #fitname = thisdir.split("EventYields_v0_")[1]
+  fitname = fitname.split("_default")[0]
+  print fitname
 
   lines = [] 
 
@@ -59,9 +70,11 @@ if __name__ == '__main__':
 
     lines.append( "m: " + str(mass) + " obs: " + str(obs) + " exp: " + str(exp) + " exp_m1s: " + str(exp_m1s) + " exp_m2s: " + str(exp_m2s) + " exp_p1s: " + str(exp_p1s) + " exp_p2s: " + str(exp_p2s) + "\n" )
 
-  lines.sort()
+  lines.sort(key=mass_keys)
 
-  outfile = open( thisdir + "/limits.txt", "w" )
+  outfilename = thisdir + "/limits_" + fitname + ".txt"
+  outfile = open( outfilename, "w" )
   for line in lines: outfile.write(line)
+  print "-> Saved limits in: " + outfilename
 
   
