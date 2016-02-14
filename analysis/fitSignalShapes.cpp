@@ -124,19 +124,19 @@ void fitGraphs( const ZGConfig& cfg, const std::vector<float> masses, const std:
     RooRealVar x("boss_mass", "boss_mass", thisMass, 0.5*thisMass, 1.2*thisMass );
 
     // Crystal-Ball
-    //RooRealVar mean( "mean", "mean", thisMass, 0.9*thisMass, 1.1*thisMass );
-    //RooRealVar sigma( "sigma", "sigma", 0.015*thisMass, 0., 0.07*thisMass );
-    //RooRealVar alpha1( "alpha1", "alpha1", 1.2, 0., 2.5 );
-    //RooRealVar n1( "n1", "n1", 3., 0., 5. );
-    //RooRealVar alpha2( "alpha2", "alpha2", 1.2, 0., 2.5 );
-    //RooRealVar n2( "n2", "n2", 3., 0., 5. );
-    //RooDoubleCBShape cb( "cb", "cb", x, mean, sigma, alpha1, n1, alpha2, n2 );
-
     RooRealVar mean( "mean", "mean", thisMass, 0.9*thisMass, 1.1*thisMass );
     RooRealVar sigma( "sigma", "sigma", 0.015*thisMass, 0., 0.07*thisMass );
-    RooRealVar alpha( "alpha", "alpha", 1.2, 0., 2.5 );
-    RooRealVar n( "n", "n", 3., 0., 5. );
-    RooCBShape cb( "cb", "cb", x, mean, sigma, alpha, n );
+    RooRealVar alpha1( "alpha1", "alpha1", 1.2, 0., 2.5 );
+    RooRealVar n1( "n1", "n1", 3., 0., 5. );
+    RooRealVar alpha2( "alpha2", "alpha2", 1.2, 0., 2.5 );
+    RooRealVar n2( "n2", "n2", 3., 0., 5. );
+    RooDoubleCBShape cb( "cb", "cb", x, mean, sigma, alpha1, n1, alpha2, n2 );
+
+    //RooRealVar mean( "mean", "mean", thisMass, 0.9*thisMass, 1.1*thisMass );
+    //RooRealVar sigma( "sigma", "sigma", 0.015*thisMass, 0., 0.07*thisMass );
+    //RooRealVar alpha( "alpha", "alpha", 1.2, 0., 2.5 );
+    //RooRealVar n( "n", "n", 3., 0., 5. );
+    //RooCBShape cb( "cb", "cb", x, mean, sigma, alpha, n );
 
     RooDataSet* data = new RooDataSet( "data", "data", RooArgSet(x), RooFit::Import(*tree) );
     //RooDataSet* data = (RooDataSet*)file->Get("data");
@@ -165,21 +165,22 @@ void fitGraphs( const ZGConfig& cfg, const std::vector<float> masses, const std:
     gr_mean->SetPoint( i, thisMass, mean.getVal() );
     gr_sigma->SetPoint( i, thisMass, sigma.getVal() );
     gr_width->SetPoint( i, thisMass, sigma.getVal()/mean.getVal() );
-    //gr_alpha->SetPoint( i, thisMass, alpha1.getVal() );
-    gr_alpha->SetPoint( i, thisMass, alpha.getVal() );
-    //gr_n->SetPoint( i, thisMass, n1.getVal() );
-    gr_n->SetPoint( i, thisMass, n.getVal() );
+    gr_alpha->SetPoint( i, thisMass, alpha1.getVal() );
+    //gr_alpha->SetPoint( i, thisMass, alpha.getVal() );
+    gr_n->SetPoint( i, thisMass, n1.getVal() );
+    //gr_n->SetPoint( i, thisMass, n.getVal() );
 
     gr_mean->SetPointError( i, 0., mean.getError() );
     gr_sigma->SetPointError( i, 0., sigma.getError() );
     gr_width->SetPointError( i, 0., sigma.getError()/mean.getVal() ); // random
     //gr_width->SetPointError( i, 0., sqrt( sigma.getError()*sigma.getError()/(mean.getVal()*mean.getVal()) + sigma.getVal()*sigma.getVal()*mean.getError()*mean.getError()/(mean.getError()*mean.getError()*mean.getError()*mean.getError()) ) );
-    //gr_alpha->SetPointError( i, 0., alpha1.getError() );
-    gr_alpha->SetPointError( i, 0., alpha.getError() );
-    //gr_n->SetPointError( i, 0., n1.getError() );
-    gr_n->SetPointError( i, 0., n.getError() );
+    gr_alpha->SetPointError( i, 0., alpha1.getError() );
+    //gr_alpha->SetPointError( i, 0., alpha.getError() );
+    gr_n->SetPointError( i, 0., n1.getError() );
+    //gr_n->SetPointError( i, 0., n.getError() );
 
     delete tree;
+    delete data;
 
   } // for i
 
