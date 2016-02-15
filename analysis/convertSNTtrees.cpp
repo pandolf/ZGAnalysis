@@ -13,29 +13,43 @@
 bool loose_skim = false;
 
 
-void convertFiles( const std::string& samplesFile, const std::string& expr, int id, bool skim=false, bool prune=false, const std::string& outdir="." );
+void convertFiles( const std::string& samples, const std::string& expr, int id, bool skim=false, bool prune=false );
 
 
 
-int main() {
+int main( int argc, char* argv[] ) {
 
 
-  std::string samplesFile = "../samples/samples_Run2015_25nsGolden_fromSnT.dat";
+  if( argc<2 ) {
+    std::cout << "USAGE: ./convertSNTtrees [samples]" << std::endl;
+    exit(11);
+  }
+
+  std::string samples(argv[1]);
+  //std::string samples = "Run2015_25ns74X";
 
   bool doSkim = true;
   bool doPrune = false;
 
-  convertFiles(samplesFile, "DoubleEG"    , 4, doSkim, doPrune);
-  convertFiles(samplesFile, "DoubleMuon"  , 5, doSkim, doPrune);
-  convertFiles(samplesFile, "SinglePhoton", 7, doSkim, doPrune);
+  convertFiles(samples, "DoubleEG"      , 4, doSkim, doPrune);
+  convertFiles(samples, "DoubleMuon"    , 5, doSkim, doPrune);
+  //convertFiles(samples, "SinglePhoton"  , 7, doSkim, doPrune);
+  convertFiles(samples, "SingleMuon"    , 8, doSkim, doPrune);
+  convertFiles(samples, "SingleElectron", 9, doSkim, doPrune);
+
+  convertFiles(samples, "ZGTo2LG", 851, doSkim, doPrune);
 
   return 0;
 
 }
 
 
-void convertFiles( const std::string& samplesFile, const std::string& expr, int id, bool skim, bool prune, const std::string& outdir ) {
+void convertFiles( const std::string& samples, const std::string& expr, int id, bool skim, bool prune ) {
 
+  std::string samplesFile = "../samples/samples_" + samples + ".dat";
+  //std::string samplesFile = "../samples/samples_Run2015_25nsGolden_fromSnT.dat";
+
+  std::string outdir = samples;
   system( Form("mkdir -p %s", outdir.c_str()) );
 
   TChain* tree  = new TChain("mt2"); // this has all branches active: will get HLT/Flag info from this one
@@ -43,6 +57,7 @@ void convertFiles( const std::string& samplesFile, const std::string& expr, int 
 
   ifstream ifs(samplesFile);
   char buffer[500];
+  int addedSamples = 0;
 
   while( ifs.getline(buffer, 500, '\n') ) {
 
@@ -59,7 +74,13 @@ void convertFiles( const std::string& samplesFile, const std::string& expr, int 
     tree ->Add(sampleFilePath.c_str());
     tree2->Add(sampleFilePath.c_str());
     std::cout << "-> Added " << sampleFilePath << std::endl;
+    addedSamples++;
 
+  }
+
+  if( addedSamples==0 ) {
+    std::cout << "-> Didn't find any sample matching: " << expr << "... Skipping" << std::endl;
+    return;
   }
 
   tree ->SetBranchStatus("evt_id",0);
@@ -414,6 +435,7 @@ void convertFiles( const std::string& samplesFile, const std::string& expr, int 
       if( !loose_skim )
         if( ngamma==0 ) continue;
       if( nlep!=2 ) continue;
+      if( lep_pt[0]<25. || lep_pt[1]<20. ) continue;
 
       //int foundPhot = -1;
       //for( int iph=0; iph<ngamma; ++iph ) {
