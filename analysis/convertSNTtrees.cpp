@@ -37,7 +37,9 @@ int main( int argc, char* argv[] ) {
   convertFiles(samples, "SingleMuon"    , 8, doSkim, doPrune);
   convertFiles(samples, "SingleElectron", 9, doSkim, doPrune);
 
-  convertFiles(samples, "ZGTo2LG", 851, doSkim, doPrune);
+  convertFiles(samples, "ZGTo2LG",      851, doSkim, doPrune);
+
+  std::cout << "-> Find your trees in: " << samples << std::endl;
 
   return 0;
 
