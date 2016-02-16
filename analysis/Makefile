@@ -57,6 +57,9 @@ drawCutEfficiency: drawCutEfficiency.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.
 drawSignalEfficiency: drawSignalEfficiency.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o
 	$(CC) -Wall $(INCLUDES) -o drawSignalEfficiency drawSignalEfficiency.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o  $(ROOTFLAG) $(EXTRALIBS)
 
+draw74vs76: draw74vs76.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o
+	$(CC) -Wall $(INCLUDES) -o draw74vs76 draw74vs76.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o  $(ROOTFLAG) $(EXTRALIBS)
+
 
 
 
