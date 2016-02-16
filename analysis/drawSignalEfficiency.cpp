@@ -122,8 +122,8 @@ void drawCompare( const ZGConfig& cfg, TGraphErrors* gr_eff_ee, TGraphErrors* gr
 
   TLegend* legend = new TLegend( 0.2, 0.7, 0.55, 0.9 );
   legend->SetFillColor(0);
-  legend->SetTextSize(0.035);
-  //legend->SetTextFont(42);
+  legend->SetTextSize(0.038);
+  legend->SetTextFont(42);
   legend->AddEntry( gr_eff_ee, gr_eff_ee->GetTitle(), "P" );
   legend->AddEntry( gr_eff_mm, gr_eff_mm->GetTitle(), "P" );
   legend->Draw("same");
@@ -161,7 +161,7 @@ void drawCompare( const ZGConfig& cfg, TGraphErrors* gr_eff, TF1* f1, const std:
 
   TLegend* legend = new TLegend( 0.2, 0.7, 0.55, 0.9, channel.c_str() );
   legend->SetFillColor(0);
-  legend->SetTextSize(0.035);
+  legend->SetTextSize(0.038);
   legend->SetTextFont(42);
   legend->AddEntry( f1, "Estimated #epsilon #times A", "L" );
   legend->AddEntry( gr_eff, "From Full Sim Samples", "P" );
