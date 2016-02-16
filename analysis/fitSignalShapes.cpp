@@ -68,9 +68,13 @@ int main( int argc, char* argv[] ) {
   fitGraphs( cfg, masses, outdir, outfile, "ee", "leptType==11" );
   fitGraphs( cfg, masses, outdir, outfile, "mm", "leptType==13" );
 
-  drawCompare( cfg, outdir, outfile, "mean" , "Gaussian Mean [GeV]"   , "ee", "ee#gamma", "mm", "#mu#mu#gamma" );
-  drawCompare( cfg, outdir, outfile, "sigma", "Gaussian #sigma [GeV]" , "ee", "ee#gamma", "mm", "#mu#mu#gamma" );
-  drawCompare( cfg, outdir, outfile, "width", "Gaussian #sigma/#mu"   , "ee", "ee#gamma", "mm", "#mu#mu#gamma" );
+  drawCompare( cfg, outdir, outfile, "mean"  , "Gaussian Mean [GeV]"   , "ee", "ee#gamma", "mm", "#mu#mu#gamma" );
+  drawCompare( cfg, outdir, outfile, "sigma" , "Gaussian #sigma [GeV]" , "ee", "ee#gamma", "mm", "#mu#mu#gamma" );
+  drawCompare( cfg, outdir, outfile, "width" , "Gaussian #sigma/#mu"   , "ee", "ee#gamma", "mm", "#mu#mu#gamma" );
+  drawCompare( cfg, outdir, outfile, "alpha1", "CB left #alpha"        , "ee", "ee#gamma", "mm", "#mu#mu#gamma" );
+  drawCompare( cfg, outdir, outfile, "alpha2", "CB right #alpha"       , "ee", "ee#gamma", "mm", "#mu#mu#gamma" );
+  drawCompare( cfg, outdir, outfile, "n1"    , "CB left N"             , "ee", "ee#gamma", "mm", "#mu#mu#gamma" );
+  drawCompare( cfg, outdir, outfile, "n2"    , "CB right N"            , "ee", "ee#gamma", "mm", "#mu#mu#gamma" );
 
   outfile->Close();
 
@@ -89,17 +93,21 @@ void fitGraphs( const ZGConfig& cfg, const std::vector<float> masses, const std:
   std::string plotdir = outdir + "/plots";
   system( Form("mkdir -p %s", plotdir.c_str() ) );
 
-  TGraphErrors* gr_mean = new TGraphErrors(0);
-  TGraphErrors* gr_sigma = new TGraphErrors(0);
-  TGraphErrors* gr_width = new TGraphErrors(0);
-  TGraphErrors* gr_alpha = new TGraphErrors(0);
-  TGraphErrors* gr_n = new TGraphErrors(0);
+  TGraphErrors* gr_mean   = new TGraphErrors(0);
+  TGraphErrors* gr_sigma  = new TGraphErrors(0);
+  TGraphErrors* gr_width  = new TGraphErrors(0);
+  TGraphErrors* gr_alpha1 = new TGraphErrors(0);
+  TGraphErrors* gr_n1     = new TGraphErrors(0);
+  TGraphErrors* gr_alpha2 = new TGraphErrors(0);
+  TGraphErrors* gr_n2     = new TGraphErrors(0);
 
-  gr_mean ->SetName(Form("mean_%s" , name.c_str()));
-  gr_sigma->SetName(Form("sigma_%s", name.c_str()));
-  gr_width->SetName(Form("width_%s", name.c_str()));
-  gr_alpha->SetName(Form("alpha_%s", name.c_str()));
-  gr_n    ->SetName(Form("n_%s"    , name.c_str()));
+  gr_mean  ->SetName(Form("mean_%s" , name.c_str()));
+  gr_sigma ->SetName(Form("sigma_%s", name.c_str()));
+  gr_width ->SetName(Form("width_%s", name.c_str()));
+  gr_alpha1->SetName(Form("alpha1_%s", name.c_str()));
+  gr_n1    ->SetName(Form("n1_%s"    , name.c_str()));
+  gr_alpha2->SetName(Form("alpha2_%s", name.c_str()));
+  gr_n2    ->SetName(Form("n2_%s"    , name.c_str()));
 
 
 
@@ -129,7 +137,7 @@ void fitGraphs( const ZGConfig& cfg, const std::vector<float> masses, const std:
     RooRealVar alpha1( "alpha1", "alpha1", 1.2, 0., 2.5 );
     RooRealVar n1( "n1", "n1", 3., 0., 5. );
     RooRealVar alpha2( "alpha2", "alpha2", 1.2, 0., 2.5 );
-    RooRealVar n2( "n2", "n2", 3., 0., 5. );
+    RooRealVar n2( "n2", "n2", 3., 0., 10. );
     RooDoubleCBShape cb( "cb", "cb", x, mean, sigma, alpha1, n1, alpha2, n2 );
 
     //RooRealVar mean( "mean", "mean", thisMass, 0.9*thisMass, 1.1*thisMass );
@@ -165,19 +173,19 @@ void fitGraphs( const ZGConfig& cfg, const std::vector<float> masses, const std:
     gr_mean->SetPoint( i, thisMass, mean.getVal() );
     gr_sigma->SetPoint( i, thisMass, sigma.getVal() );
     gr_width->SetPoint( i, thisMass, sigma.getVal()/mean.getVal() );
-    gr_alpha->SetPoint( i, thisMass, alpha1.getVal() );
-    //gr_alpha->SetPoint( i, thisMass, alpha.getVal() );
-    gr_n->SetPoint( i, thisMass, n1.getVal() );
-    //gr_n->SetPoint( i, thisMass, n.getVal() );
+    gr_alpha1->SetPoint( i, thisMass, alpha1.getVal() );
+    gr_n1->SetPoint( i, thisMass, n1.getVal() );
+    gr_alpha2->SetPoint( i, thisMass, alpha2.getVal() );
+    gr_n2->SetPoint( i, thisMass, n2.getVal() );
 
     gr_mean->SetPointError( i, 0., mean.getError() );
     gr_sigma->SetPointError( i, 0., sigma.getError() );
     gr_width->SetPointError( i, 0., sigma.getError()/mean.getVal() ); // random
     //gr_width->SetPointError( i, 0., sqrt( sigma.getError()*sigma.getError()/(mean.getVal()*mean.getVal()) + sigma.getVal()*sigma.getVal()*mean.getError()*mean.getError()/(mean.getError()*mean.getError()*mean.getError()*mean.getError()) ) );
-    gr_alpha->SetPointError( i, 0., alpha1.getError() );
-    //gr_alpha->SetPointError( i, 0., alpha.getError() );
-    gr_n->SetPointError( i, 0., n1.getError() );
-    //gr_n->SetPointError( i, 0., n.getError() );
+    gr_alpha1->SetPointError( i, 0., alpha1.getError() );
+    gr_n1->SetPointError( i, 0., n1.getError() );
+    gr_alpha2->SetPointError( i, 0., alpha2.getError() );
+    gr_n2->SetPointError( i, 0., n2.getError() );
 
     delete tree;
     delete data;
@@ -185,23 +193,29 @@ void fitGraphs( const ZGConfig& cfg, const std::vector<float> masses, const std:
   } // for i
 
 
-  TF1* f1_mean  = fitGraph(plotdir, gr_mean , "Gaussian Mean [GeV]");
-  TF1* f1_sigma = fitGraph(plotdir, gr_sigma, "Gaussian Sigma [GeV]");
-  TF1* f1_width = fitGraph(plotdir, gr_width, "Gaussian #sigma/#mu");
-  TF1* f1_alpha = fitGraph(plotdir, gr_alpha, "CB #alpha");
-  TF1* f1_n     = fitGraph(plotdir, gr_n    , "CB N");
+  TF1* f1_mean   = fitGraph(plotdir, gr_mean  , "Gaussian Mean [GeV]");
+  TF1* f1_sigma  = fitGraph(plotdir, gr_sigma , "Gaussian Sigma [GeV]");
+  TF1* f1_width  = fitGraph(plotdir, gr_width , "Gaussian #sigma/#mu");
+  TF1* f1_alpha1 = fitGraph(plotdir, gr_alpha1, "CB left #alpha");
+  TF1* f1_n1     = fitGraph(plotdir, gr_n1    , "CB left N");
+  TF1* f1_alpha2 = fitGraph(plotdir, gr_alpha2, "CB right #alpha");
+  TF1* f1_n2     = fitGraph(plotdir, gr_n2    , "CB right N");
 
   f1_mean  ->Write();
   f1_sigma ->Write();
   f1_width ->Write();
-  f1_alpha ->Write();
-  f1_n     ->Write();
+  f1_alpha1->Write();
+  f1_n1    ->Write();
+  f1_alpha2->Write();
+  f1_n2    ->Write();
 
   gr_mean  ->Write();
   gr_sigma ->Write();
-  gr_alpha ->Write();
-  gr_n     ->Write();
   gr_width ->Write();
+  gr_alpha1->Write();
+  gr_n1    ->Write();
+  gr_alpha2->Write();
+  gr_n2    ->Write();
 
 }
 
@@ -304,7 +318,7 @@ void drawCompare( const ZGConfig& cfg, const std::string& outdir, TFile* file, c
   gr1->Draw("psame");
   gr2->Draw("psame");
 
-  TLegend* legend = new TLegend( 0.2, 0.75, 0.55, 0.9 );
+  TLegend* legend = new TLegend( 0.6, 0.2, 0.9, 0.35 );
   legend->SetTextSize(0.038);
   legend->SetTextFont(42);
   legend->SetFillColor(0);
