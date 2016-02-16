@@ -1,22 +1,34 @@
 scp \
-    EventYields_presel/plots/nVert.pdf \
-    EventYields_presel/plots/nVert_noPU.pdf \
-    EventYields_presel/plots/mZee.pdf \
-    EventYields_presel/plots/mZmm.pdf \
-    EventYields_presel/plots/ptLept0_log.pdf \
-    EventYields_presel/plots/ptLept1_log.pdf \
-    EventYields_presel/plots/ptZ_log.pdf \
-    EventYields_presel/plots/ptGamma_log.pdf \
-    EventYields_presel/plots/ptgOmZg_bossCut.pdf \
-    EventYields_v0/eff_ptCut.pdf \
-    EventYields_v0/limit_Zllgamma.pdf \
-    EventYields_v0/limit_Zgamma.pdf \
-    plotsGenEfficiency/genresp.pdf \
-    plotsGenEfficiency/genreso.pdf \
-    plotsGenEfficiency/geneff_all.pdf \
+    EventYields_v0_eth74X/plots/nVert.pdf \
+    EventYields_v0_eth74X/plots/nVert_noPU.pdf \
+    EventYields_v0_eth74X/plots/mZee.pdf \
+    EventYields_v0_eth74X/plots/mZmm.pdf \
+    EventYields_v0_eth74X/plots/ptLept0_log.pdf \
+    EventYields_v0_eth74X/plots/ptLept1_log.pdf \
+    EventYields_v0_eth74X/plots/ptZ_log.pdf \
+    EventYields_v0_eth74X/plots/ptGamma_log.pdf \
+    EventYields_v0_eth74X/plots/ptgOmZg_bossCut.pdf \
+    EventYields_presel/eff_ptCut.pdf \
+    EventYields_v0_silver/limit_Zllgamma_fit_ee.pdf \
+    EventYields_v0_silver/limit_Zllgamma_fit_mm.pdf \
+    EventYields_v0_silver/limit_Zllgamma_fit_em.pdf \
+    EventYields_v0_silver/limit_Zgamma_fit_em.pdf \
+    EventYields_v0_silver/signalShapes/plots/*pdf \
+    EventYields_v0_silver/signalEfficiency_eff_ee_vs_eff_mm.pdf \
+    EventYields_v0_silver/signalEfficiency_ee.pdf \
+    EventYields_v0_silver/signalEfficiency_mm.pdf \
+    EventYields_v0_silver/signalEfficiency_ee_scale.pdf \
+    EventYields_v0_silver/signalEfficiency_mm_scale.pdf \
+    EventYields_v0_silver/signalEfficiency_all.pdf \
+    EventYields_v0_silver/signalEfficiency_all_scale.pdf \
+    plotsGenEfficiency/genreso_ee.pdf \
+    plotsGenEfficiency/genreso_mm.pdf \
+    plotsGenEfficiency/geneff_ee.pdf \
+    plotsGenEfficiency/geneff_mm.pdf \
     genAcceptance/genAcceptance.pdf \
     genAcceptance/cutEffSignal.pdf \
     genAcceptanceTimesEfficiency.pdf \
+    genAcceptanceTimesEfficiency_ee_mm.pdf \
     massWeightCompare_log.pdf \
     EventYields_presel/syst*pdf \
     lxplus.cern.ch:~/tdr2/notes/AN-16-057/trunk/figures/
