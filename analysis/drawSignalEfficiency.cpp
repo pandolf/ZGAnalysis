@@ -13,6 +13,7 @@
 
 void addEfficiencyPoint( TGraphErrors* gr_eff, const ZGSample& sample, const ZGConfig& cfg, const std::string& sel="" );
 TGraphErrors* getRatio( TGraphErrors* gr, TF1* f1 );
+void drawCompare( const ZGConfig& cfg, TGraphErrors* gr_eff_ee, TGraphErrors* gr_eff_mm );
 void drawCompare( const ZGConfig& cfg, TGraphErrors* gr_eff, TF1* f1, const std::string& name, const std::string& channel );
 TF1* fitConstantPar( TF1* f1, TGraphErrors* gr_eff );
 
@@ -38,6 +39,9 @@ int main( int argc, char* argv[] ) {
   gr_eff_ee->SetName("eff_ee");
   gr_eff_mm->SetName("eff_mm");
 
+  gr_eff_ee->SetTitle("e^{+}e^{-}#gamma");
+  gr_eff_mm->SetTitle("#mu^{+}#mu^{-}#gamma");
+
   std::string samplesFileName = "../samples/samples_" + cfg.mcSamples() + ".dat";
   std::cout << std::endl << std::endl;
   std::cout << "-> Loading signal samples from file: " << samplesFileName << std::endl;
@@ -59,6 +63,8 @@ int main( int argc, char* argv[] ) {
   
   } // if samples != 0
 
+  // compare electrons and muons
+  drawCompare( cfg, gr_eff_ee, gr_eff_mm );
 
   // compare to eff x acc:
   TFile* file_aXe = TFile::Open("genAcceptanceTimesEfficiency.root");
@@ -88,6 +94,49 @@ int main( int argc, char* argv[] ) {
   std::cout << "-> Wrote signal efficiencies in: " << file->GetName() << std::endl;
 
   return 0;
+
+}
+
+
+
+void drawCompare( const ZGConfig& cfg, TGraphErrors* gr_eff_ee, TGraphErrors* gr_eff_mm ) {
+
+  TCanvas* c1 = new TCanvas( "c1", "", 600, 600 );
+  c1->cd();
+  
+  TH2D* h2_axes = new TH2D("axes", "", 10, 300., 1000., 10, 0., 1.0001 );
+  h2_axes->SetXTitle( "Generated Z#gamma Mass [GeV]" );
+  h2_axes->SetYTitle( "Efficiency" );
+  h2_axes->Draw();
+
+  gr_eff_ee->SetMarkerStyle(20);
+  gr_eff_ee->SetMarkerSize(1.3);
+  gr_eff_ee->SetMarkerColor(46);
+
+  gr_eff_mm->SetMarkerStyle(20);
+  gr_eff_mm->SetMarkerSize(1.3);
+  gr_eff_mm->SetMarkerColor(38);
+
+  gr_eff_ee->Draw("p same");
+  gr_eff_mm->Draw("p same");
+
+  TLegend* legend = new TLegend( 0.2, 0.7, 0.55, 0.9 );
+  legend->SetFillColor(0);
+  legend->SetTextSize(0.035);
+  //legend->SetTextFont(42);
+  legend->AddEntry( gr_eff_ee, gr_eff_ee->GetTitle(), "P" );
+  legend->AddEntry( gr_eff_mm, gr_eff_mm->GetTitle(), "P" );
+  legend->Draw("same");
+
+  ZGDrawTools::addLabels( c1, -1, "CMS Simulation" );
+
+  c1->SaveAs( Form("%s/signalEfficiency_%s_vs_%s.eps", cfg.getEventYieldDir().c_str(), gr_eff_ee->GetName(), gr_eff_mm->GetName()) );
+  c1->SaveAs( Form("%s/signalEfficiency_%s_vs_%s.pdf", cfg.getEventYieldDir().c_str(), gr_eff_ee->GetName(), gr_eff_mm->GetName()) );
+
+
+  delete legend;
+  delete c1;
+  delete h2_axes;
 
 }
 
