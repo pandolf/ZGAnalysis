@@ -45,14 +45,17 @@ compareMassShape: compareMassShape.cpp ZGCommonTools.o ZGDrawTools.o
 generateSignalToys: generateSignalToys.cpp ZGCommonTools.o ZGDrawTools.o
 	$(CC) -Wall $(INCLUDES) -o generateSignalToys generateSignalToys.cpp ZGCommonTools.o ZGDrawTools.o  $(ROOTFLAG) $(EXTRALIBS)
 
-fitSignalShapes: fitSignalShapes.cpp ZGCommonTools.o ZGDrawTools.o
-	$(CC) -Wall $(INCLUDES) -o fitSignalShapes fitSignalShapes.cpp ZGCommonTools.o ZGDrawTools.o  $(ROOTFLAG) $(EXTRALIBS)
+fitSignalShapes: fitSignalShapes.cpp ZGCommonTools.o ZGDrawTools.o RooDoubleCBShape.o ZGConfig.o 
+	$(CC) -Wall $(INCLUDES) -o fitSignalShapes fitSignalShapes.cpp ZGCommonTools.o ZGDrawTools.o RooDoubleCBShape.o ZGConfig.o  $(ROOTFLAG) $(EXTRALIBS)
 
 computeSyst: computeSyst.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o
 	$(CC) -Wall $(INCLUDES) -o computeSyst computeSyst.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o  $(ROOTFLAG) $(EXTRALIBS)
 
 drawCutEfficiency: drawCutEfficiency.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o
 	$(CC) -Wall $(INCLUDES) -o drawCutEfficiency drawCutEfficiency.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o  $(ROOTFLAG) $(EXTRALIBS)
+
+drawSignalEfficiency: drawSignalEfficiency.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o
+	$(CC) -Wall $(INCLUDES) -o drawSignalEfficiency drawSignalEfficiency.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o  $(ROOTFLAG) $(EXTRALIBS)
 
 
 
@@ -70,6 +73,9 @@ ZGDrawTools.o: ../src/ZGDrawTools.cc
 
 ZGCommonTools.o: ../src/ZGCommonTools.cc 
 	$(CC) -Wall $(INCLUDES) -c ../src/ZGCommonTools.cc $(ROOTFLAG) $(EXTRALIBS)
+
+RooDoubleCBShape.o: ../src/RooDoubleCBShape.cc 
+	$(CC) -Wall $(INCLUDES) -c ../src/RooDoubleCBShape.cc $(ROOTFLAG) $(EXTRALIBS)
 
 
 
