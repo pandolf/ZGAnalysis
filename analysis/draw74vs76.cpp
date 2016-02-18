@@ -45,7 +45,7 @@ int main() {
 
   ZGDrawTools::addLabels( c1, 2.6 );
 
-  TLegend* legend = new TLegend( 0.55, 0.75, 0.9, 0.9 );
+  TLegend* legend = new TLegend( 0.65, 0.75, 0.9, 0.9 );
   legend->SetFillColor(0);
   legend->SetTextSize(0.038);
   legend->SetTextFont(42);
