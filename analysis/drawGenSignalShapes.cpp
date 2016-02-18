@@ -6,6 +6,8 @@
 #include "../interface/ZGDrawTools.h"
 
 
+void compareParameter( TFile* file, TFile* outfile, const std::string& name, const std::string& axisName );
+
 
 int main() {
 
@@ -13,90 +15,99 @@ int main() {
 
 
   TFile* file = TFile::Open("genSignalShapes/genSignalShapes.root");
+  TFile* outfile = TFile::Open("genSignalShapes/genSignalShapesParameters.root", "recreate");
+
+  compareParameter( file, outfile, "mean" , "Gaussian #mu [GeV]" );
+  compareParameter( file, outfile, "sigma", "Gaussian #sigma [GeV]" );
+  compareParameter( file, outfile, "width", "Gaussian #sigma/#mu" );
+  compareParameter( file, outfile, "alpha1", "CB #alpha_{1}" );
+  compareParameter( file, outfile, "alpha2", "CB #alpha_{2}" );
+  compareParameter( file, outfile, "n1", "CB n_{1}" );
+  compareParameter( file, outfile, "n2", "CB n_{2}" );
+
+  outfile->Close();
+
+  return 0;
+
+}
 
 
-  TGraphErrors* gr_mean_1p4 = (TGraphErrors*)file->Get("bw_mean_1p4");
-  TGraphErrors* gr_mean_5p6 = (TGraphErrors*)file->Get("bw_mean_5p6");
+void compareParameter( TFile* file, TFile* outfile, const std::string& name, const std::string& axisName ) {
 
-  TGraphErrors* gr_width_1p4 = (TGraphErrors*)file->Get("bw_width_1p4");
-  TGraphErrors* gr_width_5p6 = (TGraphErrors*)file->Get("bw_width_5p6");
+  TGraphErrors* gr_1p4 = (TGraphErrors*)file->Get(Form("%s_1p4", name.c_str()) );
+  TGraphErrors* gr_5p6 = (TGraphErrors*)file->Get(Form("%s_5p6", name.c_str()) );
+
 
   TCanvas* c1 = new TCanvas( "c1", "c1", 600, 600 );
   c1->cd();
 
-  TH2D* h2_axes = new TH2D("axes", "", 10, 300., 1000., 10, 300., 1000.);
+  float yMax = 0.;
+  for( int i=0; i<gr_5p6->GetN(); ++i ) {
+    Double_t x, y;
+    gr_5p6->GetPoint(i, x, y);
+    if( y>yMax ) yMax = y;
+  }
+
+  float xMin = 350.;
+  float xMax = 1000.;
+
+  TH2D* h2_axes = new TH2D("axes", "", 10, xMin, xMax, 10, 0., 1.3*yMax );
   h2_axes->SetXTitle( "Generated Mass [GeV]" );
-  h2_axes->SetYTitle( "Fitted Mass [GeV]" );
+  h2_axes->SetYTitle( axisName.c_str() );
   h2_axes->Draw();
 
-  TLine* diag = new TLine( 300., 300., 1000., 1000.);
-  diag->SetLineColor(46);
-  diag->SetLineWidth(2);
-  diag->Draw("same");
+  TF1* f1_1p4 = new TF1( Form("f1_%s", gr_1p4->GetName()), "[0] + [1]*x", xMin, xMax );
+  f1_1p4->SetLineColor(38);
 
-  gr_mean_1p4->SetMarkerStyle(24);
-  gr_mean_1p4->SetMarkerSize(1.3);
+  gr_1p4->Fit( f1_1p4, "QR" );
+  TH1D* band_1p4 = ZGDrawTools::getBand(f1_1p4);
 
-  gr_mean_5p6->SetMarkerStyle(20);
-  gr_mean_5p6->SetMarkerSize(1.3);
+  gr_1p4->SetMarkerStyle(20);
+  gr_1p4->SetMarkerSize(2);
+  gr_1p4->SetMarkerColor(38);
+  gr_1p4->SetLineColor(38);
+  gr_1p4->SetLineWidth(2);
 
-  gr_mean_1p4->Draw("psame");
-  gr_mean_5p6->Draw("psame");
 
-  TLegend* legend = new TLegend(0.2, 0.7, 0.5, 0.9);
+  TF1* f1_5p6 = new TF1( Form("f1_%s", gr_5p6->GetName()), "[0] + [1]*x", xMin, xMax );
+  f1_5p6->SetLineColor(46);
+
+  gr_5p6->Fit( f1_5p6, "QR" );
+  TH1D* band_5p6 = ZGDrawTools::getBand(f1_5p6);
+
+  gr_5p6->SetMarkerStyle(20);
+  gr_5p6->SetMarkerSize(2);
+  gr_5p6->SetMarkerColor(46);
+  gr_5p6->SetLineColor(46);
+  gr_5p6->SetLineWidth(2);
+
+  TLegend* legend = new TLegend(0.2, 0.75, 0.5, 0.9);
   legend->SetFillColor(0);
   legend->SetTextSize(0.035);
   legend->SetTextFont(42);
-  legend->AddEntry( diag, "Expected", "L" );
-  legend->AddEntry( gr_mean_1p4, "W = 1.4%", "P" );
-  legend->AddEntry( gr_mean_5p6, "W = 5.6%", "P" );
+  legend->AddEntry( gr_1p4, "W = 1.4%", "PL" );
+  legend->AddEntry( gr_5p6, "W = 5.6%", "PL" );
   legend->Draw("same");
+
+
+  band_1p4->Draw("c e3 same");
+  band_5p6->Draw("c e3 same");
+
+  gr_1p4->Draw("psame");
+  gr_5p6->Draw("psame");
 
   gPad->RedrawAxis();
 
   ZGDrawTools::addLabels( c1, -1, "CMS Simulation" );
 
-  c1->SaveAs( "genSignalShapes/mean.eps" );
-  c1->SaveAs( "genSignalShapes/mean.pdf" );
+  c1->SaveAs( Form("genSignalShapes/%s.eps", name.c_str()) );
+  c1->SaveAs( Form("genSignalShapes/%s.pdf", name.c_str()) );
 
-  c1->Clear();
+  outfile->cd();
+  f1_1p4->Write();
+  f1_5p6->Write();
 
-
-  TH2D* h2_axes2 = new TH2D("axes2", "", 10, 300., 1000., 10, 0., 0.1);
-  h2_axes2->SetXTitle( "Generated #Gamma/M" );
-  h2_axes2->SetYTitle( "Fitted #Gamma/M" );
-  h2_axes2->Draw();
-
-  TLine* line_1p4 = new TLine( 300., 0.014, 1000., 0.014);
-  line_1p4->SetLineColor(46);
-  line_1p4->SetLineWidth(2);
-  line_1p4->Draw("same");
-
-  TLine* line_5p6 = new TLine( 300., 0.056, 1000., 0.056);
-  line_5p6->SetLineColor(46);
-  line_5p6->SetLineWidth(2);
-  line_5p6->Draw("same");
-
-  gr_width_1p4->SetMarkerStyle(24);
-  gr_width_1p4->SetMarkerSize(1.3);
-
-  gr_width_5p6->SetMarkerStyle(20);
-  gr_width_5p6->SetMarkerSize(1.3);
-
-  gr_width_1p4->Draw("psame");
-  gr_width_5p6->Draw("psame");
-
-  legend->Draw("same");
-
-  gPad->RedrawAxis();
-
-  ZGDrawTools::addLabels( c1, -1, "CMS Simulation" );
-
-  c1->SaveAs( "genSignalShapes/width.eps" );
-  c1->SaveAs( "genSignalShapes/width.pdf" );
-
-  
-
-  return 0;
+  delete c1;
+  delete h2_axes;
 
 }
