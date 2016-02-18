@@ -45,6 +45,9 @@ compareMassShape: compareMassShape.cpp ZGCommonTools.o ZGDrawTools.o
 generateSignalToys: generateSignalToys.cpp ZGCommonTools.o ZGDrawTools.o
 	$(CC) -Wall $(INCLUDES) -o generateSignalToys generateSignalToys.cpp ZGCommonTools.o ZGDrawTools.o  $(ROOTFLAG) $(EXTRALIBS)
 
+fitGenSignalShapes: fitGenSignalShapes.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o 
+	$(CC) -Wall $(INCLUDES) -o fitGenSignalShapes fitGenSignalShapes.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o  $(ROOTFLAG) $(EXTRALIBS)
+
 fitSignalShapes: fitSignalShapes.cpp ZGCommonTools.o ZGDrawTools.o RooDoubleCBShape.o ZGConfig.o 
 	$(CC) -Wall $(INCLUDES) -o fitSignalShapes fitSignalShapes.cpp ZGCommonTools.o ZGDrawTools.o RooDoubleCBShape.o ZGConfig.o  $(ROOTFLAG) $(EXTRALIBS)
 
