@@ -39,7 +39,7 @@ int main( int argc, char* argv[] ) {
 
   convertFiles(samples, "ZGTo2LG",      851, doSkim, doPrune);
 
-  std::cout << "-> Find your trees in: " << samples << std::endl;
+  std::cout << "-> Find your trees in: " << samples << "_conv" << std::endl;
 
   return 0;
 
@@ -51,7 +51,7 @@ void convertFiles( const std::string& samples, const std::string& expr, int id, 
   std::string samplesFile = "../samples/samples_" + samples + ".dat";
   //std::string samplesFile = "../samples/samples_Run2015_25nsGolden_fromSnT.dat";
 
-  std::string outdir = samples;
+  std::string outdir = samples + "_conv";
   system( Form("mkdir -p %s", outdir.c_str()) );
 
   TChain* tree  = new TChain("mt2"); // this has all branches active: will get HLT/Flag info from this one
