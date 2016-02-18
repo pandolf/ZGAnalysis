@@ -5,6 +5,7 @@
 #include "RooDataSet.h"
 #include "RooPlot.h"
 #include "RooBreitWigner.h"
+#include "../interface/RooDoubleCBShape.h"
 
 #include "TFile.h"
 #include "TH1D.h"
@@ -20,7 +21,7 @@
 
 
 
-void fitSingleMass( const std::string& basedir, float mass, const std::string&  width, TGraphErrors* gr_mean, TGraphErrors* gr_width );
+void fitSingleMass( const std::string& basedir, float mass, const std::string&  width, TGraphErrors* gr_mean, TGraphErrors* gr_sigma, TGraphErrors* gr_width, TGraphErrors* gr_alpha1, TGraphErrors* gr_n1, TGraphErrors* gr_alpha2, TGraphErrors* gr_n2 );
 
 
 int main( int argc, char* argv[] ) {
@@ -32,11 +33,11 @@ int main( int argc, char* argv[] ) {
   masses.push_back( 500. );
   masses.push_back( 650. );
   masses.push_back( 740. );
-  masses.push_back( 745. );
+  //masses.push_back( 745. );
   masses.push_back( 750. );
-  masses.push_back( 755. );
+  //masses.push_back( 755. );
   masses.push_back( 760. );
-  masses.push_back( 765. );
+  //masses.push_back( 765. );
   masses.push_back( 770. );
   masses.push_back( 1000. );
   masses.push_back( 1500. );
@@ -49,7 +50,7 @@ int main( int argc, char* argv[] ) {
 
 
   std::vector<std::string> widths;
-  widths.push_back( "0p014" );
+  //widths.push_back( "0p014" );
   widths.push_back( "1p4" );
   widths.push_back( "5p6" );
 
@@ -64,25 +65,46 @@ int main( int argc, char* argv[] ) {
   for( unsigned iwidth=0; iwidth<widths.size(); ++iwidth ) {
 
     TGraphErrors* gr_mean  = new TGraphErrors(0);
+    TGraphErrors* gr_sigma = new TGraphErrors(0);
     TGraphErrors* gr_width = new TGraphErrors(0);
+    TGraphErrors* gr_alpha1 = new TGraphErrors(0);
+    TGraphErrors* gr_alpha2 = new TGraphErrors(0);
+    TGraphErrors* gr_n1 = new TGraphErrors(0);
+    TGraphErrors* gr_n2 = new TGraphErrors(0);
 
-    gr_mean ->SetName( Form("bw_mean_%s" , widths[iwidth].c_str()) );
-    gr_width->SetName( Form("bw_width_%s", widths[iwidth].c_str()) );
+    gr_mean  ->SetName( Form("mean_%s"  , widths[iwidth].c_str()) );
+    gr_sigma ->SetName( Form("sigma_%s" , widths[iwidth].c_str()) );
+    gr_width ->SetName( Form("width_%s" , widths[iwidth].c_str()) );
+    gr_alpha1->SetName( Form("alpha1_%s", widths[iwidth].c_str()) );
+    gr_alpha2->SetName( Form("alpha2_%s", widths[iwidth].c_str()) );
+    gr_n1    ->SetName( Form("n1_%s"    , widths[iwidth].c_str()) );
+    gr_n2    ->SetName( Form("n2_%s"    , widths[iwidth].c_str()) );
 
     for( unsigned imass=0; imass<masses.size(); ++imass ) {
 
-      fitSingleMass( "/pnfs/psi.ch/cms/trivcat/store/user/pandolf/crab/", masses[imass], widths[iwidth], gr_mean, gr_width );
+      if( masses[imass]>1000. ) continue;
+      fitSingleMass( "/pnfs/psi.ch/cms/trivcat/store/user/pandolf/crab/", masses[imass], widths[iwidth], gr_mean, gr_sigma, gr_width, gr_alpha1, gr_n1, gr_alpha2, gr_n2 );
 
     }
 
-    gr_mean ->Write();
-    gr_width->Write();
+    gr_mean  ->Write();
+    gr_sigma ->Write();
+    gr_width ->Write();
+    gr_alpha1->Write();
+    gr_alpha2->Write();
+    gr_n1    ->Write();
+    gr_n2    ->Write();
 
-    delete gr_mean ;
-    delete gr_width;
+    delete gr_mean  ;
+    delete gr_sigma ;
+    delete gr_width ;
+    delete gr_alpha1;
+    delete gr_alpha2;
+    delete gr_n1    ;
+    delete gr_n2    ;
+
 
   }
-
 
   outfile->Close();
 
@@ -96,7 +118,7 @@ int main( int argc, char* argv[] ) {
 
 
 
-void fitSingleMass( const std::string& basedir, float mass, const std::string&  width, TGraphErrors* gr_mean, TGraphErrors* gr_width ) {
+void fitSingleMass( const std::string& basedir, float mass, const std::string&  width, TGraphErrors* gr_mean, TGraphErrors* gr_sigma, TGraphErrors* gr_width, TGraphErrors* gr_alpha1, TGraphErrors* gr_n1, TGraphErrors* gr_alpha2, TGraphErrors* gr_n2 ) {
 
 
   std::string outdir = "genSignalShapes";
@@ -118,7 +140,7 @@ void fitSingleMass( const std::string& basedir, float mass, const std::string&  
   }
   system( "rm toBeAdded.txt" );
 
-
+  if( tree->GetEntries()==0 ) return;
 
   int ngenPart;
   tree->SetBranchAddress( "ngenPart", &ngenPart );
@@ -132,6 +154,8 @@ void fitSingleMass( const std::string& basedir, float mass, const std::string&  
   tree->SetBranchAddress( "genPart_mass", genPart_mass );
   int genPart_pdgId[100];
   tree->SetBranchAddress( "genPart_pdgId", genPart_pdgId );
+  int genPart_motherId[100];
+  tree->SetBranchAddress( "genPart_motherId", genPart_motherId );
   int genPart_status[100];
   tree->SetBranchAddress( "genPart_status", genPart_status );
 
@@ -169,15 +193,15 @@ void fitSingleMass( const std::string& basedir, float mass, const std::string&  
         break;
       }
 
-      if( genPart_pdgId[iPart]==+11 || genPart_pdgId[iPart]==+13 ) {
+      if( (genPart_pdgId[iPart]==+11 || genPart_pdgId[iPart]==+13) && genPart_motherId[iPart]==23 ) {
         leptMinus.SetPtEtaPhiM( genPart_pt[iPart], genPart_eta[iPart], genPart_phi[iPart], genPart_mass[iPart] );
         foundLeptMinus = true;
       }
-      if( genPart_pdgId[iPart]==-11 || genPart_pdgId[iPart]==-13 ) {
+      if( (genPart_pdgId[iPart]==-11 || genPart_pdgId[iPart]==-13) && genPart_motherId[iPart]==23 ) {
         leptPlus.SetPtEtaPhiM( genPart_pt[iPart], genPart_eta[iPart], genPart_phi[iPart], genPart_mass[iPart] );
         foundLeptPlus = true;
       }
-      if( genPart_pdgId[iPart]==22 ) {
+      if( genPart_pdgId[iPart]==22 && genPart_motherId[iPart]==25 ) {
         photon.SetPtEtaPhiM( genPart_pt[iPart], genPart_eta[iPart], genPart_phi[iPart], genPart_mass[iPart] );
         foundPhoton = true;
       }
@@ -215,18 +239,44 @@ void fitSingleMass( const std::string& basedir, float mass, const std::string&  
   }
 
 
-  RooRealVar* bw_m = new RooRealVar( "bw_m", "Breit-Wigner Mean" , mass, 0.5*mass, 1.5*mass );
-  RooRealVar* bw_w = new RooRealVar( "bw_w", "Breit-Wigner Width", 0.01*mass, 0., 0.5*mass );
+  //RooRealVar* bw_mean  = new RooRealVar( "bw_mean", "Breit-Wigner Mean" , mass, 0.2*mass, 1.8*mass );
+  //RooRealVar* bw_gamma = new RooRealVar( "bw_gamma", "Breit-Wigner Width", 0.01*mass, 0., 0.3*mass );
+  //RooBreitWigner* model = new RooBreitWigner( "bw", "Breit-Wigner", *x, *bw_mean, *bw_gamma);
 
-  RooBreitWigner* model = new RooBreitWigner( "bw", "Breit-Wigner", *x, *bw_m, *bw_w);
+  // Crystal-Ball
+  RooRealVar mean( "mean", "mean", mass, 0.9*mass, 1.1*mass );
+  RooRealVar sigma( "sigma", "sigma", 0.015*mass, 0., 0.07*mass );
+  RooRealVar alpha1( "alpha1", "alpha1", 1.2, 0., 2.5 );
+  RooRealVar n1( "n1", "n1", 3., 0., 5. );
+  RooRealVar alpha2( "alpha2", "alpha2", 1.2, 0., 2.5 );
+  RooRealVar n2( "n2", "n2", 3., 0., 10. );
+  RooDoubleCBShape* model = new RooDoubleCBShape( "cb", "cb", *x, mean, sigma, alpha1, n1, alpha2, n2 );
 
   model->fitTo( *data );
 
   int npoints = gr_mean->GetN();
-  gr_mean ->SetPoint     ( npoints, mass, bw_m->getVal() );
-  gr_width->SetPoint     ( npoints, mass, bw_w->getVal() );
-  gr_mean ->SetPointError( npoints,   0., bw_m->getError() );
-  gr_width->SetPointError( npoints,   0., bw_w->getError() );
+  gr_mean  ->SetPoint( npoints, mass, mean.getVal() );
+  gr_sigma ->SetPoint( npoints, mass, sigma.getVal() );
+  gr_width ->SetPoint( npoints, mass, sigma.getVal()/mean.getVal() );
+  gr_alpha1->SetPoint( npoints, mass, alpha1.getVal() );
+  gr_alpha2->SetPoint( npoints, mass, alpha2.getVal() );
+  gr_n1    ->SetPoint( npoints, mass, n1.getVal() );
+  gr_n2    ->SetPoint( npoints, mass, n2.getVal() );
+
+  gr_mean  ->SetPointError( npoints, 0., mean.getError() );
+  gr_sigma ->SetPointError( npoints, 0., sigma.getError() );
+  gr_width ->SetPointError( npoints, 0., sigma.getError()/mean.getVal() );
+  gr_alpha1->SetPointError( npoints, 0., alpha1.getError() );
+  gr_alpha2->SetPointError( npoints, 0., alpha2.getError() );
+  gr_n1    ->SetPointError( npoints, 0., n1.getError() );
+  gr_n2    ->SetPointError( npoints, 0., n2.getError() );
+
+  //gr_mean ->SetPoint     ( npoints, mass, bw_mean->getVal() );
+  //gr_gamma->SetPoint     ( npoints, mass, bw_gamma->getVal() );
+  //gr_width->SetPoint     ( npoints, mass, bw_gamma->getVal()/bw_mean->getVal() );
+  //gr_mean ->SetPointError( npoints,   0., bw_mean->getError() );
+  //gr_gamma->SetPointError( npoints,   0., bw_gamma->getError()/bw_mean->getVal() );
+  //gr_width->SetPointError( npoints,   0., bw_gamma->getError()/bw_mean->getVal() );
 
   RooPlot* plot = x->frame();
   data->plotOn(plot);
@@ -240,10 +290,17 @@ void fitSingleMass( const std::string& basedir, float mass, const std::string&  
   c1->SaveAs( Form("%s/fit_m%.0f_%s.eps", outdir.c_str(), mass, width.c_str()) );
   c1->SaveAs( Form("%s/fit_m%.0f_%s.pdf", outdir.c_str(), mass, width.c_str()) );
 
+  c1->SetLogy();
+
+  c1->SaveAs( Form("%s/fit_m%.0f_%s_log.eps", outdir.c_str(), mass, width.c_str()) );
+  c1->SaveAs( Form("%s/fit_m%.0f_%s_log.pdf", outdir.c_str(), mass, width.c_str()) );
+
+
+  //delete bw_mean;
+  //delete bw_gamma;
+
   delete c1;
   delete data;
-  delete bw_m;
-  delete bw_w;
   delete model;
   delete plot;
   delete x;
