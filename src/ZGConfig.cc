@@ -31,6 +31,7 @@ ZGConfig::ZGConfig( const std::string& name ) {
   additionalStuff_ = "";
   analysisType_ = "zg";
   selection_ = "";
+  smearing_ = true;
 
 
   std::ifstream IN(configFileName.c_str());
@@ -74,6 +75,11 @@ ZGConfig::ZGConfig( const std::string& name ) {
       analysisType_ = std::string(StringValue);
     else if( this_name=="selection" )
       selection_ = std::string(StringValue);
+    else if( this_name=="smearing" ) {
+      std::string smearing_str = std::string(StringValue);
+      if( smearing_str=="true"  ) smearing_ = true;
+      if( smearing_str=="false" ) smearing_ = false;
+    }
 
   } // while getline
 
@@ -190,6 +196,7 @@ void ZGConfig::saveAs( const std::string& filename ) const {
   if( dataSamples_!="" )     ofs << "dataSamples " << dataSamples_ << std::endl;
   if( additionalStuff_!="" ) ofs << "additionalStuff " << additionalStuff_ << std::endl;
   if( selection_!="" ) ofs << "selection " << selection_ << std::endl;
+  ofs << "smearing " << smearing_ << std::endl;
 
 
   std::cout << "[ZGConfig] Saved config file as '" << filename << "'." << std::endl;
