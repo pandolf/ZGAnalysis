@@ -25,6 +25,7 @@ class ZGConfig {
   std::string additionalStuff() const { return additionalStuff_; };
   std::string analysisType()    const { return analysisType_; };
   std::string selection()       const { return selection_; };
+  bool smearing()       const { return smearing_; };
 
 
   bool useMC() const;
@@ -54,6 +55,7 @@ class ZGConfig {
   std::string additionalStuff_;
   std::string analysisType_;
   std::string selection_;
+  bool smearing_;
 
 };
 
