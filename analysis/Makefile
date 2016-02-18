@@ -63,6 +63,9 @@ drawSignalEfficiency: drawSignalEfficiency.cpp ZGCommonTools.o ZGDrawTools.o ZGC
 draw74vs76: draw74vs76.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o
 	$(CC) -Wall $(INCLUDES) -o draw74vs76 draw74vs76.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o  $(ROOTFLAG) $(EXTRALIBS)
 
+drawGenSignalShapes: drawGenSignalShapes.cpp ZGDrawTools.o 
+	$(CC) -Wall $(INCLUDES) -o drawGenSignalShapes drawGenSignalShapes.cpp ZGDrawTools.o $(ROOTFLAG) $(EXTRALIBS)
+
 
 
 
