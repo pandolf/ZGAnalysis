@@ -24,6 +24,9 @@ convertSNTtrees: convertSNTtrees.cpp
 drawZG: drawZG.cpp ZGDrawTools.o ZGConfig.o
 	$(CC) -Wall $(INCLUDES) -o drawZG drawZG.cpp ZGDrawTools.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
 
+drawSignals: drawSignals.cpp ZGDrawTools.o ZGConfig.o
+	$(CC) -Wall $(INCLUDES) -o drawSignals drawSignals.cpp ZGDrawTools.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
+
 drawLimitPlot: drawLimitPlot.cpp ZGDrawTools.o ZGConfig.o
 	$(CC) -Wall $(INCLUDES) -o drawLimitPlot drawLimitPlot.cpp ZGDrawTools.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
 
@@ -45,8 +48,8 @@ compareMassShape: compareMassShape.cpp ZGCommonTools.o ZGDrawTools.o
 generateSignalToys: generateSignalToys.cpp ZGCommonTools.o ZGDrawTools.o
 	$(CC) -Wall $(INCLUDES) -o generateSignalToys generateSignalToys.cpp ZGCommonTools.o ZGDrawTools.o  $(ROOTFLAG) $(EXTRALIBS)
 
-fitGenSignalShapes: fitGenSignalShapes.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o 
-	$(CC) -Wall $(INCLUDES) -o fitGenSignalShapes fitGenSignalShapes.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o  $(ROOTFLAG) $(EXTRALIBS)
+fitGenSignalShapes: fitGenSignalShapes.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o RooDoubleCBShape.o
+	$(CC) -Wall $(INCLUDES) -o fitGenSignalShapes fitGenSignalShapes.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o RooDoubleCBShape.o $(ROOTFLAG) $(EXTRALIBS)
 
 fitSignalShapes: fitSignalShapes.cpp ZGCommonTools.o ZGDrawTools.o RooDoubleCBShape.o ZGConfig.o 
 	$(CC) -Wall $(INCLUDES) -o fitSignalShapes fitSignalShapes.cpp ZGCommonTools.o ZGDrawTools.o RooDoubleCBShape.o ZGConfig.o  $(ROOTFLAG) $(EXTRALIBS)
