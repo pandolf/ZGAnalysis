@@ -38,13 +38,11 @@ int main( int argc, char* argv[] ) {
   float reso_percent = 1.5;
 
 
-  TFile* file_eff = TFile::Open("genAcceptanceTimesEfficiency.root");
-  TF1* f1_eff = (TF1*)file_eff->Get("aXe_0p014");
-  //float eff = 0.4;
-  //float lumi = 20.0;
+  //TFile* file_eff = TFile::Open("genAcceptanceTimesEfficiency.root");
+  //TF1* f1_eff = (TF1*)file_eff->Get("f1_gr_0p014_times_line_all");
 
-  //float reso_percent = 2;
-  //float reso_percent = 5;
+  TFile* file_eff = TFile::Open(Form("%s/signalEfficiency.root", cfg.getEventYieldDir().c_str()));
+  TF1* f1_eff = (TF1*)file_eff->Get("f1_0p014_all");
 
   ZGDrawTools::setStyle();
 
@@ -76,7 +74,11 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
     axisName = "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma) [fb]";
     factor = 2.*cfg.lumi()*0.033;
   } else if( name=="Zllgamma" ) {
-    axisName = "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma#rightarrowl^{+}l^{-}#gamma) [fb]";
+    std::string leptType = "l";
+    if( cat=="fit_em" || cat=="fit_v0" ) leptType="l";
+    if( cat=="fit_ee" ) leptType="e";
+    if( cat=="fit_mm" ) leptType="#mu";
+    axisName = std::string(Form("95\%% CL UL on #sigma #times BR(A#rightarrowZ#gamma#rightarrow %s^{+}%s^{-}#gamma) [fb]", leptType.c_str(), leptType.c_str()));
     factor = 2.*cfg.lumi();
   } else {
     std::cout << "UNKNOWN NAME! (" << name << ")" << std::endl;
@@ -100,8 +102,10 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
     float m, obs, exp, exp_m1s, exp_m2s, exp_p1s, exp_p2s;
     std::string s_m, s_obs, s_exp, s_exp_m1s, s_exp_m2s, s_exp_p1s, s_exp_p2s;
     ifs >> s_m >> m >> s_obs >> obs >> s_exp >> exp >> s_exp_m1s >> exp_m1s >> s_exp_m2s >> exp_m2s >> s_exp_p1s >>  exp_p1s >> s_exp_p2s >> exp_p2s;
+    TString m_tstr(s_m);
+    if( m_tstr.BeginsWith("#") ) continue;
     if( m==lastMass ) continue;
-    std::cout << "m: " << m << " obs: " << obs << " exp: " << exp << " exp_m1s: " << exp_m1s << " exp_m2s: " << exp_m2s << " exp_p1s: " << exp_p1s << " exp_p2s: " << exp_p2s << std::endl;
+    if( m==350. ) continue;
 
     float thisEff = f1_eff->Eval(m);
     float conversion = thisEff*factor;
@@ -113,6 +117,7 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
     exp_m2s/=conversion;
     exp_p1s/=conversion;
     exp_p2s/=conversion;
+    std::cout << "m: " << m << " obs: " << obs << " exp: " << exp << " exp_m1s: " << exp_m1s << " exp_m2s: " << exp_m2s << " exp_p1s: " << exp_p1s << " exp_p2s: " << exp_p2s << std::endl;
 
     gr_obs       ->SetPoint( iPoint, m, obs );
     gr_exp       ->SetPoint( iPoint, m, exp );
@@ -145,7 +150,7 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
   if( factor<1. ) yMax = 300.;
   if( cat=="fit_ee" || cat=="fit_mm" ) yMax *= 2.;
 
-  TH2D* h2_axes = new TH2D("axes", "", 10, 350., 950., 10, 0., yMax );
+  TH2D* h2_axes = new TH2D("axes", "", 10, 350., 1000., 10, 0., yMax );
   h2_axes->SetYTitle( axisName.c_str() );
   //h2_axes->SetYTitle( "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma#rightarrowl^{+}l^{-}#gamma) [fb]");
   h2_axes->SetXTitle( "Resonance Mass [GeV]");
@@ -165,20 +170,21 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
 
   TLegend* legend;
   std::string title = "";
-  if( cat=="fit_em" ) {
-    title = "ee/#mu#mu Combination";
-  } else if( cat=="fit_ee" ) {
-    title = "ee Channel";
-  } else if( cat=="fit_mm" ) {
-    title = "#mu#mu Channel";
-  }
-  if( title!= "" )
-    legend = new TLegend( 0.55, 0.65, 0.9, 0.9, title.c_str() );
-  else
-    legend = new TLegend( 0.55, 0.7, 0.9, 0.9 );
+  title = "Narrow Resonance";
+  //if( cat=="fit_em" ) {
+  //  //title = "ee/#mu#mu Combination";
+  //} else if( cat=="fit_ee" ) {
+  //  title = "Narrow Resonance (e^{+}e^{-}#gamma)";
+  //} else if( cat=="fit_mm" ) {
+  //  title = "Narrow Resonance (#mu^{+}#mu^{-}#gamma)";
+  //  //title = "#mu#mu Channel";
+  //}
+  legend = new TLegend( 0.55, 0.65, 0.9, 0.9 );
   legend->SetFillColor(0);
   legend->SetTextSize(0.038);
   legend->SetTextFont(42);
+  if( title!= "" )
+    legend->SetHeader(title.c_str());
   //legend->AddEntry( gr_exp, "Expected", "L" );
   legend->AddEntry( gr_exp_1sigma, "Expected #pm 1#sigma", "LF" );
   legend->AddEntry( gr_exp_2sigma, "Expected #pm 2#sigma", "LF" );
