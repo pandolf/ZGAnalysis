@@ -14,6 +14,7 @@
 void addEfficiencyPoint( TGraphErrors* gr_eff, const ZGSample& sample, const ZGConfig& cfg, const std::string& sel="" );
 TGraphErrors* getRatio( TGraphErrors* gr, TF1* f1 );
 void drawCompare( const ZGConfig& cfg, TGraphErrors* gr_eff_ee, TGraphErrors* gr_eff_mm );
+void drawRelativeFractions( const ZGConfig& cfg, TGraphErrors* gr_eff_ee, TGraphErrors* gr_eff_mm );
 void drawCompare( const ZGConfig& cfg, TGraphErrors* gr_eff, TF1* f1, const std::string& name, const std::string& channel );
 TF1* fitConstantPar( TF1* f1, TGraphErrors* gr_eff );
 
@@ -57,14 +58,15 @@ int main( int argc, char* argv[] ) {
 
     for( unsigned i=0; i<fSamples.size(); ++i ) {
       addEfficiencyPoint( gr_eff   , fSamples[i], cfg );
-      addEfficiencyPoint( gr_eff_ee, fSamples[i], cfg, "leptType==11" );
-      addEfficiencyPoint( gr_eff_mm, fSamples[i], cfg, "leptType==13" );
+      addEfficiencyPoint( gr_eff_ee, fSamples[i], cfg, "ee" );
+      addEfficiencyPoint( gr_eff_mm, fSamples[i], cfg, "mm" );
     }
   
   } // if samples != 0
 
   // compare electrons and muons
   drawCompare( cfg, gr_eff_ee, gr_eff_mm );
+  drawRelativeFractions( cfg, gr_eff_ee, gr_eff_mm );
 
   // compare to eff x acc:
   TFile* file_aXe = TFile::Open("genAcceptanceTimesEfficiency.root");
@@ -89,6 +91,12 @@ int main( int argc, char* argv[] ) {
   gr_eff->Write();
   gr_eff_ee->Write();
   gr_eff_mm->Write();
+  f1_aXe_0p014_scale   ->SetName("f1_0p014_all");
+  f1_aXe_0p014_ee_scale->SetName("f1_0p014_ee");
+  f1_aXe_0p014_mm_scale->SetName("f1_0p014_mm");
+  f1_aXe_0p014_scale   ->Write();
+  f1_aXe_0p014_ee_scale->Write();
+  f1_aXe_0p014_mm_scale->Write();
   file->Close();
 
   std::cout << "-> Wrote signal efficiencies in: " << file->GetName() << std::endl;
@@ -142,6 +150,90 @@ void drawCompare( const ZGConfig& cfg, TGraphErrors* gr_eff_ee, TGraphErrors* gr
 
 
 
+
+void drawRelativeFractions( const ZGConfig& cfg, TGraphErrors* gr_eff_ee, TGraphErrors* gr_eff_mm ) {
+
+
+  TGraphErrors* gr_ee_rel = new TGraphErrors(0);
+  TGraphErrors* gr_mm_rel = new TGraphErrors(0);
+
+  for( int iPoint=0; iPoint<gr_eff_ee->GetN(); ++iPoint ) {
+
+    Double_t x_ee, eff_ee;
+    gr_eff_ee->GetPoint( iPoint, x_ee, eff_ee );
+
+    Double_t x_mm, eff_mm;
+    gr_eff_mm->GetPoint( iPoint, x_mm, eff_mm );
+
+    Double_t eff_ee_err = gr_eff_ee->GetErrorY( iPoint );
+    Double_t eff_mm_err = gr_eff_mm->GetErrorY( iPoint );
+
+    float tot = eff_ee + eff_mm;
+    gr_ee_rel->SetPoint( iPoint, x_ee, eff_ee/tot );
+    gr_mm_rel->SetPoint( iPoint, x_mm, eff_mm/tot );
+    gr_ee_rel->SetPointError( iPoint, 0., eff_ee_err );
+    gr_mm_rel->SetPointError( iPoint, 0., eff_mm_err );
+
+  }
+
+  TCanvas* c1 = new TCanvas( "c1", "", 600, 600 );
+  c1->cd();
+  
+  TH2D* h2_axes = new TH2D("axes", "", 10, 300., 1000., 10, 0., 1.0001 );
+  h2_axes->SetXTitle( "Generated Z#gamma Mass [GeV]" );
+  h2_axes->SetYTitle( "Relative Amount" );
+  h2_axes->Draw();
+
+
+  TF1* line_ee = new TF1("line_ee", "[0]", 300., 1000.);
+  line_ee->SetLineColor(46);
+  gr_ee_rel->Fit( line_ee, "QR" );
+
+  TF1* line_mm = new TF1("line_mm", "[0]", 300., 1000.);
+  line_mm->SetLineColor(38);
+  gr_mm_rel->Fit( line_mm, "QR" );
+
+  gr_ee_rel->SetMarkerStyle(20);
+  gr_ee_rel->SetMarkerColor(46);
+  gr_ee_rel->SetLineColor(46);
+  gr_ee_rel->SetMarkerSize(1.3);
+
+  gr_mm_rel->SetMarkerStyle(20);
+  gr_mm_rel->SetMarkerColor(38);
+  gr_mm_rel->SetLineColor(38);
+  gr_mm_rel->SetMarkerSize(1.3);
+
+  gr_mm_rel->Draw("p same");
+  gr_ee_rel->Draw("p same");
+
+  TLegend* legend = new TLegend( 0.2, 0.7, 0.55, 0.9 );
+  legend->SetFillColor(0);
+  legend->SetTextSize(0.038);
+  legend->SetTextFont(42);
+  legend->AddEntry( gr_mm_rel, Form("#mu^{+}#mu^{-}#gamma (%.1f %%)", line_mm->GetParameter(0)*100.), "PL" );
+  legend->AddEntry( gr_ee_rel, Form("e^{+}e^{-}#gamma (%.1f %%)"    , line_ee->GetParameter(0)*100.), "PL" );
+  legend->Draw("same");
+
+  ZGDrawTools::addLabels( c1, -1, "CMS Simulation" );
+
+  c1->SaveAs( Form("%s/signalEfficiency_rel_ee_vs_mm.eps", cfg.getEventYieldDir().c_str()) );
+  c1->SaveAs( Form("%s/signalEfficiency_rel_ee_vs_mm.pdf", cfg.getEventYieldDir().c_str()) );
+
+
+  delete legend;
+  delete c1;
+  delete h2_axes;
+  delete line_ee;
+  delete line_mm;
+  delete gr_ee_rel;
+  delete gr_mm_rel;
+
+}
+
+
+
+
+
 void drawCompare( const ZGConfig& cfg, TGraphErrors* gr_eff, TF1* f1, const std::string& name, const std::string& channel ) {
 
   TCanvas* c1 = new TCanvas( "c1", "", 600, 600 );
@@ -156,6 +248,7 @@ void drawCompare( const ZGConfig& cfg, TGraphErrors* gr_eff, TF1* f1, const std:
   f1->Draw("same");
 
   gr_eff->SetMarkerStyle(20);
+  gr_eff->SetMarkerColor(kBlack);
   gr_eff->SetMarkerSize(1.3);
   gr_eff->Draw("p same");
 
@@ -197,14 +290,19 @@ void addEfficiencyPoint( TGraphErrors* gr_eff, const ZGSample& sample, const ZGC
 
   float nTotalGenEvents = (float)sample.nevents;
   nTotalGenEvents = nTotalGenEvents*2./3.; // fuck taus
+  if( sel=="ee" || sel=="mm" ) nTotalGenEvents/=2.;
 
   TFile* file_pass = TFile::Open( Form("%s/trees.root", cfg.getEventYieldDir().c_str()) );
   TTree* tree_pass = (TTree*)file_pass->Get( name.c_str() );
   int nPassEvents;
-  if( sel!="" )
-    nPassEvents =  tree_pass->GetEntries(sel.c_str());
-  else
+  if( sel!="" ) {
+    std::string tree_sel="";
+    if( sel=="ee" ) tree_sel = "leptType==11";
+    if( sel=="mm" ) tree_sel = "leptType==13";
+    nPassEvents =  tree_pass->GetEntries(tree_sel.c_str());
+  } else {
     nPassEvents =  tree_pass->GetEntries();
+  }
 
   float thisEff = (float)nPassEvents/((float)nTotalGenEvents);
   float thisEffErr = sqrt( thisEff*(1.-thisEff)/((float)nTotalGenEvents) );
