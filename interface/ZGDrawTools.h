@@ -31,9 +31,11 @@ class ZGDrawTools {
 
   ZGDrawTools( const std::string& outputdir="plots_tmp", float lumi=0. );
 
-  void set_outDir( const std::string& outdir );
   void set_data( TTree* data );
   void set_mc( std::vector< TTree* > mc );
+  void set_overlay( std::vector< TTree* > overlay );
+
+  void set_outDir( const std::string& outdir );
   void set_lumi( float lumi );
   void set_lumiErr( float lumiErr );
   void set_shapeNorm( bool shapeNorm );
@@ -93,6 +95,10 @@ class ZGDrawTools {
 
   TCanvas* drawPlot( const std::string& saveName, const std::string& varName, const std::string& selection, int nBins, float xMin, float xMax, std::string axisName="", const std::string& units="" );
 
+  bool mc() const { return mc_.size()>0; };
+  bool overlay() const { return overlay_.size()>0; };
+
+
  private:
 
   std::string outdir_;
@@ -106,6 +112,7 @@ class ZGDrawTools {
 
   TTree* data_;
   std::vector< TTree* > mc_;
+  std::vector< TTree* > overlay_;
   float mcSF_;
   
 

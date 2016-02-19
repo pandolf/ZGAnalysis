@@ -56,6 +56,13 @@ void ZGDrawTools::set_mc( std::vector< TTree* > mc ) {
 }
 
 
+void ZGDrawTools::set_overlay( std::vector< TTree* > overlay ) {
+
+  overlay_ = overlay;
+
+}
+
+
 void ZGDrawTools::set_outDir( const std::string& outdir ) {
 
   std::cout << "[ZGDrawTools] Setting outdir to: " << outdir << std::endl;
@@ -791,6 +798,13 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
   colors.push_back(46);
 
 
+  std::vector<int> lineColors;
+  lineColors.push_back(42);
+  lineColors.push_back(44);
+  lineColors.push_back(46);
+  lineColors.push_back(48);
+
+
   TString sel_tstr(selection);
   if( sel_tstr.Contains("weight") ) {
     std::cout << "[ZGDrawTools::drawPlot] WARNING!! Selection contains 'weight'!! Are you sure you know what you're doing??" << std::endl;
@@ -840,7 +854,6 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
 
   }
 
-  //TH1::AddDirectory(kFALSE); // stupid ROOT memory allocation needs this
 
   TH1D* mc_sum;
   for( unsigned i=0; i<histos_mc.size(); ++i ) { 
@@ -853,7 +866,7 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
   }
 
   float scaleFactor = mcSF_;
-  if( data_ ) {
+  if( data_ && mc() ) {
     std::cout << "Integrals: " << h1_data->Integral(0, nBins) << "\t" << mc_sum->Integral(0, nBins) << std::endl;
     float sf  = h1_data->Integral(0, nBins)/mc_sum->Integral(0, nBins);
     //std::cout << "Integrals: " << h1_data->Integral(0, nBins+1) << "\t" << mc_sum->Integral(0, nBins+1) << std::endl;
@@ -880,10 +893,47 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
   }
 
 
-  TH1D* mcBand = ZGDrawTools::getMCBandHisto( histo_mc, lumiErr_ );
+  TH1D* mcBand = (mc()) ? ZGDrawTools::getMCBandHisto( histo_mc, lumiErr_ ) : 0 ;
+
+
+  bool overlayNormalized = (overlay_.size()>0 && mc_.size()==0 && data_==0 );
+
+  // and now overlayed histos:
+  std::vector< TH1D* > histos_overlay;
+  for( unsigned i=0; i<overlay_.size(); ++i ) { 
+    std::string thisName( Form("h1_%s", overlay_[i]->GetName()) );
+    TObject* obj = gROOT->FindObject(thisName.c_str());
+    if( obj ) delete obj;
+    TH1D* h1_overlay = new TH1D( thisName.c_str(), "", nBins, xMin, xMax );
+    h1_overlay->Sumw2();
+    if( selection!="" )
+      overlay_[i]->Project( thisName.c_str(), varName.c_str(), Form("%f*weight*(%s)", lumi_, selection.c_str()) );
+    else
+      overlay_[i]->Project( thisName.c_str(), varName.c_str(), Form("%f*weight", lumi_) );
+
+    if( addOverflow_ )
+      ZGDrawTools::addOverflowSingleHisto(h1_overlay);
+
+    h1_overlay->SetLineColor( lineColors[i] );
+    h1_overlay->SetLineWidth( 2 );
+
+    if( overlayNormalized )
+      h1_overlay->Scale( 1./h1_overlay->Integral() );
+    else {
+      if( mc() ) {
+        h1_overlay->Scale( mc_sum->Integral()/h1_overlay->Integral() );
+      } else {
+        h1_overlay->Scale( h1_data->Integral()/h1_overlay->Integral() );
+      }
+    }
+    histos_overlay.push_back(h1_overlay);
+
+  }
+
+
   
   TGraphAsymmErrors* g_ratio = 0;
-  if( data_ ) g_ratio = ZGDrawTools::getRatioGraph(gr_data, mcBand );
+  if( data_ && mc() ) g_ratio = ZGDrawTools::getRatioGraph(gr_data, mcBand );
   
   TLine* lineCentral = new TLine(xMin, 1.0, xMax, 1.0);
   lineCentral->SetLineColor(1);
@@ -910,10 +960,12 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
   float yMaxScale = 1.1;
   float yMax1 = (data_) ? h1_data->GetMaximum()*yMaxScale : 0.;
   float yMax2 = (data_) ? yMaxScale*(h1_data->GetMaximum() + sqrt(h1_data->GetMaximum())) : 0.;
-  float yMax3 = yMaxScale*(bgStack->GetMaximum());
+  float yMax3 = mc() ? yMaxScale*(bgStack->GetMaximum()) : 0.;
   float yMax = (yMax1>yMax2) ? yMax1 : yMax2;
   if( yMax3 > yMax ) yMax = yMax3;
-  if( histo_mc->GetNbinsX()<2 ) yMax *=3.;
+  float yMax_o = overlay() ? histos_overlay[0]->GetMaximum()*yMaxScale : 0.;
+  if( yMax_o>yMax ) yMax = yMax_o;
+  //if( histo_mc->GetNbinsX()<2 ) yMax *=3.;
   yMax*=1.25;
   
   std::string xAxisTitle;
@@ -944,7 +996,10 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
 
   TH2D* h2_axes = new TH2D("axes", "", 10, xMin, xMax, 10, 0., yMax );
   h2_axes->SetXTitle(xAxisTitle.c_str());
-  h2_axes->SetYTitle(yAxisTitle.c_str());
+  if( overlayNormalized )
+    h2_axes->SetYTitle("Normalized to Unity" );
+  else
+    h2_axes->SetYTitle(yAxisTitle.c_str());
 
   c1->cd();
 
@@ -962,7 +1017,10 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
 
   TH2D* h2_axes_log = new TH2D("axes_log", "", 10, xMin, xMax, 10, yMin_log, yMax*2.0 );
   h2_axes_log->SetXTitle(xAxisTitle.c_str());
-  h2_axes_log->SetYTitle(yAxisTitle.c_str());
+  if( overlayNormalized )
+    h2_axes_log->SetYTitle("Normalized to Unity" );
+  else
+    h2_axes_log->SetYTitle(yAxisTitle.c_str());
 
   c1_log->cd();
 
@@ -1001,7 +1059,7 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
 
 
   int addLines = (data_) ? 2 : 0;
-  TLegend* legend = new TLegend( 0.67, 0.9-(mc_.size()+addLines)*0.06, 0.93, 0.9 );
+  TLegend* legend = new TLegend( 0.67, 0.9-(mc_.size()+addLines+overlay_.size())*0.06, 0.93, 0.9 );
   legend->SetTextSize(0.038);
   legend->SetTextFont(42);
   legend->SetFillColor(0);
@@ -1011,7 +1069,10 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
   for( unsigned i=0; i<histos_mc.size(); ++i ) {  
     legend->AddEntry( histos_mc[i], mc_[i]->GetTitle(), "F" );
   }
-  if( data_ ) 
+  for( unsigned i=0; i<histos_overlay.size(); ++i ) {  
+    legend->AddEntry( histos_overlay[i], overlay_[i]->GetTitle(), "F" );
+  }
+  if( data_ && mc()  ) 
     legend->AddEntry( mcBand, "MC Uncert.", "F" );
 
  
@@ -1034,17 +1095,26 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
   if( this->twoPads() )
     pad1->cd();
   legend->Draw("same");
-  bgStack->Draw("histo same");
-  if( data_ ) {
+  if( mc() )
+    bgStack->Draw("histo same");
+  if( data_ && mc() )
     mcBand->Draw("E2 same");
+  if( data_ ) 
     gr_data->Draw("p same");
-  }
+  for( unsigned iOver = 0; iOver<histos_overlay.size(); ++iOver )
+    histos_overlay[iOver]->Draw("histo same");
   if( !shapeNorm_ && fitText )
     fitText->Draw("same");
   //    ratioText->Draw("same");
 
 
-  (data_) ? ZGDrawTools::addLabels( (TCanvas*)pad1, lumi_, CMStext.c_str() ) : ZGDrawTools::addLabels( c1, lumi_, "CMS Simulation"); 
+  if( data_ ) {
+    ZGDrawTools::addLabels( (TCanvas*)pad1, lumi_, CMStext.c_str() );
+  } else if( mc() ) {
+    ZGDrawTools::addLabels( c1, lumi_, "CMS Simulation");
+  } else {
+    ZGDrawTools::addLabels( c1, -1., "CMS Simulation");
+  }
 
   gPad->RedrawAxis();
 
@@ -1052,11 +1122,14 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
   if( this->twoPads() )
     pad1_log->cd();
   legend->Draw("same");
-  bgStack->Draw("histo same");
-  if( data_ ) {
+  if( mc() )
+    bgStack->Draw("histo same");
+  if( data_ && mc() )
     mcBand->Draw("E2 same");
+  if( data_ ) 
     gr_data->Draw("p same");
-  }
+  for( unsigned iOver = 0; iOver<histos_overlay.size(); ++iOver )
+    histos_overlay[iOver]->Draw("histo same");
   if( !shapeNorm_ && fitText )
     fitText->Draw("same");
   //    ratioText->Draw("same");
