@@ -19,8 +19,8 @@
 
 
 
-std::vector< TGraphErrors* > getEfficiencyGraphs( const std::string& basedir, std::vector<float> masses, bool applyRunningCut=true );
-TGraphErrors* getSingleWidthMasses( const std::string& basedir, std::vector<float> masses, const std::string& width, const std::string& name, bool applyCut=true );
+std::vector< TGraphErrors* > getEfficiencyGraphs( const std::string& outdir, const std::string& basedir, std::vector<float> masses, bool applyRunningCut=true );
+TGraphErrors* getSingleWidthMasses( const std::string& outdir, const std::string& basedir, std::vector<float> masses, const std::string& width, const std::string& name, bool applyCut=true );
 void drawRelativeEfficiency( std::vector<TGraphErrors*> graphs_denom, std::vector<TGraphErrors*> graphs_num );
 
 
@@ -52,8 +52,12 @@ int main() {
   masses.push_back( 6000. );
   masses.push_back( 7000. );
 
-  std::vector< TGraphErrors* > graphs_noCut = getEfficiencyGraphs( "/pnfs/psi.ch/cms/trivcat/store/user/pandolf/crab/", masses, false );
-  std::vector< TGraphErrors* > graphs       = getEfficiencyGraphs( "/pnfs/psi.ch/cms/trivcat/store/user/pandolf/crab/", masses, true  );
+
+  std::string outputdir = "genAcceptance";
+  system( Form("mkdir -p %s", outputdir.c_str()) );
+
+  std::vector< TGraphErrors* > graphs_noCut = getEfficiencyGraphs( outputdir, "/pnfs/psi.ch/cms/trivcat/store/user/pandolf/crab/", masses, false );
+  std::vector< TGraphErrors* > graphs       = getEfficiencyGraphs( outputdir, "/pnfs/psi.ch/cms/trivcat/store/user/pandolf/crab/", masses, true  );
 
   ZGDrawTools::setStyle();
 
@@ -62,7 +66,7 @@ int main() {
   TCanvas* c1 = new TCanvas( "c1", "", 600, 600 );
   c1->cd();
   
-  TH2D* h2_axes = new TH2D("axes", "", 10, xMin, xMax, 10, 0., 1.0001 );
+  TH2D* h2_axes = new TH2D("axes", "", 10, xMin, 6500, 10, 0., 1.0001 );
   h2_axes->SetXTitle( "Mass [GeV]" );
   h2_axes->SetYTitle( "Generator Acceptance" );
   h2_axes->Draw();
@@ -103,9 +107,6 @@ int main() {
 
   gPad->RedrawAxis(); 
 
-  std::string outputdir = "genAcceptance";
-  system( Form("mkdir -p %s", outputdir.c_str()) );
-
   c1->SaveAs( Form("%s/genAcceptance.eps", outputdir.c_str()) );
   c1->SaveAs( Form("%s/genAcceptance.pdf", outputdir.c_str()) );
   
@@ -122,6 +123,8 @@ int main() {
   outfile->Close();
   
 
+  std::cout << "-> Saved stuff in : " << outfile->GetName() << std::endl;
+
 //TFile* file = TFile::Open("prova.root", "recreate" );
 //file->cd();
 //for( unsigned i=0; i<graphs.size(); ++i ) 
@@ -135,12 +138,12 @@ int main() {
 
 
 
-std::vector< TGraphErrors* > getEfficiencyGraphs( const std::string& basedir, std::vector<float> masses, bool applyRunningCut ) {
+std::vector< TGraphErrors* > getEfficiencyGraphs( const std::string& outdir, const std::string& basedir, std::vector<float> masses, bool applyRunningCut ) {
 
   std::vector<TGraphErrors*> graphs;
-  graphs.push_back( getSingleWidthMasses( basedir, masses, "0p014", "W = 0.014\%", applyRunningCut ) );
-  graphs.push_back( getSingleWidthMasses( basedir, masses, "1p4"  , "W = 1.4\%"  , applyRunningCut ) );
-  graphs.push_back( getSingleWidthMasses( basedir, masses, "5p6"  , "W = 5.6\%"  , applyRunningCut ) );
+  graphs.push_back( getSingleWidthMasses( outdir, basedir, masses, "0p014", "W = 0.014\%", applyRunningCut ) );
+  graphs.push_back( getSingleWidthMasses( outdir, basedir, masses, "1p4"  , "W = 1.4\%"  , applyRunningCut ) );
+  graphs.push_back( getSingleWidthMasses( outdir, basedir, masses, "5p6"  , "W = 5.6\%"  , applyRunningCut ) );
 
   return graphs;
 
@@ -149,8 +152,11 @@ std::vector< TGraphErrors* > getEfficiencyGraphs( const std::string& basedir, st
 
 
 
-TGraphErrors* getSingleWidthMasses( const std::string& basedir, std::vector<float> masses, const std::string& width, const std::string& name, bool applyCut ) {
+TGraphErrors* getSingleWidthMasses( const std::string& outdir, const std::string& basedir, std::vector<float> masses, const std::string& width, const std::string& name, bool applyCut ) {
 
+
+  std::string outputdir(Form("%s/%s", outdir.c_str(), width.c_str()));
+  system( Form("mkdir -p %s", outputdir.c_str()) );
 
   TGraphErrors* graph = new TGraphErrors(0);
   if( applyCut )
@@ -169,6 +175,61 @@ TGraphErrors* getSingleWidthMasses( const std::string& basedir, std::vector<floa
     //    continue;
     //  }
     //}
+
+    TFile* outfile = TFile::Open( Form("%s/tree_m%.0f.root", outputdir.c_str(), mass), "recreate" );
+    TTree* outTree = new TTree(Form("genTree_M_%.0f", mass), "");
+
+    float weight;
+    outTree->Branch( "weight", &weight, "weight/F");
+
+    int leptType;
+    outTree->Branch( "leptType", &leptType, "leptType/I");
+
+    float lept0_pt;
+    outTree->Branch( "lept0_pt", &lept0_pt, "lept0_pt/F" );
+    float lept0_eta;
+    outTree->Branch( "lept0_eta", &lept0_eta, "lept0_eta/F" );
+    float lept0_phi;
+    outTree->Branch( "lept0_phi", &lept0_phi, "lept0_phi/F" );
+
+    float lept1_pt;
+    outTree->Branch( "lept1_pt", &lept1_pt, "lept1_pt/F" );
+    float lept1_eta;
+    outTree->Branch( "lept1_eta", &lept1_eta, "lept1_eta/F" );
+    float lept1_phi;
+    outTree->Branch( "lept1_phi", &lept1_phi, "lept1_phi/F" );
+
+    float deltaR_lept;
+    outTree->Branch( "deltaR_lept", &deltaR_lept, "deltaR_lept/F" );
+
+    float gamma_pt;
+    outTree->Branch( "gamma_pt", &gamma_pt, "gamma_pt/F" );
+    float gamma_eta;
+    outTree->Branch( "gamma_eta", &gamma_eta, "gamma_eta/F" );
+    float gamma_phi;
+    outTree->Branch( "gamma_phi", &gamma_phi, "gamma_phi/F" );
+    float gamma_iso;
+    outTree->Branch( "gamma_iso", &gamma_iso, "gamma_iso/F" );
+
+    float z_pt;
+    outTree->Branch( "z_pt", &z_pt, "z_pt/F" );
+    float z_eta;
+    outTree->Branch( "z_eta", &z_eta, "z_eta/F" );
+    float z_phi;
+    outTree->Branch( "z_phi", &z_phi, "z_phi/F" );
+    float z_mass;
+    outTree->Branch( "z_mass", &z_mass, "z_mass/F" );
+
+    float boss_pt;
+    outTree->Branch( "boss_pt", &boss_pt, "boss_pt/F" );
+    float boss_eta;
+    outTree->Branch( "boss_eta", &boss_eta, "boss_eta/F" );
+    float boss_phi;
+    outTree->Branch( "boss_phi", &boss_phi, "boss_phi/F" );
+    float boss_mass;
+    outTree->Branch( "boss_mass", &boss_mass, "boss_mass/F" );
+
+
 
     std::string dataset( Form( "GluGluSpin0ToZGamma_ZToLL_W_%s_M_%.0f_TuneCUEP8M1_13TeV_pythia8", width.c_str(), mass ) );
     std::cout << "-> Starting: " << dataset << std::endl;
@@ -215,20 +276,30 @@ TGraphErrors* getSingleWidthMasses( const std::string& basedir, std::vector<floa
 
       tree->GetEntry(iEntry);
 
+      weight = 1.;
+
       TLorentzVector leptPlus;
       TLorentzVector leptMinus;
       TLorentzVector photon;
       bool foundLeptPlus = false;
       bool foundLeptMinus = false;
       bool foundPhoton = false;
+      bool tauEvent = false;
+      leptType = 0;
 
       for( int iPart=0; iPart<ngenPart; ++iPart ) {
 
         if( genPart_status[iPart]!=1 ) continue;
 
+        if( abs(genPart_pdgId[iPart])==15 ) {
+          tauEvent = true;
+          break;
+        }
+
         if( genPart_pdgId[iPart]==+11 || genPart_pdgId[iPart]==+13 ) {
           leptMinus.SetPtEtaPhiM( genPart_pt[iPart], genPart_eta[iPart], genPart_phi[iPart], genPart_mass[iPart] );
           foundLeptMinus = true;
+          leptType = abs(genPart_pdgId[iPart]);
         }
         if( genPart_pdgId[iPart]==-11 || genPart_pdgId[iPart]==-13 ) {
           leptPlus.SetPtEtaPhiM( genPart_pt[iPart], genPart_eta[iPart], genPart_phi[iPart], genPart_mass[iPart] );
@@ -241,7 +312,7 @@ TGraphErrors* getSingleWidthMasses( const std::string& basedir, std::vector<floa
 
       } // for genparts
 
-
+      if( tauEvent ) continue;
       if( !foundLeptPlus || !foundLeptMinus || !foundPhoton ) continue;
 
       eff_denom += 1.;
@@ -270,11 +341,55 @@ TGraphErrors* getSingleWidthMasses( const std::string& basedir, std::vector<floa
         //if( fabs(photon.Eta())>1.44 ) continue;
       }
 
+      if( leptPlus.Pt() > leptMinus.Pt() ) {
+
+        lept0_pt  = leptPlus.Pt();
+        lept0_eta = leptPlus.Eta();
+        lept0_phi = leptPlus.Phi();
+
+        lept1_pt  = leptMinus.Pt();
+        lept1_eta = leptMinus.Eta();
+        lept1_phi = leptMinus.Phi();
+
+      } else {
+
+        lept0_pt  = leptMinus.Pt();
+        lept0_eta = leptMinus.Eta();
+        lept0_phi = leptMinus.Phi();
+
+        lept1_pt  = leptPlus.Pt();
+        lept1_eta = leptPlus.Eta();
+        lept1_phi = leptPlus.Phi();
+
+      }
+
+      deltaR_lept = leptPlus.DeltaR(leptMinus);
+
+      gamma_pt  = photon.Pt();
+      gamma_eta = photon.Eta();
+      gamma_phi = photon.Phi();
+
+      z_pt   = zBoson.Pt();
+      z_eta  = zBoson.Eta();
+      z_phi  = zBoson.Phi();
+      z_mass = zBoson.M();
+
+      boss_pt   = boss.Pt();
+      boss_eta  = boss.Eta();
+      boss_phi  = boss.Phi();
+      boss_mass = boss.M();
+
+      outTree->Fill();
+
       eff_num += 1.;
 
 
     } // for entries
 
+    outfile->cd();
+    outTree->Write();
+    outfile->Close();
+    std::cout << "-> Wrote tree to file: " << outfile->GetName() << std::endl;
 
     float eff = (eff_denom>0. ) ? eff_num/eff_denom : -1.;
     if( eff<0. ) continue;
@@ -322,7 +437,7 @@ void drawRelativeEfficiency( std::vector<TGraphErrors*> graphs_denom, std::vecto
     gr_ratio->SetName( Form("%s_cutEff", graphs_num[i]->GetName()) );
     gr_ratio->SetTitle( graphs_num[i]->GetTitle() );
 
-    for( unsigned iPoint=0; iPoint<graphs_denom[i]->GetN(); ++iPoint ) {
+    for( int iPoint=0; iPoint<graphs_denom[i]->GetN(); ++iPoint ) {
 
       Double_t x,effnum;
       graphs_num[i]->GetPoint(iPoint, x, effnum);
