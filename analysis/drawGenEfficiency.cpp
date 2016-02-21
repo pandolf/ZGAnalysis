@@ -18,12 +18,13 @@
 float xMin = 300.;
 float xMax = 1000.;
 
+bool use76 = false;
 
 
 TF1* drawEfficiency( const std::string& outdir, TFile* file, const std::string& suffix1, const std::string& suffix2="", const std::string& legendName1="", const std::string& legendName2="" );
 //void drawVsMass( const std::string& outdir, TFile* file, const std::string& suffix="" );
 void drawVsMass( const std::string& outdir, TTree* tree, const std::string& suffix="", const std::string& sel="" );
-void drawSingleGraph( const std::string& outdir, TGraphErrors* graph, float yMin, float yMax, const std::string& axisName, float lineY=-999. );
+void drawSingleGraph( const std::string& outdir, TGraphErrors* graph, float yMin, float yMax, const std::string& axisName, const std::string& suffix );
 void drawResoFromTree( const std::string& outdir, TTree* tree, const std::string& saveName, const std::string& particle, const std::string& var, const std::string& axisName, const std::string& sel="" );
 
 
@@ -32,28 +33,37 @@ int main() {
 
   ZGDrawTools::setStyle();
 
-  TFile* file = TFile::Open("genEfficiency.root");
+  TFile* file;
+  if( use76 )
+    file = TFile::Open("genEfficiency76.root");
+  else
+    file = TFile::Open("genEfficiency.root");
 
   std::string outdir = "plotsGenEfficiency";
+  if( use76 ) outdir += "76";
   system( Form("mkdir -p %s", outdir.c_str()) );
 
-  TFile* outfile = TFile::Open( "genEfficiencyFunctions.root", "recreate" );
+  TFile* outfile;
+  if( use76 )
+    outfile = TFile::Open( "genEfficiencyFunctions76.root", "recreate" );
+  else
+    outfile = TFile::Open( "genEfficiencyFunctions.root", "recreate" );
   //TFile* outfile = TFile::Open( Form( "%s/efficiency.root", outdir.c_str() ), "recreate" );
 
   TF1* f1_all    = drawEfficiency( outdir, file, "all"    );  
-  TF1* f1_all_ee = drawEfficiency( outdir, file, "all_ee" );  
-  TF1* f1_all_mm = drawEfficiency( outdir, file, "all_mm" );  
+  TF1* f1_ee     = drawEfficiency( outdir, file, "ee"     );  
+  TF1* f1_mm     = drawEfficiency( outdir, file, "mm"     );  
   TF1* f1_noHLT  = drawEfficiency( outdir, file, "noHLT"  );  
   TF1* f1_noIso  = drawEfficiency( outdir, file, "noIso"  );  
 
   f1_all   ->Write();
-  f1_all_ee->Write();
-  f1_all_mm->Write();
+  f1_ee->Write();
+  f1_mm->Write();
   f1_noHLT ->Write();
   f1_noIso ->Write();
   outfile->Close();
 
-  drawEfficiency( outdir, file, "all_ee", "all_mm"  , "ee#gamma", "#mu#mu#gamma" );
+  drawEfficiency( outdir, file, "ee", "mm"  , "ee#gamma", "#mu#mu#gamma" );
   drawEfficiency( outdir, file, "noIso", "all"  , "Before Photon Isolation", "After Photon Isolation" );  
   drawEfficiency( outdir, file, "all"  , "noIso", "Full Selection"         , "Without Photon Isolation" );  
 
@@ -218,7 +228,7 @@ void drawVsMass( const std::string& outdir, TTree* tree, const std::string& suff
   gr_reso->SetName( Form("reso%s", suffix2.c_str()) );
 
 
-  for( unsigned i=0; i<nBins; i++ ) {
+  for( int i=0; i<nBins; i++ ) {
 
     TCanvas* c1 = new TCanvas( Form("fit_%d", i), "", 600, 600 );
     c1->cd();
@@ -276,13 +286,13 @@ void drawVsMass( const std::string& outdir, TTree* tree, const std::string& suff
 
   }
 
-  drawSingleGraph( outdir, gr_resp, -0.01, 0.01, "(M_{gen} - M_{reco}) / M_{gen}", 0. );
-  drawSingleGraph( outdir, gr_reso, 0., 0.05, "Mass Resolution" );
+  drawSingleGraph( outdir, gr_resp, -0.01, 0.01, "(M_{gen} - M_{reco}) / M_{gen}", suffix );
+  drawSingleGraph( outdir, gr_reso,    0., 0.05, "Mass Resolution", suffix );
 
 }
 
 
-void drawSingleGraph( const std::string& outdir, TGraphErrors* graph, float yMin, float yMax, const std::string& axisName, float lineY ) {
+void drawSingleGraph( const std::string& outdir, TGraphErrors* graph, float yMin, float yMax, const std::string& axisName, const std::string& suffix ) {
 
 
   TCanvas* c1 = new TCanvas( "c1", "", 600, 600 );
@@ -293,14 +303,20 @@ void drawSingleGraph( const std::string& outdir, TGraphErrors* graph, float yMin
   h2_axes->SetYTitle( axisName.c_str() );
   h2_axes->Draw();
 
-  TLine* lineHorizontal = new TLine( xMin, lineY, xMax, lineY );
-  lineHorizontal->Draw("same");
+  if( yMin<0. ) {
+    TLine* lineHorizontal = new TLine( xMin, 0., xMax, 0. );
+    lineHorizontal->Draw("same");
+  }
   
 
   graph->SetMarkerStyle(20);
   graph->SetMarkerSize(1.5);
 
-  TF1* line = new TF1( "line", "[0] + [1]*x", xMin, xMax );
+  TF1* line;
+  if( suffix=="ee" ) 
+    line = new TF1( "line", "[0]", xMin, xMax );
+  else
+    line = new TF1( "line", "[0] + [1]*x", xMin, xMax );
   line->SetLineColor(46);
   line->SetLineWidth(2);
   graph->Fit( line, "QR0" );
@@ -311,6 +327,19 @@ void drawSingleGraph( const std::string& outdir, TGraphErrors* graph, float yMin
   line->Draw("same");
 
   graph->Draw("p same" );
+
+  TPaveText* channel = new TPaveText( 0.2, 0.8, 0.45, 0.9, "brNDC" );
+  channel->SetTextSize(0.035);
+  channel->SetFillColor(0);
+  //channel->SetTextFont(42);
+  if( suffix=="ee" ) {
+    channel->AddText( "Electron Channel" );
+    channel->Draw("same");
+  }
+  if( suffix=="mm" ) {
+    channel->AddText( "Muon Channel" );
+    channel->Draw("same");
+  }
   
   ZGDrawTools::addLabels( c1, -1., "CMS Simulation" );
 
