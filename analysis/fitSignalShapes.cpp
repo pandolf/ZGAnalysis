@@ -19,9 +19,9 @@
 
 
 
-void fitGraphs( const ZGConfig& cfg, const std::vector<float> masses, const std::string& outdir, TFile* outfile, const std::string& name, const std::string& sel="" );
+void fitGraphs( const ZGConfig& cfg, const std::vector<float> masses, const std::string& width, const std::string& outdir, TFile* outfile, const std::string& name, const std::string& sel="" );
 TF1* fitGraph( const std::string& outdir, TGraphErrors* graph, const std::string& axisName );
-void drawCompare( const ZGConfig& cfg, const std::string& outdir, TFile* file, const std::string& name, const std::string& axisName, const std::string& cat1, const std::string& name1, const std::string& cat2, const std::string& name2 );
+void drawCompare( const ZGConfig& cfg, const std::string& outdir, TFile* file, const std::string& width, const std::string& name, const std::string& axisName, const std::string& cat1, const std::string& name1, const std::string& cat2, const std::string& name2 );
 
 
 int main( int argc, char* argv[] ) {
@@ -45,38 +45,46 @@ int main( int argc, char* argv[] ) {
   masses.push_back( 600. );
   masses.push_back( 750. );
   masses.push_back( 900. );
+  //masses.push_back( 1500. );
+  //masses.push_back( 2000. );
   //masses.push_back( 300. );
   //masses.push_back( 400. );
   //masses.push_back( 500. );
   //masses.push_back( 750. );
   //masses.push_back( 1000. );
-  //masses.push_back( 1250. );
   //masses.push_back( 1500. );
   //masses.push_back( 2000. );
   //masses.push_back( 2500. );
   //masses.push_back( 3000. );
   //masses.push_back( 5000. );
 
+  std::vector<std::string> widths;
+  widths.push_back( "5p6" );
+  widths.push_back( "0p014" );
 
-  std::string outdir = cfg.getEventYieldDir() + "/signalShapes";
-  system( Form("mkdir -p %s", outdir.c_str() ) );
+  for( unsigned iw =0; iw<widths.size(); ++iw ) {
 
-  TFile* outfile = TFile::Open(Form("%s/signalShapeParameters.root", outdir.c_str()), "recreate");
-  outfile->cd();
+    std::string outdir(Form("%s/signalShapes_%s", cfg.getEventYieldDir().c_str(), widths[iw].c_str()));
+    system( Form("mkdir -p %s", outdir.c_str() ) );
 
-  fitGraphs( cfg, masses, outdir, outfile, "all" );
-  fitGraphs( cfg, masses, outdir, outfile, "ee", "leptType==11" );
-  fitGraphs( cfg, masses, outdir, outfile, "mm", "leptType==13" );
+    TFile* outfile = TFile::Open(Form("%s/signalShapeParameters_%s.root", outdir.c_str(), widths[iw].c_str()), "recreate");
+    outfile->cd();
 
-  drawCompare( cfg, outdir, outfile, "mean"  , "Gaussian Mean [GeV]"   , "ee", "ee#gamma", "mm", "#mu#mu#gamma" );
-  drawCompare( cfg, outdir, outfile, "sigma" , "Gaussian #sigma [GeV]" , "ee", "ee#gamma", "mm", "#mu#mu#gamma" );
-  drawCompare( cfg, outdir, outfile, "width" , "Gaussian #sigma/#mu"   , "ee", "ee#gamma", "mm", "#mu#mu#gamma" );
-  drawCompare( cfg, outdir, outfile, "alpha1", "CB left #alpha"        , "ee", "ee#gamma", "mm", "#mu#mu#gamma" );
-  drawCompare( cfg, outdir, outfile, "alpha2", "CB right #alpha"       , "ee", "ee#gamma", "mm", "#mu#mu#gamma" );
-  drawCompare( cfg, outdir, outfile, "n1"    , "CB left N"             , "ee", "ee#gamma", "mm", "#mu#mu#gamma" );
-  drawCompare( cfg, outdir, outfile, "n2"    , "CB right N"            , "ee", "ee#gamma", "mm", "#mu#mu#gamma" );
+    fitGraphs( cfg, masses, widths[iw], outdir, outfile, "all" );
+    fitGraphs( cfg, masses, widths[iw], outdir, outfile, "ee", "leptType==11" );
+    fitGraphs( cfg, masses, widths[iw], outdir, outfile, "mm", "leptType==13" );
 
-  outfile->Close();
+    drawCompare( cfg, outdir, outfile, widths[iw], "mean"  , "Gaussian Mean [GeV]"   , "ee", "ee#gamma", "mm", "#mu#mu#gamma" );
+    drawCompare( cfg, outdir, outfile, widths[iw], "sigma" , "Gaussian #sigma [GeV]" , "ee", "ee#gamma", "mm", "#mu#mu#gamma" );
+    drawCompare( cfg, outdir, outfile, widths[iw], "width" , "Gaussian #sigma/#mu"   , "ee", "ee#gamma", "mm", "#mu#mu#gamma" );
+    drawCompare( cfg, outdir, outfile, widths[iw], "alpha1", "CB left #alpha"        , "ee", "ee#gamma", "mm", "#mu#mu#gamma" );
+    drawCompare( cfg, outdir, outfile, widths[iw], "alpha2", "CB right #alpha"       , "ee", "ee#gamma", "mm", "#mu#mu#gamma" );
+    drawCompare( cfg, outdir, outfile, widths[iw], "n1"    , "CB left N"             , "ee", "ee#gamma", "mm", "#mu#mu#gamma" );
+    drawCompare( cfg, outdir, outfile, widths[iw], "n2"    , "CB right N"            , "ee", "ee#gamma", "mm", "#mu#mu#gamma" );
+
+    outfile->Close();
+
+  } // for widths
 
   return 0;
 
@@ -84,7 +92,7 @@ int main( int argc, char* argv[] ) {
 
 
 
-void fitGraphs( const ZGConfig& cfg, const std::vector<float> masses, const std::string& outdir, TFile* outfile, const std::string& name, const std::string& sel ) {
+void fitGraphs( const ZGConfig& cfg, const std::vector<float> masses, const std::string& width, const std::string& outdir, TFile* outfile, const std::string& name, const std::string& sel ) {
 
 
   std::cout << "+++ STARTING: " << name << std::endl;
@@ -121,7 +129,8 @@ void fitGraphs( const ZGConfig& cfg, const std::vector<float> masses, const std:
     float thisMass = masses[i];
     std::cout << "-> Starting mass: " << thisMass << std::endl;
 
-    TTree* tree0 = (TTree*)file->Get( Form("XZg_Spin0_ZToLL_W_0p014_M_%.0f", thisMass ));
+    TTree* tree0 = (TTree*)file->Get( Form("XZg_Spin0_ZToLL_W_%s_M_%.0f", width.c_str(), thisMass ));
+    if( tree0 == 0 ) continue;
     TTree* tree;
     if( sel=="" ) {
       tree = tree0;
@@ -129,7 +138,8 @@ void fitGraphs( const ZGConfig& cfg, const std::vector<float> masses, const std:
       tree = tree0->CopyTree(sel.c_str());
     }
 
-    RooRealVar x("boss_mass", "boss_mass", thisMass, 0.5*thisMass, 1.2*thisMass );
+    float maxMassFact = (thisMass>1000. || width=="5p6" ) ? 1.5 : 1.3;
+    RooRealVar x("boss_mass", "boss_mass", thisMass, 0.5*thisMass, maxMassFact*thisMass );
 
     // Crystal-Ball
     RooRealVar mean( "mean", "mean", thisMass, 0.9*thisMass, 1.1*thisMass );
@@ -226,10 +236,14 @@ TF1* fitGraph( const std::string& outdir, TGraphErrors* graph, const std::string
 
   //float xMin = 200.;
   //float xMax = 7000.;
-  float xMin = 400.;
+  float xMin = 350.;
   float xMax = 1000.;
 
-  TF1* f1 = new TF1( Form("f1_%s", graph->GetName()), "[0] + [1]*x", xMin, xMax );
+  TString grName_tstr(graph->GetName());
+  std::string formula = "[0] + [1]*x";
+  //if( grName_tstr.Contains("sigma") && grName_tstr.Contains("mm") )
+  //  formula = "[0] + [1]*x + [2]*x*x";
+  TF1* f1 = new TF1( Form("f1_%s", graph->GetName()), formula.c_str(), xMin, xMax );
   //TF1* f1 = new TF1( Form("f1_%s", graph->GetName()), "[0] + [1]*x + [2]*x*x + [3]*x*x*x + [4]*x*x*x*x + [5]*x*x*x*x*x", xMin, xMax );
   f1->SetLineColor(46);
 
@@ -277,7 +291,7 @@ TF1* fitGraph( const std::string& outdir, TGraphErrors* graph, const std::string
 
 
 
-void drawCompare( const ZGConfig& cfg, const std::string& outdir, TFile* file, const std::string& name, const std::string& axisName, const std::string& cat1, const std::string& name1, const std::string& cat2, const std::string& name2 ){
+void drawCompare( const ZGConfig& cfg, const std::string& outdir, TFile* file, const std::string& width, const std::string& name, const std::string& axisName, const std::string& cat1, const std::string& name1, const std::string& cat2, const std::string& name2 ){
 
   std::string plotdir = outdir + "/plots";
   system( Form("mkdir -p %s", plotdir.c_str() ) );
@@ -298,7 +312,7 @@ void drawCompare( const ZGConfig& cfg, const std::string& outdir, TFile* file, c
   TCanvas* c1 = new TCanvas( "c1", "", 600, 600 );
   c1->cd();
 
-  TH2D* h2_axes = new TH2D( "axes", "", 10, 400., 1000., 10, 0., 1.3*yMax );
+  TH2D* h2_axes = new TH2D( "axes", "", 10, 350., 1000., 10, 0., 1.3*yMax );
   h2_axes->SetXTitle( "Generated Mass [GeV]" );
   h2_axes->SetYTitle( axisName.c_str() );
   h2_axes->Draw();
@@ -318,7 +332,30 @@ void drawCompare( const ZGConfig& cfg, const std::string& outdir, TFile* file, c
   gr1->Draw("psame");
   gr2->Draw("psame");
 
-  TLegend* legend = new TLegend( 0.6, 0.2, 0.9, 0.35 );
+  float xMin_leg = 0.6;
+  float xMax_leg = 0.9;
+  float yMin_leg = 0.2;
+  float yMax_leg = 0.38;
+  if( name=="width" || name=="sigma" ) {
+    xMin_leg = 0.2;
+    xMax_leg = 0.5;
+    yMin_leg = 0.72;
+    yMax_leg = 0.9;
+  } 
+  if( name=="n2" ) {
+    xMin_leg = 0.7;
+    xMax_leg = 0.9;
+    yMin_leg = 0.7;
+    yMax_leg = 0.88;
+  } 
+  
+
+  std::string widthtext;
+  if( width=="0p014" ) widthtext = "W = 0.014%";
+  if( width=="1p4"   ) widthtext = "W = 1.4%";
+  if( width=="5p6"   ) widthtext = "W = 5.6%";
+
+  TLegend* legend = new TLegend( xMin_leg, yMin_leg, xMax_leg, yMax_leg, widthtext.c_str() );
   legend->SetTextSize(0.038);
   legend->SetTextFont(42);
   legend->SetFillColor(0);
