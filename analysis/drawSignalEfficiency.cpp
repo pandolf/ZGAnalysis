@@ -57,6 +57,7 @@ int main( int argc, char* argv[] ) {
   } else {
 
     for( unsigned i=0; i<fSamples.size(); ++i ) {
+      std::cout << "-> Starting sample: " << fSamples[i].name << std::endl;
       addEfficiencyPoint( gr_eff   , fSamples[i], cfg );
       addEfficiencyPoint( gr_eff_ee, fSamples[i], cfg, "ee" );
       addEfficiencyPoint( gr_eff_mm, fSamples[i], cfg, "mm" );
@@ -308,7 +309,7 @@ void addEfficiencyPoint( TGraphErrors* gr_eff, const ZGSample& sample, const ZGC
   float thisEffErr = sqrt( thisEff*(1.-thisEff)/((float)nTotalGenEvents) );
 
   std::string delimiter = "M_";
-  std::string mass_str = name.substr(name.find(delimiter)+delimiter.length(), 3);
+  std::string mass_str = name.substr(name.find(delimiter)+delimiter.length(), 4);
   int mass = atoi(mass_str.c_str());
 
   int iPoint = gr_eff->GetN();
