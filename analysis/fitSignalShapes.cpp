@@ -64,10 +64,10 @@ int main( int argc, char* argv[] ) {
 
   for( unsigned iw =0; iw<widths.size(); ++iw ) {
 
-    std::string outdir(Form("%s/signalShapes_%s", cfg.getEventYieldDir().c_str(), widths[iw].c_str()));
+    std::string outdir(Form("%s/signalShapes_w%s", cfg.getEventYieldDir().c_str(), widths[iw].c_str()));
     system( Form("mkdir -p %s", outdir.c_str() ) );
 
-    TFile* outfile = TFile::Open(Form("%s/signalShapeParameters_%s.root", outdir.c_str(), widths[iw].c_str()), "recreate");
+    TFile* outfile = TFile::Open(Form("%s/signalShapeParameters_w%s.root", outdir.c_str(), widths[iw].c_str()), "recreate");
     outfile->cd();
 
     fitGraphs( cfg, masses, widths[iw], outdir, outfile, "all" );
@@ -170,13 +170,13 @@ void fitGraphs( const ZGConfig& cfg, const std::vector<float> masses, const std:
 
     frame->Draw();
 
-    c1->SaveAs( Form("%s/fit_%s_m%.0f.eps", plotdir.c_str(), name.c_str(), thisMass) );
-    c1->SaveAs( Form("%s/fit_%s_m%.0f.pdf", plotdir.c_str(), name.c_str(), thisMass) );
+    c1->SaveAs( Form("%s/fit_%s_m%.0f_w%s.eps", plotdir.c_str(), name.c_str(), thisMass, width.c_str()) );
+    c1->SaveAs( Form("%s/fit_%s_m%.0f_w%s.pdf", plotdir.c_str(), name.c_str(), thisMass, width.c_str()) );
 
     c1->SetLogy();
 
-    c1->SaveAs( Form("%s/fit_%s_m%.0f_log.eps", plotdir.c_str(), name.c_str(), thisMass) );
-    c1->SaveAs( Form("%s/fit_%s_m%.0f_log.pdf", plotdir.c_str(), name.c_str(), thisMass) );
+    c1->SaveAs( Form("%s/fit_%s_m%.0f_w%s_log.eps", plotdir.c_str(), name.c_str(), thisMass, width.c_str()) );
+    c1->SaveAs( Form("%s/fit_%s_m%.0f_w%s_log.pdf", plotdir.c_str(), name.c_str(), thisMass, width.c_str()) );
 
     delete c1;
 
