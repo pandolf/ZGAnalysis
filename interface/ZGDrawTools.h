@@ -40,6 +40,7 @@ class ZGDrawTools {
   void set_lumiErr( float lumiErr );
   void set_shapeNorm( bool shapeNorm );
   void set_mcSF( float mcsf );
+  void set_yAxisScale( float yAxisScale );
   void set_addOverflow( bool addOver );
   void set_displaySF( bool displaySF );
   void set_doPaperPlots( bool doPaperPlots );
@@ -104,6 +105,7 @@ class ZGDrawTools {
   std::string outdir_;
   float lumi_;
   float lumiErr_;
+  float yAxisScale_;
   bool shapeNorm_;
   bool addOverflow_;
   bool displaySF_;
