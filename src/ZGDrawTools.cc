@@ -29,6 +29,8 @@ ZGDrawTools::ZGDrawTools( const std::string& outDir, float lumi ) {
 
   drawZeros_ = false;
 
+  yAxisScale_ = 1.375;
+
   setStyle();
 
   std::cout << "[ZGDrawTools] Initiating: " << std::endl;
@@ -127,6 +129,14 @@ void ZGDrawTools::set_mcSF( float mcsf ) {
 
   std::cout << "[ZGDrawTools] Setting MC SF to: " << mcsf << std::endl;
   mcSF_ = mcsf;
+
+}
+
+
+void ZGDrawTools::set_yAxisScale( float yAxisScale ) {
+
+  std::cout << "[ZGDrawTools] Setting yAxisScale to: " << yAxisScale << std::endl;
+  yAxisScale_ = yAxisScale;
 
 }
 
@@ -803,6 +813,8 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
   lineColors.push_back(44);
   lineColors.push_back(46);
   lineColors.push_back(48);
+  lineColors.push_back(kGray);
+  lineColors.push_back(kBlack);
 
 
   TString sel_tstr(selection);
@@ -957,16 +969,22 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
   
   TCanvas* c1_log = new TCanvas(Form("c1_log_%s", saveName.c_str()), "", 600, 600);
 
-  float yMaxScale = 1.1;
-  float yMax1 = (data_) ? h1_data->GetMaximum()*yMaxScale : 0.;
-  float yMax2 = (data_) ? yMaxScale*(h1_data->GetMaximum() + sqrt(h1_data->GetMaximum())) : 0.;
-  float yMax3 = mc() ? yMaxScale*(bgStack->GetMaximum()) : 0.;
+  float yMax1 = (data_) ? h1_data->GetMaximum() : 0.;
+  float yMax2 = (data_) ? h1_data->GetMaximum() + sqrt(h1_data->GetMaximum()) : 0.;
+  float yMax3 = mc() ? bgStack->GetMaximum() : 0.;
   float yMax = (yMax1>yMax2) ? yMax1 : yMax2;
   if( yMax3 > yMax ) yMax = yMax3;
-  float yMax_o = overlay() ? histos_overlay[0]->GetMaximum()*yMaxScale : 0.;
+  float yMax_o = 0.;
+  if( overlay() ) {
+    for( unsigned i_o=0; i_o<histos_overlay.size(); i_o++ ) {
+      float this_yMax_o = histos_overlay[i_o]->GetMaximum();
+      if( this_yMax_o>yMax_o )
+        yMax_o = this_yMax_o;
+    }
+  }
   if( yMax_o>yMax ) yMax = yMax_o;
   //if( histo_mc->GetNbinsX()<2 ) yMax *=3.;
-  yMax*=1.25;
+  yMax*=yAxisScale_;
   
   std::string xAxisTitle;
   if( units!="" ) 
