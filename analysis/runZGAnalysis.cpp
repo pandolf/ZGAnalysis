@@ -30,6 +30,7 @@
 bool doSyst = true;
 
 
+void addTreeToFile( TFile* file, ZGSample sample, const ZGConfig& cfg );
 void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSample> samples, const ZGConfig& cfg, int idMin=-1, int idMax=-1 );
 void smearEmEnergy     ( TLorentzVector& p );
 void applyEmEnergyScale( TLorentzVector& p );
@@ -127,63 +128,30 @@ int main( int argc, char* argv[] ) {
 
 
 
-//// load signal samples, if any
-//std::vector< MT2Analysis< MT2EstimateSigSyst>* > signals;
-//if( cfg.mcSamples()!="" && cfg.additionalStuff()!="noSignals" && !onlyData ) {
+  // load signal samples, if any
+  if( cfg.mcSamples()!="" && cfg.additionalStuff()!="noSignals" && !onlyData ) {
 
-//  std::string samplesFileName = "../samples/samples_" + cfg.mcSamples() + ".dat";
-//  std::cout << std::endl << std::endl;
-//  std::cout << "-> Loading signal samples from file: " << samplesFileName << std::endl;
+    std::string samplesFileName = "../samples/samples_" + cfg.mcSamples() + ".dat";
+    std::cout << std::endl << std::endl;
+    std::cout << "-> Loading signal samples from file: " << samplesFileName << std::endl;
 
-//  std::vector<ZGSample> fSamples = ZGSample::loadSamples(samplesFileName, 1000); // only signal (id>=1000)
+    std::vector<ZGSample> fSamples = ZGSample::loadSamples(samplesFileName, 1000); // only signal (id>=1000)
 
 
-//  if( fSamples.size()==0 ) {
+    if( fSamples.size()==0 ) {
 
-//    std::cout << "No signal samples found, skipping." << std::endl;
+      std::cout << "No signal samples found, skipping." << std::endl;
 
-//  } else {
-//  
-//    for( unsigned i=0; i<fSamples.size(); ++i ) 
-//      signals.push_back( computeSigYield<MT2EstimateSigSyst>( fSamples[i], cfg ) );
-//  
-//    std::cout << "     merging T1bbbb full scan..." << std::endl;
-//    MT2Analysis<MT2EstimateSigSyst>* EventYield_T1bbbb   = mergeYields<MT2EstimateSigSyst>( signals, cfg.regionsSet(), "SMS_T1bbbb_fullScan", 1020, 1020 );
-//    std::cout << "-> Done merging." << std::endl;
+    } else {
 
-//    signals.push_back( EventYield_T1bbbb );
+      for( unsigned i=0; i<fSamples.size(); ++i ) 
+        addTreeToFile( outfile, fSamples[i], cfg );
+    
+    } // if samples != 0
 
-//  } // if samples != 0
+  } // if mc samples
 
-//} // if mc samples
-
-//else if ( cfg.sigSamples()!="" && !onlyData ) {
-
-//  std::string samplesFileName = "../samples/samples_" + cfg.sigSamples() + ".dat";
-//  std::cout << std::endl << std::endl;
-//  std::cout << "-> Loading signal samples from file: " << samplesFileName << std::endl;
-
-//  std::vector<ZGSample> fSamples = ZGSample::loadSamples(samplesFileName, 1000); // only signal (id>=1000)
-
-//  if( fSamples.size()==0 ) {
-
-//    std::cout << "No signal samples found, skipping." << std::endl;
-
-//  } else {
-
-//    for( unsigned i=0; i<fSamples.size(); ++i )
-//      signals.push_back( computeSigYield<MT2EstimateSigSyst>( fSamples[i], cfg ) );
-
-//    std::cout << "     merging T1bbbb full scan..." << std::endl;
-//    MT2Analysis<MT2EstimateSigSyst>* EventYield_T1bbbb   = mergeYields<MT2EstimateSigSyst>( signals, cfg.regionsSet(), "SMS_T1bbbb_fullScan", 1020, 1020 );
-//    std::cout << "-> Done merging." << std::endl;
-
-//    signals.push_back( EventYield_T1bbbb );
-
-//  } // if samples != 0
-//  
-//} // if sig samples
-//
+  
 
   if( !(cfg.dummyAnalysis()) && cfg.dataSamples()!="" && !onlyMC  && !onlySignal ) {
 
@@ -207,31 +175,8 @@ int main( int argc, char* argv[] ) {
   }
 
 
-//if( yields.size()==0 && signals.size()==0 ) {
-//  std::cout << "-> Didn't end up with a single yield... something's wrong." << std::endl;
-//  exit(87);
-//}
-
-
-//// save MT2Analyses:
-//if( yields.size()>0 ){
-//  yields[0]->writeToFile(outputdir + "/analyses.root");
-//for( unsigned i=1; i<yields.size(); ++i )
-//  yields[i]->writeToFile(outputdir + "/analyses.root");
-//for( unsigned i=0; i<signals.size(); ++i )
-//  signals[i]->writeToFile(outputdir + "/analyses.root");
-//}
-//else if( signals.size()>0 ){
-//  signals[0]->writeToFile(outputdir + "/analyses.root");
-//  for( unsigned i=1; i<signals.size(); ++i )
-//    signals[i]->writeToFile(outputdir + "/analyses.root");
-//}
-//cfg.saveAs(outputdir + "/config.txt");
-
-
   outfile->Close();
 
-  // move in position
   std::string finalFileName = outputdir + "/trees.root";
   system( Form("cp %s %s", outfileName.c_str(), finalFileName.c_str()) );
 
@@ -244,6 +189,15 @@ int main( int argc, char* argv[] ) {
 }
 
 
+
+
+void addTreeToFile( TFile* file, ZGSample sample, const ZGConfig& cfg ) {
+
+  std::vector<ZGSample> vec;
+  vec.push_back( sample );
+  return addTreeToFile( file, sample.name, vec, cfg, sample.id, sample.id );
+
+}
 
 
 void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSample> samples, const ZGConfig& cfg, int idMin, int idMax ) {
@@ -303,6 +257,11 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
   outTree->Branch( "nGamma", &nGamma, "nGamma/I" );
   bool isGolden;
   outTree->Branch( "isGolden", &isGolden, "isGolden/O");
+  bool isSilver;
+  outTree->Branch( "isSilver", &isSilver, "isSilver/O");
+
+  bool passHLT;
+  outTree->Branch( "passHLT", &passHLT, "passHLT/O" );
 
   float weight_scale;
   outTree->Branch( "weight_scale", &weight_scale, "weight_scale/F");
@@ -324,6 +283,9 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
   outTree->Branch( "lept1_eta", &lept1_eta, "lept1_eta/F" );
   float lept1_phi;
   outTree->Branch( "lept1_phi", &lept1_phi, "lept1_phi/F" );
+
+  float deltaR_lept;
+  outTree->Branch( "deltaR_lept", &deltaR_lept, "deltaR_lept/F" );
 
   float gamma_pt;
   outTree->Branch( "gamma_pt", &gamma_pt, "gamma_pt/F" );
@@ -391,22 +353,30 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     }
 
     isGolden = myTree.isGolden;
+    isSilver = myTree.isSilver;
 
     // hlt on data:
     if( myTree.isData ) {
       //if( !myTree.isGolden ) continue;
       if( !myTree.isSilver ) continue;
-      bool hltOK = false;
-      if( id==5 ) hltOK = myTree.HLT_DoubleMu; //DoubleMu PD
-      if( id==8 ) hltOK = myTree.HLT_SingleMu && !myTree.HLT_DoubleMu; //SingleMu PD
-      if( id==4 ) hltOK = myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && !myTree.HLT_SingleMu; //DoubleEG PD
-      if( id==9 ) hltOK = myTree.HLT_SingleEl && !myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && !myTree.HLT_SingleMu; //SingleElectron PD
-      //|| ( id==4 && myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu ) || ( id==7 && !myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && myTree.HLT_Photon165_HE10 ) )  ) continue;
-      if( !hltOK ) continue;
+      passHLT = false;
+      if( id==5 ) passHLT = myTree.HLT_DoubleMu; //DoubleMu PD
+      if( id==8 ) passHLT = myTree.HLT_SingleMu && !myTree.HLT_DoubleMu; //SingleMu PD
+      if( id==4 ) passHLT = myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && !myTree.HLT_SingleMu; //DoubleEG PD
+      if( id==9 ) passHLT = myTree.HLT_SingleEl && !myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && !myTree.HLT_SingleMu; //SingleElectron PD
+      if( cfg.selection()=="hltTest" ) {
+        if( !myTree.HLT_Photon165_HE10 ) continue;
+      } else { // standard HLT logic
+        if( !passHLT ) continue;
+      }
     } else {
-    // hlt on mc:
-      if( !( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_SingleEl || myTree.HLT_SingleMu ) ) continue;
-      //if( !myTree.isData && !( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_Photon165_HE10)) continue;
+      // hlt on mc:
+      passHLT = ( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_SingleEl || myTree.HLT_SingleMu );
+      //if( cfg.selection()=="hltTest" ) {
+      //  if( !myTree.HLT_Photon165_HE10 ) continue;
+      //} else {
+      //  if( !passHLT ) continue;
+      //}
     }
 
 
@@ -500,12 +470,18 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
       if( fabs(photon.Eta())>2.5 ) continue;
       if( myTree.gamma_idCutBased[0]==0 ) continue;
       if( myTree.gamma_chHadIso[0]>2.5 ) continue;
+      if( fabs(myTree.gamma_eta[0])<1.44 ) {
+        if( myTree.gamma_sigmaIetaIeta[0]>0.0102 ) continue;
+      } else {
+        if( myTree.gamma_sigmaIetaIeta[0]>0.0274 ) continue;
+      }
       float deltaR_thresh = 0.4;
       if( photon.DeltaR(lept0)<deltaR_thresh || photon.DeltaR(lept1)<deltaR_thresh ) continue;
 
       // photon energy corrections/smearing NOT done at heppy (in 74X, will be in for 76X)
       if( !myTree.isData ) {
-        smearEmEnergy( photon );
+        if( cfg.smearing() )
+          smearEmEnergy( photon );
       } else {
         applyEmEnergyScale( photon );
       }
@@ -526,6 +502,8 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     lept1_pt  = lept1.Pt();
     lept1_eta = lept1.Eta();
     lept1_phi = lept1.Phi();
+
+    deltaR_lept = lept0.DeltaR(lept1);
 
     nGamma = myTree.ngamma;
 
