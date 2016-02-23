@@ -24,6 +24,9 @@ TF1* fitGraph( const std::string& outdir, TGraphErrors* graph, const std::string
 void drawCompare( const ZGConfig& cfg, const std::string& outdir, TFile* file, const std::string& width, const std::string& name, const std::string& axisName, const std::string& cat1, const std::string& name1, const std::string& cat2, const std::string& name2 );
 
 
+float xMax = 2100.;
+
+
 int main( int argc, char* argv[] ) {
 
 
@@ -45,8 +48,8 @@ int main( int argc, char* argv[] ) {
   masses.push_back( 600. );
   masses.push_back( 750. );
   masses.push_back( 900. );
-  //masses.push_back( 1500. );
-  //masses.push_back( 2000. );
+  masses.push_back( 1500. );
+  masses.push_back( 2000. );
   //masses.push_back( 300. );
   //masses.push_back( 400. );
   //masses.push_back( 500. );
@@ -237,12 +240,11 @@ TF1* fitGraph( const std::string& outdir, TGraphErrors* graph, const std::string
   //float xMin = 200.;
   //float xMax = 7000.;
   float xMin = 350.;
-  float xMax = 1000.;
 
   TString grName_tstr(graph->GetName());
   std::string formula = "[0] + [1]*x";
-  //if( grName_tstr.Contains("sigma") && grName_tstr.Contains("mm") )
-  //  formula = "[0] + [1]*x + [2]*x*x";
+  if( grName_tstr.Contains("sigma") && grName_tstr.Contains("mm") && xMax>1100. )
+    formula = "[0] + [1]*x + [2]*x*x";
   TF1* f1 = new TF1( Form("f1_%s", graph->GetName()), formula.c_str(), xMin, xMax );
   //TF1* f1 = new TF1( Form("f1_%s", graph->GetName()), "[0] + [1]*x + [2]*x*x + [3]*x*x*x + [4]*x*x*x*x + [5]*x*x*x*x*x", xMin, xMax );
   f1->SetLineColor(46);
@@ -312,7 +314,7 @@ void drawCompare( const ZGConfig& cfg, const std::string& outdir, TFile* file, c
   TCanvas* c1 = new TCanvas( "c1", "", 600, 600 );
   c1->cd();
 
-  TH2D* h2_axes = new TH2D( "axes", "", 10, 350., 1000., 10, 0., 1.3*yMax );
+  TH2D* h2_axes = new TH2D( "axes", "", 10, 350., xMax, 10, 0., 1.3*yMax );
   h2_axes->SetXTitle( "Generated Mass [GeV]" );
   h2_axes->SetYTitle( axisName.c_str() );
   h2_axes->Draw();
