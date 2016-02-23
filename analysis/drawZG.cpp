@@ -79,8 +79,9 @@ int main( int argc, char* argv[] ) {
   ZGDrawTools dt(plotsDir, cfg.lumi() );
   dt.set_shapeNorm( shapeNorm );
 
-  if( !onlyMC )
+  if( !onlyMC ) {
     dt.set_data( tree_data );
+  }
   dt.set_mc( trees_mc );
 
   dt.set_lumi( cfg.lumi() );
