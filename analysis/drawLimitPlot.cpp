@@ -170,7 +170,8 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
 
   TLegend* legend;
   std::string title = "";
-  title = "Narrow Resonance";
+  title = "W = 0.014%";
+  //title = "Narrow Resonance";
   //if( cat=="fit_em" ) {
   //  //title = "ee/#mu#mu Combination";
   //} else if( cat=="fit_ee" ) {
