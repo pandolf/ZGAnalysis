@@ -12,10 +12,10 @@ scp \
     EventYields_presel_eth74X/plots/ptZ_log.pdf \
     EventYields_presel_eth74X/plots/ptGamma_log.pdf \
     EventYields_presel_eth74X/plotsSignal/sig_ptgOmZg.pdf \
-    EventYields_v0_silver/limit_Zllgamma_fit_ee.pdf \
-    EventYields_v0_silver/limit_Zllgamma_fit_mm.pdf \
-    EventYields_v0_silver/limit_Zllgamma_fit_em.pdf \
-    EventYields_v0_silver/limit_Zgamma_fit_em.pdf \
+    EventYields_v0_eth74X/limit_Zllgamma_fit_ee.pdf \
+    EventYields_v0_eth74X/limit_Zllgamma_fit_mm.pdf \
+    EventYields_v0_eth74X/limit_Zllgamma_fit_em.pdf \
+    EventYields_v0_eth74X/limit_Zgamma_fit_em.pdf \
     EventYields_v0_eth74X/signalShapes_w0p014/plots/*pdf \
     EventYields_v0_eth74X/signalShapes_w5p6/plots/*pdf \
     EventYields_v0_eth74X/signalEfficiency_eff_ee_vs_eff_mm.pdf \
