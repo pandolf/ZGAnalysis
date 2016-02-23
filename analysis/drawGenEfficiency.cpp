@@ -203,7 +203,7 @@ TF1* drawEfficiency( const std::string& outdir, TFile* file, const std::string& 
 void drawVsMass( const std::string& outdir, TTree* tree, const std::string& suffix, const std::string& sel ) {
 
 
-  int nBins = 8;
+  int nBins = 7;
   Double_t bins[nBins+1];
   bins[0] = 300.;
   bins[1] = 350.;
@@ -212,8 +212,8 @@ void drawVsMass( const std::string& outdir, TTree* tree, const std::string& suff
   bins[4] = 500.;
   bins[5] = 600.;
   bins[6] = 700.;
-  bins[7] = 800.;
-  bins[8] = 950.;
+  bins[7] = 1000.;
+  //bins[7] = 800.;
   
 
   std::string suffix2 = suffix;
@@ -274,12 +274,14 @@ void drawVsMass( const std::string& outdir, TTree* tree, const std::string& suff
     float mean = f1->GetParameter(1);
     float mean_err = f1->GetParError(1);
     gr_resp->SetPoint(i, xmass, mean );
-    gr_resp->SetPointError(i, binWidth/sqrt(12.), mean_err );
+    gr_resp->SetPointError(i, binWidth/2., mean_err );
+    //gr_resp->SetPointError(i, binWidth/sqrt(12.), mean_err );
 
     float sigma = f1->GetParameter(2);
     float sigma_err = f1->GetParError(2);
     gr_reso->SetPoint(i, xmass, sigma );
-    gr_reso->SetPointError(i, binWidth/sqrt(12.), sigma_err );
+    gr_reso->SetPointError(i, binWidth/2., sigma_err );
+    //gr_reso->SetPointError(i, binWidth/sqrt(12.), sigma_err );
     //gr_reso->SetPointError(i, h1_all->GetBinWidth( i+1 )/sqrt(12.), sqrt( sigma_err*sigma_err/(mean*mean) + sigma*sigma*mean_err*mean_err/(mean*mean*mean*mean) ) );
 
     delete c1;
