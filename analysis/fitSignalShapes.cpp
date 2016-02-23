@@ -367,8 +367,8 @@ void drawCompare( const ZGConfig& cfg, const std::string& outdir, TFile* file, c
 
   ZGDrawTools::addLabels( c1, -1., "CMS Simulation" );
 
-  c1->SaveAs( Form("%s/compare_%s_%s_vs_%s.eps",  plotdir.c_str(), name.c_str(), cat1.c_str(), cat2.c_str()) );
-  c1->SaveAs( Form("%s/compare_%s_%s_vs_%s.pdf",  plotdir.c_str(), name.c_str(), cat1.c_str(), cat2.c_str()) );
+  c1->SaveAs( Form("%s/compare_w%s_%s_%s_vs_%s.eps",  plotdir.c_str(), width.c_str(), name.c_str(), cat1.c_str(), cat2.c_str()) );
+  c1->SaveAs( Form("%s/compare_w%s_%s_%s_vs_%s.pdf",  plotdir.c_str(), width.c_str(), name.c_str(), cat1.c_str(), cat2.c_str()) );
 
   delete c1;
   delete h2_axes;
