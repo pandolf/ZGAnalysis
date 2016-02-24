@@ -148,9 +148,9 @@ void fitGraphs( const ZGConfig& cfg, const std::vector<float> masses, const std:
     // Crystal-Ball
     RooRealVar mean( "mean", "mean", thisMass, 0.9*thisMass, 1.1*thisMass );
     RooRealVar sigma( "sigma", "sigma", 0.015*thisMass, 0., 0.07*thisMass );
-    RooRealVar alpha1( "alpha1", "alpha1", 1.3, 0., 5. );
+    RooRealVar alpha1( "alpha1", "alpha1", 1.2, 0., 2.5 );
     RooRealVar n1( "n1", "n1", 3., 0., 5. );
-    RooRealVar alpha2( "alpha2", "alpha2", 1.3, 0., 2.5 );
+    RooRealVar alpha2( "alpha2", "alpha2", 1.2, 0., 2.5 );
     RooRealVar n2( "n2", "n2", 3., 0., 10. );
     RooDoubleCBShape cb( "cb", "cb", x, mean, sigma, alpha1, n1, alpha2, n2 );
 
@@ -251,8 +251,8 @@ TF1* fitGraph( const std::string& outdir, TGraphErrors* graph, const std::string
   std::string graphName(graph->GetName());
   TH1D* band;
 
-  if( grName_tstr.Contains("mm") && ( grName_tstr.Contains("n1") || grName_tstr.Contains("alpha1") ) ) 
-    f1->SetRange( xMin, 1800. );
+  //if( grName_tstr.Contains("mm") && ( grName_tstr.Contains("n1") || grName_tstr.Contains("alpha1") ) ) 
+  //  f1->SetRange( xMin, 1800. );
   graph->Fit( f1, "QR" );
   f1->SetRange( xMin, xMax );
   band = ZGDrawTools::getBand(f1);
