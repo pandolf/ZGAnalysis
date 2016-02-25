@@ -14,7 +14,7 @@
 #include "../interface/ZGConfig.h"
 
 
-void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF1* f1_eff, const std::string& cat, const std::string& name );
+void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF1* f1_eff, const std::string& cat, const std::string& name, bool onlyExpected=false );
 
 
 int main( int argc, char* argv[] ) {
@@ -54,8 +54,10 @@ int main( int argc, char* argv[] ) {
 
   std::string limitsFile( Form( "%s/limits_%s.txt", cfg.getEventYieldDir().c_str(), fitName.c_str() ) );
 
-  drawSingleLimitPlot( cfg, limitsFile, f1_eff, fitName, "Zllgamma" );
-  drawSingleLimitPlot( cfg, limitsFile, f1_eff, fitName, "Zgamma"   );
+  drawSingleLimitPlot( cfg, limitsFile, f1_eff, fitName, "Zllgamma", true );
+  drawSingleLimitPlot( cfg, limitsFile, f1_eff, fitName, "Zllgamma", false );
+  drawSingleLimitPlot( cfg, limitsFile, f1_eff, fitName, "Zgamma"  , true   );
+  drawSingleLimitPlot( cfg, limitsFile, f1_eff, fitName, "Zgamma"  , false   );
 
   return 0;
 
@@ -65,14 +67,14 @@ int main( int argc, char* argv[] ) {
 
 
 
-void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF1* f1_eff, const std::string& cat, const std::string& name ) {
+void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF1* f1_eff, const std::string& cat, const std::string& name, bool onlyExpected ) {
 
 
   std::string axisName;
   float factor;
   if( name=="Zgamma" ) {
     axisName = "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma) [fb]";
-    factor = 2.*cfg.lumi()*0.033;
+    factor = 2.*cfg.lumi()*0.0337;
   } else if( name=="Zllgamma" ) {
     std::string leptType = "l";
     if( cat=="fit_em" || cat=="fit_v0" ) leptType="l";
@@ -94,7 +96,8 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
 
   ifstream ifs(limitsFile.c_str());
   std::cout << "-> Opened file: " << limitsFile << std::endl;
-  int iPoint = 0;
+  int iPointExp = 0;
+  int iPointObs = 0;
   float lastMass = -1;
 
   while( ifs.good() ) {
@@ -119,15 +122,22 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
     exp_p2s/=conversion;
     std::cout << "m: " << m << " obs: " << obs << " exp: " << exp << " exp_m1s: " << exp_m1s << " exp_m2s: " << exp_m2s << " exp_p1s: " << exp_p1s << " exp_p2s: " << exp_p2s << std::endl;
 
-    gr_obs       ->SetPoint( iPoint, m, obs );
-    gr_exp       ->SetPoint( iPoint, m, exp );
-    gr_exp_1sigma->SetPoint( iPoint, m, exp );
-    gr_exp_2sigma->SetPoint( iPoint, m, exp );
 
-    gr_exp_1sigma->SetPointError( iPoint, 0., 0., exp-exp_m1s, exp_p1s-exp );
-    gr_exp_2sigma->SetPointError( iPoint, 0., 0., exp-exp_m2s, exp_p2s-exp );
+    if( obs>0. ) {
+      gr_obs       ->SetPoint( iPointObs, m, obs );
+      iPointObs++;
+    }
 
-    iPoint++;
+    bool okForExp = (m==348.) || (m>=400. && (int(m) % 50 == 0));
+    if( okForExp ) {
+      gr_exp       ->SetPoint( iPointExp, m, exp );
+      gr_exp_1sigma->SetPoint( iPointExp, m, exp );
+      gr_exp_2sigma->SetPoint( iPointExp, m, exp );
+      gr_exp_1sigma->SetPointError( iPointExp, 0., 0., exp-exp_m1s, exp_p1s-exp );
+      gr_exp_2sigma->SetPointError( iPointExp, 0., 0., exp-exp_m2s, exp_p2s-exp );
+      iPointExp++;
+    }
+
     lastMass = m;
 
   }
@@ -160,7 +170,8 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
   gr_exp_2sigma->Draw("E3 same");
   gr_exp_1sigma->Draw("E3 same");
   gr_exp       ->Draw("L  same");
-  //gr_obs       ->Draw("L  same");
+  if( !onlyExpected )
+    gr_obs       ->Draw("L  same");
 
 
   gr_exp_1sigma->SetLineWidth(2);
@@ -180,26 +191,38 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
   //  title = "Narrow Resonance (#mu^{+}#mu^{-}#gamma)";
   //  //title = "#mu#mu Channel";
   //}
-  legend = new TLegend( 0.55, 0.65, 0.9, 0.9 );
+  if( onlyExpected )
+    legend = new TLegend( 0.55, 0.65, 0.9, 0.9 );
+  else
+    legend = new TLegend( 0.55, 0.6 , 0.9, 0.9 );
   legend->SetFillColor(0);
   legend->SetTextSize(0.038);
   legend->SetTextFont(42);
   if( title!= "" )
     legend->SetHeader(title.c_str());
   //legend->AddEntry( gr_exp, "Expected", "L" );
+  if( !onlyExpected )
+    legend->AddEntry( gr_obs, "Observed", "L" );
   legend->AddEntry( gr_exp_1sigma, "Expected #pm 1#sigma", "LF" );
   legend->AddEntry( gr_exp_2sigma, "Expected #pm 2#sigma", "LF" );
-  //legend->AddEntry( gr_obs, "Observed", "L" );
   legend->Draw("same");
 
 
-  ZGDrawTools::addLabels( c1, cfg.lumi(), "CMS Simulation");
+  if( onlyExpected )
+    ZGDrawTools::addLabels( c1, cfg.lumi(), "CMS Simulation");
+  else
+    ZGDrawTools::addLabels( c1, cfg.lumi(), "CMS Preliminary");
 
 
   gPad->RedrawAxis();
 
-  c1->SaveAs( Form("%s/limit_%s_%s.eps", cfg.getEventYieldDir().c_str(), name.c_str(), cat.c_str()) );
-  c1->SaveAs( Form("%s/limit_%s_%s.pdf", cfg.getEventYieldDir().c_str(), name.c_str(), cat.c_str()) );
+  if( onlyExpected ) {
+    c1->SaveAs( Form("%s/limitExp_%s_%s.eps", cfg.getEventYieldDir().c_str(), name.c_str(), cat.c_str()) );
+    c1->SaveAs( Form("%s/limitExp_%s_%s.pdf", cfg.getEventYieldDir().c_str(), name.c_str(), cat.c_str()) );
+  } else {
+    c1->SaveAs( Form("%s/limit_%s_%s.eps", cfg.getEventYieldDir().c_str(), name.c_str(), cat.c_str()) );
+    c1->SaveAs( Form("%s/limit_%s_%s.pdf", cfg.getEventYieldDir().c_str(), name.c_str(), cat.c_str()) );
+  }
 
   c1->Clear();
 
@@ -212,17 +235,28 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
   gr_exp_2sigma->Draw("E3 same");
   gr_exp_1sigma->Draw("E3 same");
   gr_exp       ->Draw("L  same");
-  //gr_obs       ->Draw("L  same");
+  if( !onlyExpected )
+    gr_obs       ->Draw("L  same");
 
 
   legend->Draw("same");
 
-  ZGDrawTools::addLabels( c1, cfg.lumi(), "CMS Simulation");
+
+  if( onlyExpected )
+    ZGDrawTools::addLabels( c1, cfg.lumi(), "CMS Simulation");
+  else
+    ZGDrawTools::addLabels( c1, cfg.lumi(), "CMS Preliminary");
 
   gPad->RedrawAxis();
 
-  c1->SaveAs( Form("%s/limit_%s_%s_long.eps", cfg.getEventYieldDir().c_str(), name.c_str(), cat.c_str()) );
-  c1->SaveAs( Form("%s/limit_%s_%s_long.pdf", cfg.getEventYieldDir().c_str(), name.c_str(), cat.c_str()) );
+  if( onlyExpected ) {
+    c1->SaveAs( Form("%s/limitExp_%s_%s_long.eps", cfg.getEventYieldDir().c_str(), name.c_str(), cat.c_str()) );
+    c1->SaveAs( Form("%s/limitExp_%s_%s_long.pdf", cfg.getEventYieldDir().c_str(), name.c_str(), cat.c_str()) );
+  } else {
+    c1->SaveAs( Form("%s/limit_%s_%s_long.eps", cfg.getEventYieldDir().c_str(), name.c_str(), cat.c_str()) );
+    c1->SaveAs( Form("%s/limit_%s_%s_long.pdf", cfg.getEventYieldDir().c_str(), name.c_str(), cat.c_str()) );
+  }
+
 
   delete c1;
   delete h2_axes;
