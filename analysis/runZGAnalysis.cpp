@@ -361,9 +361,12 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
       if( !myTree.isSilver ) continue;
       passHLT = false;
       if( id==5 ) passHLT = myTree.HLT_DoubleMu; //DoubleMu PD
-      if( id==8 ) passHLT = myTree.HLT_SingleMu && !myTree.HLT_DoubleMu; //SingleMu PD
-      if( id==4 ) passHLT = myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && !myTree.HLT_SingleMu; //DoubleEG PD
-      if( id==9 ) passHLT = myTree.HLT_SingleEl && !myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && !myTree.HLT_SingleMu; //SingleElectron PD
+      if( id==4 ) passHLT = myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu; //DoubleEG PD
+      if( id==7 ) passHLT = myTree.HLT_Photon165_HE10 && !myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu; //SinglePhoton PD
+      //if( id==5 ) passHLT = myTree.HLT_DoubleMu; //DoubleMu PD
+      //if( id==8 ) passHLT = myTree.HLT_SingleMu && !myTree.HLT_DoubleMu; //SingleMu PD
+      //if( id==4 ) passHLT = myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && !myTree.HLT_SingleMu; //DoubleEG PD
+      //if( id==9 ) passHLT = myTree.HLT_SingleEl && !myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && !myTree.HLT_SingleMu; //SingleElectron PD
       if( cfg.selection()=="hltTest" ) {
         if( !myTree.HLT_Photon165_HE10 ) continue;
       } else { // standard HLT logic
@@ -371,7 +374,9 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
       }
     } else {
       // hlt on mc:
-      passHLT = ( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_SingleEl || myTree.HLT_SingleMu );
+      passHLT = ( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_Photon165_HE10 );
+      if( id > 1000 && !passHLT ) continue; // hlt on signals
+      //passHLT = ( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_SingleEl || myTree.HLT_SingleMu );
       //if( cfg.selection()=="hltTest" ) {
       //  if( !myTree.HLT_Photon165_HE10 ) continue;
       //} else {
@@ -426,7 +431,11 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
 
     if( leptType==11 ) {
       if( myTree.lep_tightId[0]==0 || myTree.lep_tightId[1]==0 ) continue; // loose electron ID
+    } else {
+      //if( myTree.lep_tightId[0]==0 || myTree.lep_tightId[1]==0 ) continue; // tight muon ID on at least one of the muons
+      if( myTree.lep_tightId[0]==0 && myTree.lep_tightId[1]==0 ) continue; // tight muon ID on at least one of the muons
     }
+
 
     // apply rochester corrections for muons:
     if( leptType==13 ) {
@@ -490,7 +499,7 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
 
 
     TLorentzVector zBoson = lept0+lept1;
-    if( zBoson.M()<50. ) continue;
+    if( zBoson.M()<50. || zBoson.M()>130. ) continue;
 
     TLorentzVector boss = zBoson + photon;
 
