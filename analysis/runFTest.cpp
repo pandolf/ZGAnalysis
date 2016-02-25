@@ -22,7 +22,7 @@ using namespace RooFit;
 
 int doFTest( RooRealVar* x, RooDataSet* data, const std::string& funcFamily );
 float fitWithModel( RooRealVar* x, RooDataSet* data, const std::string& funcFamily, unsigned iOrder );
-void getPol( const std::string& name, unsigned iOrder, std::string& polFormula, RooArgSet& polargset );
+void getPol( const std::string& name, unsigned iOrder, std::string& polFormula, RooArgSet& polargset, float init=0. );
 
 
 int main( int argc, char* argv[] ) {
@@ -50,7 +50,7 @@ int main( int argc, char* argv[] ) {
   std::vector<std::string> families;
   families.push_back("pow");
   families.push_back("expow");
-  //families.push_back("pow");
+  families.push_back("invpow");
   //families.push_back("pow");
  
   ofstream ofs("ftest.txt");
@@ -106,41 +106,51 @@ int doFTest( RooRealVar* x, RooDataSet* data, const std::string& funcFamily ) {
 
 float fitWithModel( RooRealVar* x, RooDataSet* data, const std::string& funcFamily, unsigned iOrder ) {
 
+  float init = 0.;
+  if( funcFamily=="invpow" ) 
+    init = 0.001;
+
   std::string polFormula;
   RooArgSet polargset;
-  getPol( funcFamily, iOrder, polFormula, polargset);
+  getPol( funcFamily, iOrder, polFormula, polargset, init);
   float thisNll=0.;
 
-  RooGenericPdf* model;
   RooArgSet argset;
   argset.add( *x );
   argset.add( polargset );
+
+  std::string formula;
 
   if( funcFamily=="expow" ) {
 
     RooRealVar* alp = new RooRealVar(Form("expow%d_alpha" , iOrder), "expow_alpha" , -4., -10., 0. );
     argset.add( *alp );
-    std::string formula(Form("TMath::Max(1e-50,exp(%s)*pow(@0,@%d))", polFormula.c_str(), argset.getSize()-1));
-    //std::string formula(Form("TMath::Max(1e-50,pow(@0,@%d)*exp(-(%s)))", argset.getSize()-1, polFormula.c_str()));
-
-    std::cout << formula << std::endl;
-    model = new RooGenericPdf( Form("expow_%d", iOrder), "expow", formula.c_str(), argset );
+    formula = std::string(Form("TMath::Max(1e-50,exp(%s)*pow(@0,@%d))", polFormula.c_str(), argset.getSize()-1));
 
   }
   
   else if( funcFamily=="pow" ) {
 
     RooRealVar* alp = new RooRealVar(Form("pow%d_alpha" , iOrder), "pow_alpha" , -4., -20, 0. );
-
     argset.add( *alp );
-    std::cout << Form("TMath::Max(1e-50,pow(%s,@%d))",polFormula.c_str(),argset.getSize()-1) << std::endl;
-    model = new RooGenericPdf( Form("pow_%d", iOrder), "pow", Form("TMath::Max(1e-50,pow(%s,@%d))",polFormula.c_str(),argset.getSize()-1), argset );
+    formula = std::string(Form("TMath::Max(1e-50,pow(%s,@%d))",polFormula.c_str(),argset.getSize()-1));
 
   }
 
+  else if( funcFamily=="invpow" ) {
+
+    RooRealVar* alp = new RooRealVar(Form("invpow%d_alpha" , iOrder), "invpow_alpha" , -4., -20, 0. );
+    argset.add( *alp );
+    formula = std::string(Form("TMath::Max(1e-50,pow(1+%s,@%d))",polFormula.c_str(),argset.getSize()-1));
+
+  }
+
+
+  std::cout << formula << std::endl;
+  RooGenericPdf* model = new RooGenericPdf( Form("%s_%d", funcFamily.c_str(), iOrder), funcFamily.c_str(), formula.c_str(), argset );
+
   RooFitResult *fitRes = model->fitTo(*data,Strategy(2),Warnings(false),Minimizer("Minuit2"),Save(true));
   fitRes->Print();
-  //exit(1);
   thisNll = fitRes->minNll();
 
   RooPlot* frame = x->frame();
@@ -162,7 +172,7 @@ float fitWithModel( RooRealVar* x, RooDataSet* data, const std::string& funcFami
 }
 
 
-void getPol( const std::string& name, unsigned iOrder, std::string& polFormula, RooArgSet& polargset ) {
+void getPol( const std::string& name, unsigned iOrder, std::string& polFormula, RooArgSet& polargset, float init ) {
 
   polFormula = "";
 
@@ -191,7 +201,7 @@ void getPol( const std::string& name, unsigned iOrder, std::string& polFormula, 
 
       polFormula += thisTerm;
 
-      RooRealVar* par = new RooRealVar( Form("%s_o%d_p%d", name.c_str(), iOrder, index), Form("p%d", index), 0. );
+      RooRealVar* par = new RooRealVar( Form("%s_o%d_p%d", name.c_str(), iOrder, index), Form("p%d", index), pow(init,index) );
       par->setConstant(false);
       //RooRealVar* par = new RooRealVar( Form("%s_o%d_p%d", name.c_str(), iOrder, index), Form("p%d", index), 0.1, 0., 20.);
       polargset.add( *par );
