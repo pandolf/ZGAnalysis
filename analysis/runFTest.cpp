@@ -20,9 +20,9 @@
 using namespace RooFit;
 
 
-int doFTest( RooRealVar* x, RooDataSet* data, const std::string& funcFamily );
-float fitWithModel( RooRealVar* x, RooDataSet* data, const std::string& funcFamily, unsigned iOrder );
-void getPol( const std::string& name, unsigned iOrder, std::string& polFormula, RooArgSet& polargset, float init=0. );
+int doFTest( const std::string& outdir, RooRealVar* x, RooDataSet* data, const std::string& funcFamily );
+float fitWithModel( const std::string& outdir, RooRealVar* x, RooDataSet* data, const std::string& funcFamily, unsigned iOrder );
+void getPol( const std::string& name, unsigned iOrder, std::string& polFormula, RooArgSet& polargset, float init=0., float xmin=-9999., float xmax=-9999. );
 
 
 int main( int argc, char* argv[] ) {
@@ -38,6 +38,8 @@ int main( int argc, char* argv[] ) {
   std::string configFileName(argv[1]);
   ZGConfig cfg(configFileName);
 
+  std::string outdir("ftest");
+  system( Form("mkdir -p %s", outdir.c_str()));
 
   std::string eventYieldDir = cfg.getEventYieldDir();
   TFile* file = TFile::Open( Form("%s/trees.root", eventYieldDir.c_str()) );
@@ -48,15 +50,16 @@ int main( int argc, char* argv[] ) {
   RooDataSet* data = new RooDataSet( "data", "data", RooArgSet(*x), RooFit::Import(*tree) );
 
   std::vector<std::string> families;
-  families.push_back("pow");
-  families.push_back("expow");
-  families.push_back("invpow");
   //families.push_back("pow");
+  //families.push_back("expow");
+  //families.push_back("invpow");
+  //families.push_back("moddijet");
+  families.push_back("invpowlin");
  
-  ofstream ofs("ftest.txt");
+  ofstream ofs(Form("%s/ftest.txt", outdir.c_str()));
   ofs << "family     order" << std::endl;
   for( unsigned i=0; i<families.size(); ++i )
-    ofs << families[i] << ": " << doFTest( x, data, families[i] ) << std::endl;
+    ofs << families[i] << ": " << doFTest( outdir, x, data, families[i] ) << std::endl;
 
   ofs.close();
 
@@ -66,9 +69,9 @@ int main( int argc, char* argv[] ) {
 
 
 
-int doFTest( RooRealVar* x, RooDataSet* data, const std::string& funcFamily ) {
+int doFTest( const std::string& outdir, RooRealVar* x, RooDataSet* data, const std::string& funcFamily ) {
 
-  ofstream ofs( Form("ftest_%s.log", funcFamily.c_str()) );
+  ofstream ofs( Form("%s/ftest_%s.log", outdir.c_str(), funcFamily.c_str()) );
 
   ofs << "-> Starting F-test for family: " << funcFamily << std::endl;
 
@@ -78,7 +81,7 @@ int doFTest( RooRealVar* x, RooDataSet* data, const std::string& funcFamily ) {
 
   for( unsigned iOrder=1; iOrder<=maxOrder && foundOrder<0; ++iOrder ) {
 
-    float thisNll = fitWithModel( x, data, funcFamily, iOrder );
+    float thisNll = fitWithModel( outdir, x, data, funcFamily, iOrder );
 
     float chi2 = 2.*( prevNll - thisNll );
     if( chi2<0. && iOrder>1 ) chi2=0.;
@@ -104,15 +107,19 @@ int doFTest( RooRealVar* x, RooDataSet* data, const std::string& funcFamily ) {
 
 
 
-float fitWithModel( RooRealVar* x, RooDataSet* data, const std::string& funcFamily, unsigned iOrder ) {
+float fitWithModel( const std::string& outdir, RooRealVar* x, RooDataSet* data, const std::string& funcFamily, unsigned iOrder ) {
 
   float init = 0.;
-  if( funcFamily=="invpow" ) 
+  float xmin=-99999.;
+  float xmax=-99999.;
+  if( funcFamily=="invpow" )
     init = 0.001;
+  if( funcFamily=="moddijet" )
+    init = 0.00003;
 
   std::string polFormula;
   RooArgSet polargset;
-  getPol( funcFamily, iOrder, polFormula, polargset, init);
+  getPol( funcFamily, iOrder, polFormula, polargset, init, xmin, xmax);
   float thisNll=0.;
 
   RooArgSet argset;
@@ -145,6 +152,33 @@ float fitWithModel( RooRealVar* x, RooDataSet* data, const std::string& funcFami
 
   }
 
+  else if( funcFamily=="invpowlin" ) {
+
+    RooRealVar* c = new RooRealVar(Form("invpowlin%d_c" , iOrder), "invpowlin_c" , 0.001);
+    c->setConstant(false);
+    argset.add( *c );
+    RooRealVar* alp = new RooRealVar(Form("invpowlin%d_alpha" , iOrder), "invpowlin_alpha" , -4.);
+    alp->setConstant(false);
+    argset.add( *alp );
+    formula = std::string(Form("TMath::Max(1e-50,pow(1+@%d*@0, @%d+%s))", argset.getSize()-2, argset.getSize()-1, polFormula.c_str()));
+
+  }
+
+  else if( funcFamily=="moddijet" ) {
+
+    RooRealVar* a = new RooRealVar(Form("moddijet%d_a" , iOrder), "moddijet_a" , 5., -100., 10.);
+    a->setConstant(false);
+    argset.add( *a );
+    RooRealVar* b = new RooRealVar(Form("moddijet%d_b" , iOrder), "moddijet_b" , -1., -100., 10.);
+    b->setConstant(false);
+    argset.add( *b );
+    RooRealVar* alp = new RooRealVar(Form("moddijet%d_alpha" , iOrder), "moddijet_alpha" , -50, -1000., 0.);
+    alp->setConstant(false);
+    argset.add( *alp );
+    formula = std::string(Form("TMath::Max(1e-50,pow(@0,@%d+@%d*log(@0))*pow(1.-(%s),@%d))", argset.getSize()-3, argset.getSize()-2, polFormula.c_str(), argset.getSize()-1));
+
+  }
+
 
   std::cout << formula << std::endl;
   RooGenericPdf* model = new RooGenericPdf( Form("%s_%d", funcFamily.c_str(), iOrder), funcFamily.c_str(), formula.c_str(), argset );
@@ -163,7 +197,8 @@ float fitWithModel( RooRealVar* x, RooDataSet* data, const std::string& funcFami
   c1->SetLogy();
   frame->Draw();
 
-  c1->SaveAs(Form("ftest_%s_o%d.eps", funcFamily.c_str(),iOrder));
+  c1->SaveAs(Form("%s/ftest_%s_o%d.eps", outdir.c_str(), funcFamily.c_str(),iOrder));
+  c1->SaveAs(Form("%s/ftest_%s_o%d.pdf", outdir.c_str(), funcFamily.c_str(),iOrder));
 
   delete c1;
   
@@ -172,7 +207,7 @@ float fitWithModel( RooRealVar* x, RooDataSet* data, const std::string& funcFami
 }
 
 
-void getPol( const std::string& name, unsigned iOrder, std::string& polFormula, RooArgSet& polargset, float init ) {
+void getPol( const std::string& name, unsigned iOrder, std::string& polFormula, RooArgSet& polargset, float init, float xmin, float xmax ) {
 
   polFormula = "";
 
@@ -203,6 +238,8 @@ void getPol( const std::string& name, unsigned iOrder, std::string& polFormula, 
 
       RooRealVar* par = new RooRealVar( Form("%s_o%d_p%d", name.c_str(), iOrder, index), Form("p%d", index), pow(init,index) );
       par->setConstant(false);
+      if( xmin>-9999. && xmax>-9999. )
+        par->setRange(xmin,xmax);
       //RooRealVar* par = new RooRealVar( Form("%s_o%d_p%d", name.c_str(), iOrder, index), Form("p%d", index), 0.1, 0., 20.);
       polargset.add( *par );
 
