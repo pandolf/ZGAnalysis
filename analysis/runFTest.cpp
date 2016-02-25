@@ -20,9 +20,11 @@
 using namespace RooFit;
 
 
-int doFTest( const std::string& outdir, RooRealVar* x, RooDataSet* data, const std::string& funcFamily );
+int doFTest( const std::string& outdir, RooRealVar* x, RooDataSet* data, const std::string& funcFamily, bool sumFunctions=false );
 float fitWithModel( const std::string& outdir, RooRealVar* x, RooDataSet* data, const std::string& funcFamily, unsigned iOrder );
+float fitWithModelSum( const std::string& outdir, RooRealVar* x, RooDataSet* data, const std::string& funcFamily, unsigned iOrder );
 void getPol( const std::string& name, unsigned iOrder, std::string& polFormula, RooArgSet& polargset, float init=0., float xmin=-9999., float xmax=-9999. );
+void getSumFunctionsFormula( const std::string& funcFamily, unsigned iOrder, std::string& formula, RooArgSet& argset, float init=0. );
 
 
 int main( int argc, char* argv[] ) {
@@ -50,18 +52,24 @@ int main( int argc, char* argv[] ) {
   RooDataSet* data = new RooDataSet( "data", "data", RooArgSet(*x), RooFit::Import(*tree) );
 
   std::vector<std::string> families;
-  //families.push_back("pow");
-  //families.push_back("expow");
-  //families.push_back("invpow");
-  //families.push_back("moddijet");
+  families.push_back("pow");
+  families.push_back("expow");
+  families.push_back("invpow");
+  families.push_back("moddijet");
   families.push_back("invpowlin");
  
-  ofstream ofs(Form("%s/ftest.txt", outdir.c_str()));
+  std::string filename(Form("%s/ftest.txt", outdir.c_str()));
+  ofstream ofs(filename.c_str());
   ofs << "family     order" << std::endl;
   for( unsigned i=0; i<families.size(); ++i )
     ofs << families[i] << ": " << doFTest( outdir, x, data, families[i] ) << std::endl;
 
+  ofs << "sumpow: " << doFTest( outdir, x, data, "pow", true ) << std::endl;;
+  ofs << "sumexp: " << doFTest( outdir, x, data, "exp", true ) << std::endl;;
+
   ofs.close();
+
+  std::cout << "-> Find your results here: " << filename << std::endl;
 
   return 0;
 
@@ -69,11 +77,15 @@ int main( int argc, char* argv[] ) {
 
 
 
-int doFTest( const std::string& outdir, RooRealVar* x, RooDataSet* data, const std::string& funcFamily ) {
+int doFTest( const std::string& outdir, RooRealVar* x, RooDataSet* data, const std::string& funcFamily, bool sumFunctions ) {
 
-  ofstream ofs( Form("%s/ftest_%s.log", outdir.c_str(), funcFamily.c_str()) );
+  std::string suffix = (sumFunctions) ? "sum" : "";
+  ofstream ofs( Form("%s/ftest_%s%s.log", outdir.c_str(), suffix.c_str(), funcFamily.c_str()) );
 
-  ofs << "-> Starting F-test for family: " << funcFamily << std::endl;
+  if( sumFunctions )
+    ofs << "-> Starting F-test for sum of: " << funcFamily << std::endl;
+  else
+    ofs << "-> Starting F-test for family: " << funcFamily << std::endl;
 
   float prevNll = 0.;
   int foundOrder=-1;
@@ -81,7 +93,7 @@ int doFTest( const std::string& outdir, RooRealVar* x, RooDataSet* data, const s
 
   for( unsigned iOrder=1; iOrder<=maxOrder && foundOrder<0; ++iOrder ) {
 
-    float thisNll = fitWithModel( outdir, x, data, funcFamily, iOrder );
+    float thisNll = (sumFunctions) ? fitWithModelSum( outdir, x, data, funcFamily, iOrder ) : fitWithModel( outdir, x, data, funcFamily, iOrder );
 
     float chi2 = 2.*( prevNll - thisNll );
     if( chi2<0. && iOrder>1 ) chi2=0.;
@@ -104,6 +116,8 @@ int doFTest( const std::string& outdir, RooRealVar* x, RooDataSet* data, const s
   return lastGoodOrder;
 
 }
+
+
 
 
 
@@ -207,6 +221,46 @@ float fitWithModel( const std::string& outdir, RooRealVar* x, RooDataSet* data, 
 }
 
 
+
+
+float fitWithModelSum( const std::string& outdir, RooRealVar* x, RooDataSet* data, const std::string& funcFamily, unsigned iOrder ) {
+
+  float init = -4.;
+  if( funcFamily=="exp" )
+    init = -0.01;
+
+  RooArgSet argset;
+  argset.add( *x );
+  std::string formula;
+  getSumFunctionsFormula( funcFamily, iOrder, formula, argset, init );
+  std::cout << formula << std::endl;
+
+  RooGenericPdf* model = new RooGenericPdf( Form("TMath::Max(1e-50,%s_%d)", funcFamily.c_str(), iOrder), funcFamily.c_str(), formula.c_str(), argset );
+
+  RooFitResult *fitRes = model->fitTo(*data,Strategy(2),Warnings(false),Minimizer("Minuit2"),Save(true));
+  fitRes->Print();
+  float thisNll = fitRes->minNll();
+
+  RooPlot* frame = x->frame();
+  data->plotOn(frame);
+  model->plotOn(frame);
+  frame->GetYaxis()->SetRangeUser( 0.01, 10000 );
+
+  TCanvas* c1 = new TCanvas("c1", "c1", 600, 600 );
+  c1->cd();
+  c1->SetLogy();
+  frame->Draw();
+
+  c1->SaveAs(Form("%s/ftest_sum%s_o%d.eps", outdir.c_str(), funcFamily.c_str(),iOrder));
+  c1->SaveAs(Form("%s/ftest_sum%s_o%d.pdf", outdir.c_str(), funcFamily.c_str(),iOrder));
+
+  delete c1;
+  
+  return thisNll;
+
+}
+
+
 void getPol( const std::string& name, unsigned iOrder, std::string& polFormula, RooArgSet& polargset, float init, float xmin, float xmax ) {
 
   polFormula = "";
@@ -240,29 +294,42 @@ void getPol( const std::string& name, unsigned iOrder, std::string& polFormula, 
       par->setConstant(false);
       if( xmin>-9999. && xmax>-9999. )
         par->setRange(xmin,xmax);
-      //RooRealVar* par = new RooRealVar( Form("%s_o%d_p%d", name.c_str(), iOrder, index), Form("p%d", index), 0.1, 0., 20.);
       polargset.add( *par );
 
     }
-
-    //if( i==1 ) { // first term has no coeff
-    //  polFormula = "@0";
-    //} else {
-    //  polFormula += "+";
-    //  std::string thisPar(Form("@%d",i-1));
-    //  std::string thisTerm(thisPar);
-    //  for( unsigned j=0; j<i; ++j )
-    //    thisTerm += "*@0";
-    //  polFormula += thisTerm;
-
-    //  RooRealVar* par = new RooRealVar( Form("%s_o%d_p%d", name.c_str(), iOrder, i-1), Form("p%d", i-1), 0., 0., 100.);
-    //  polargset.add( *par );
-
-    //}
 
   } // for iorder
 
   std::cout << polFormula << std::endl;
   polargset.Print();
+
+}
+
+
+void getSumFunctionsFormula( const std::string& funcFamily, unsigned iOrder, std::string& formula, RooArgSet& argset, float init ) {
+
+  formula = "";
+
+  unsigned additionalPars = iOrder*2 - 1;
+
+  for( unsigned i=1; i<=additionalPars; ++i ) {
+
+    if( i!=1 )  {
+      formula += std::string(Form("+@%d*", i));
+      RooRealVar* par = new RooRealVar( Form("%s_o%d_p%d", funcFamily.c_str(), iOrder, i), Form("p%d", i), 1., 0., 100.);
+      par->setConstant(false);
+      argset.add( *par );
+      i++;
+    }
+
+    if( funcFamily=="pow" )
+      formula += std::string(Form("%s(@0,@%d)",funcFamily.c_str(),i));
+    else
+      formula += std::string(Form("%s(@0*@%d)",funcFamily.c_str(),i));
+    RooRealVar* par = new RooRealVar( Form("%s_o%d_p%d", funcFamily.c_str(), iOrder, i), Form("p%d", i), init );
+    par->setConstant(false);
+    argset.add( *par );
+
+  } // for i
 
 }
