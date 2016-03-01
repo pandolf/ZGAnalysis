@@ -16,8 +16,11 @@ TGraphErrors* getRatio( TGraphErrors* gr, TF1* f1 );
 void drawCompare( const ZGConfig& cfg, TGraphErrors* gr_eff_ee, TGraphErrors* gr_eff_mm );
 void drawRelativeFractions( const ZGConfig& cfg, TGraphErrors* gr_eff_ee, TGraphErrors* gr_eff_mm );
 void drawCompare( const ZGConfig& cfg, TGraphErrors* gr_eff, TF1* f1, const std::string& name, const std::string& channel );
-TF1* fitConstantPar( TF1* f1, TGraphErrors* gr_eff );
+TF1* fitConstantPar( TF1* f1, TGraphErrors* gr_eff, float shift=-999. );
 
+
+
+float xMax = 2100.;
 
 int main( int argc, char* argv[] ) {
 
@@ -57,6 +60,8 @@ int main( int argc, char* argv[] ) {
   } else {
 
     for( unsigned i=0; i<fSamples.size(); ++i ) {
+      TString name_tstr(fSamples[i].name);
+      if( !name_tstr.Contains("0p014") ) continue;
       std::cout << "-> Starting sample: " << fSamples[i].name << std::endl;
       addEfficiencyPoint( gr_eff   , fSamples[i], cfg );
       addEfficiencyPoint( gr_eff_ee, fSamples[i], cfg, "ee" );
@@ -79,9 +84,12 @@ int main( int argc, char* argv[] ) {
   drawCompare( cfg, gr_eff_ee, f1_aXe_0p014_ee, "ee", "Electron Channel" );
   drawCompare( cfg, gr_eff_mm, f1_aXe_0p014_mm, "mm", "Muon Channel" );
 
-  TF1* f1_aXe_0p014_scale    = fitConstantPar( f1_aXe_0p014   , gr_eff    );
-  TF1* f1_aXe_0p014_ee_scale = fitConstantPar( f1_aXe_0p014_ee, gr_eff_ee );
-  TF1* f1_aXe_0p014_mm_scale = fitConstantPar( f1_aXe_0p014_mm, gr_eff_mm );
+  TF1* f1_aXe_0p014_scale    = fitConstantPar( f1_aXe_0p014   , gr_eff   , 0.0285738 );
+  TF1* f1_aXe_0p014_ee_scale = fitConstantPar( f1_aXe_0p014_ee, gr_eff_ee, 0.04 );
+  TF1* f1_aXe_0p014_mm_scale = fitConstantPar( f1_aXe_0p014_mm, gr_eff_mm, 0.0 );
+  //TF1* f1_aXe_0p014_scale    = fitConstantPar( f1_aXe_0p014   , gr_eff    );
+  //TF1* f1_aXe_0p014_ee_scale = fitConstantPar( f1_aXe_0p014_ee, gr_eff_ee );
+  //TF1* f1_aXe_0p014_mm_scale = fitConstantPar( f1_aXe_0p014_mm, gr_eff_mm );
 
   drawCompare( cfg, gr_eff   , f1_aXe_0p014_scale   , "all_scale", "Electrons + Muons" );
   drawCompare( cfg, gr_eff_ee, f1_aXe_0p014_ee_scale, "ee_scale", "Electron Channel" );
@@ -113,7 +121,7 @@ void drawCompare( const ZGConfig& cfg, TGraphErrors* gr_eff_ee, TGraphErrors* gr
   TCanvas* c1 = new TCanvas( "c1", "", 600, 600 );
   c1->cd();
   
-  TH2D* h2_axes = new TH2D("axes", "", 10, 300., 1000., 10, 0., 1.0001 );
+  TH2D* h2_axes = new TH2D("axes", "", 10, 300., xMax, 10, 0., 1.0001 );
   h2_axes->SetXTitle( "Generated Z#gamma Mass [GeV]" );
   h2_axes->SetYTitle( "Efficiency" );
   h2_axes->Draw();
@@ -142,6 +150,10 @@ void drawCompare( const ZGConfig& cfg, TGraphErrors* gr_eff_ee, TGraphErrors* gr
   c1->SaveAs( Form("%s/signalEfficiency_%s_vs_%s.eps", cfg.getEventYieldDir().c_str(), gr_eff_ee->GetName(), gr_eff_mm->GetName()) );
   c1->SaveAs( Form("%s/signalEfficiency_%s_vs_%s.pdf", cfg.getEventYieldDir().c_str(), gr_eff_ee->GetName(), gr_eff_mm->GetName()) );
 
+  c1->SetLogx();
+
+  c1->SaveAs( Form("%s/signalEfficiency_%s_vs_%s_logx.eps", cfg.getEventYieldDir().c_str(), gr_eff_ee->GetName(), gr_eff_mm->GetName()) );
+  c1->SaveAs( Form("%s/signalEfficiency_%s_vs_%s_logx.pdf", cfg.getEventYieldDir().c_str(), gr_eff_ee->GetName(), gr_eff_mm->GetName()) );
 
   delete legend;
   delete c1;
@@ -180,17 +192,17 @@ void drawRelativeFractions( const ZGConfig& cfg, TGraphErrors* gr_eff_ee, TGraph
   TCanvas* c1 = new TCanvas( "c1", "", 600, 600 );
   c1->cd();
   
-  TH2D* h2_axes = new TH2D("axes", "", 10, 300., 1000., 10, 0., 1.0001 );
+  TH2D* h2_axes = new TH2D("axes", "", 10, 300., xMax, 10, 0., 1.0001 );
   h2_axes->SetXTitle( "Generated Z#gamma Mass [GeV]" );
   h2_axes->SetYTitle( "Relative Amount" );
   h2_axes->Draw();
 
 
-  TF1* line_ee = new TF1("line_ee", "[0]", 300., 1000.);
+  TF1* line_ee = new TF1("line_ee", "[0]", 300., xMax);
   line_ee->SetLineColor(46);
   gr_ee_rel->Fit( line_ee, "QR" );
 
-  TF1* line_mm = new TF1("line_mm", "[0]", 300., 1000.);
+  TF1* line_mm = new TF1("line_mm", "[0]", 300., xMax);
   line_mm->SetLineColor(38);
   gr_mm_rel->Fit( line_mm, "QR" );
 
@@ -240,7 +252,7 @@ void drawCompare( const ZGConfig& cfg, TGraphErrors* gr_eff, TF1* f1, const std:
   TCanvas* c1 = new TCanvas( "c1", "", 600, 600 );
   c1->cd();
   
-  TH2D* h2_axes = new TH2D("axes", "", 10, 300., 1000., 10, 0., 1.0001 );
+  TH2D* h2_axes = new TH2D("axes", "", 10, 300., xMax, 10, 0., 1.0001 );
   h2_axes->SetXTitle( "Generated Z#gamma Mass [GeV]" );
   h2_axes->SetYTitle( "Efficiency" );
   h2_axes->Draw();
@@ -300,9 +312,11 @@ void addEfficiencyPoint( TGraphErrors* gr_eff, const ZGSample& sample, const ZGC
     std::string tree_sel="";
     if( sel=="ee" ) tree_sel = "leptType==11";
     if( sel=="mm" ) tree_sel = "leptType==13";
-    nPassEvents =  tree_pass->GetEntries(tree_sel.c_str());
+    nPassEvents =  tree_pass->GetEntries(Form("passHLT && %s", tree_sel.c_str()));
+    //nPassEvents =  tree_pass->GetEntries(tree_sel.c_str());
   } else {
-    nPassEvents =  tree_pass->GetEntries();
+    nPassEvents =  tree_pass->GetEntries("passHLT");
+    //nPassEvents =  tree_pass->GetEntries();
   }
 
   float thisEff = (float)nPassEvents/((float)nTotalGenEvents);
@@ -311,6 +325,7 @@ void addEfficiencyPoint( TGraphErrors* gr_eff, const ZGSample& sample, const ZGC
   std::string delimiter = "M_";
   std::string mass_str = name.substr(name.find(delimiter)+delimiter.length(), 4);
   int mass = atoi(mass_str.c_str());
+  if( mass > xMax ) return;
 
   int iPoint = gr_eff->GetN();
   gr_eff->SetPoint( iPoint, mass, thisEff );
@@ -341,7 +356,7 @@ TGraphErrors* getRatio( TGraphErrors* gr, TF1* f1 ) {
 
 
 
-TF1* fitConstantPar( TF1* f1, TGraphErrors* gr_eff ) {
+TF1* fitConstantPar( TF1* f1, TGraphErrors* gr_eff, float shift ) {
 
   Double_t xmin, xmax;
   f1->GetRange( xmin, xmax );
@@ -354,7 +369,11 @@ TF1* fitConstantPar( TF1* f1, TGraphErrors* gr_eff ) {
       f1_new->SetParameter( ipar, f1->GetParameter(ipar) );
   }
 
-  gr_eff->Fit( f1_new, "QR0" );
+  if( shift>-999. ) {
+    f1_new->SetParameter(0, f1_new->GetParameter(0) + shift);
+  } else {
+    gr_eff->Fit( f1_new, "QR0" );
+  }
 
   float diff = f1_new->GetParameter(0)-f1->GetParameter(0);
   std::cout << "Added " << diff << " to: " << f1->GetName() << std::endl;
