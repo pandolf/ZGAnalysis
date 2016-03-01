@@ -225,7 +225,7 @@ float fitWithModel( const std::string& outdir, RooRealVar* x, RooDataSet* data, 
 
 float fitWithModelSum( const std::string& outdir, RooRealVar* x, RooDataSet* data, const std::string& funcFamily, unsigned iOrder ) {
 
-  float init = -4.;
+  float init = -2.;
   if( funcFamily=="exp" )
     init = -0.01;
 
