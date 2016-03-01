@@ -15,8 +15,8 @@ EXTRALIBS := -L$(ROOTSYS)/lib -L$(ROOFIT_LIBDIR)/ -L$(CMSSW_BASE)/lib/slc6_amd64
 
 all: runZGAnalysis
 
-runZGAnalysis: runZGAnalysis.cpp ZGSample.o ZGConfig.o ZGCommonTools.o muresolution_run2.o rochcor2015.o
-	$(CC) -Wall $(INCLUDES) -o runZGAnalysis runZGAnalysis.cpp ZGSample.o ZGConfig.o ZGCommonTools.o muresolution_run2.o rochcor2015.o $(ROOTFLAG) $(EXTRALIBS)
+runZGAnalysis: runZGAnalysis.cpp ZGSample.o ZGConfig.o ZGCommonTools.o muresolution_run2.o rochcor2015.o EnergyScaleCorrection_class.o
+	$(CC) -Wall $(INCLUDES) -o runZGAnalysis runZGAnalysis.cpp ZGSample.o ZGConfig.o ZGCommonTools.o muresolution_run2.o rochcor2015.o EnergyScaleCorrection_class.o $(ROOTFLAG) $(EXTRALIBS)
 
 convertSNTtrees: convertSNTtrees.cpp
 	$(CC) -Wall $(INCLUDES) -o convertSNTtrees convertSNTtrees.cpp $(ROOTFLAG) $(EXTRALIBS)
@@ -72,6 +72,9 @@ draw74vs76: draw74vs76.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o
 drawGenSignalShapes: drawGenSignalShapes.cpp ZGDrawTools.o 
 	$(CC) -Wall $(INCLUDES) -o drawGenSignalShapes drawGenSignalShapes.cpp ZGDrawTools.o $(ROOTFLAG) $(EXTRALIBS)
 
+drawTriggerTurnOn: drawTriggerTurnOn.cpp ZGDrawTools.o 
+	$(CC) -Wall $(INCLUDES) -o drawTriggerTurnOn drawTriggerTurnOn.cpp ZGDrawTools.o $(ROOTFLAG) $(EXTRALIBS)
+
 runFTest: runFTest.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o
 	$(CC) -Wall $(INCLUDES) -o runFTest runFTest.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o  $(ROOTFLAG) $(EXTRALIBS)
 
@@ -107,6 +110,9 @@ muresolution_run2.o: ../src/muresolution_run2.cc
 
 rochcor2015.o: ../src/rochcor2015.cc
 	$(CC) -Wall $(INCLUDES) -c ../src/rochcor2015.cc $(ROOTFLAG) $(EXTRALIBS)
+
+EnergyScaleCorrection_class.o: ../src/EnergyScaleCorrection_class.cc
+	$(CC) -Wall $(INCLUDES) -c ../src/EnergyScaleCorrection_class.cc $(ROOTFLAG) $(EXTRALIBS)
 
 
 clean:
