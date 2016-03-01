@@ -33,7 +33,7 @@ int main( int argc, char* argv[] ) {
 
   convertFiles(samples, "DoubleEG"      , 4, doSkim, doPrune);
   convertFiles(samples, "DoubleMuon"    , 5, doSkim, doPrune);
-  //convertFiles(samples, "SinglePhoton"  , 7, doSkim, doPrune);
+  convertFiles(samples, "SinglePhoton"  , 7, doSkim, doPrune);
   convertFiles(samples, "SingleMuon"    , 8, doSkim, doPrune);
   convertFiles(samples, "SingleElectron", 9, doSkim, doPrune);
 
