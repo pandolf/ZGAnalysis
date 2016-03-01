@@ -55,6 +55,10 @@ int main( int argc, char* argv[] ) {
   std::string treesFile = cfg.getEventYieldDir() + "/trees.root";
 
   TFile* file = TFile::Open(treesFile.c_str());
+  if( file==0 ) {
+    std::cout << "-> File " << treesFile << " doesn't seem to exist!" << std::endl;
+    exit(1);
+  }
 
   TTree* tree_data = (TTree*)file->Get("data");
   TTree* tree_zg   = (TTree*)file->Get("zg");
@@ -103,9 +107,9 @@ int main( int argc, char* argv[] ) {
   dt.drawPlot( "mZee_bossCut" , "z_mass", "leptType==11 && boss_mass>200. && boss_mass<500.", 50, 50., 150., "M(e^{+}e^{-})", "GeV" );
   dt.drawPlot( "mZmm_bossCut" , "z_mass", "leptType==13 && boss_mass>200. && boss_mass<500.", 50, 50., 150., "M(#mu^{+}#mu^{-})", "GeV" );
 
-  dt.drawPlot( "ptZ"        , "z_pt"    , ""              , 60, 0. , 300., "Z p_{T}"      , "GeV" );
-  dt.drawPlot( "ptZ_metCut" , "z_pt"    , "met<50."       , 60, 0. , 300., "Z p_{T}"      , "GeV" );
-  dt.drawPlot( "ptZ_bossCut", "z_pt"    , "boss_mass>200. && boss_mass<500.", 60, 0. , 300., "Z p_{T}"      , "GeV" );
+  dt.drawPlot( "ptZ"        , "z_pt"    , ""              , 30, 0. , 300., "Z p_{T}"      , "GeV" );
+  dt.drawPlot( "ptZ_metCut" , "z_pt"    , "met<50."       , 30, 0. , 300., "Z p_{T}"      , "GeV" );
+  dt.drawPlot( "ptZ_bossCut", "z_pt"    , "boss_mass>200. && boss_mass<500.", 20, 0. , 300., "Z p_{T}"      , "GeV" );
 
   dt.drawPlot( "nGamma" , "nGamma", "", 6, 0., 6., "Photon Multiplicity" );
   dt.drawPlot( "ptGamma" , "gamma_pt", "", 60, 40., 340., "Photon p_{T}" , "GeV" );
