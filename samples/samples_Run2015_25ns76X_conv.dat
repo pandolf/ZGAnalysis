@@ -1,4 +1,5 @@
-Run2015_25ns76X_conv/DoubleEG_skim.root
-Run2015_25ns76X_conv/DoubleMuon_skim.root
-Run2015_25ns76X_conv/SingleElectron_skim.root
-Run2015_25ns76X_conv/SingleMuon_skim.root
+Run2015_25ns76X_2_conv/DoubleEG_skim.root
+Run2015_25ns76X_2_conv/DoubleMuon_skim.root
+Run2015_25ns76X_2_conv/SingleElectron_skim.root
+Run2015_25ns76X_2_conv/SingleMuon_skim.root
+Run2015_25ns76X_2_conv/SinglePhoton_skim.root
