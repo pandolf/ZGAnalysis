@@ -45,7 +45,7 @@ private:
 
 
 
-void removeDuplicates(string inputFile="duplicates.root",
+void removeDuplicates(string inputFile="EventYields_v0_eth74X/trees.root",
 		      bool fillNewTree=false,
 		      string outputFile="output.root",
 		      string treeName="data"){
@@ -65,9 +65,9 @@ void removeDuplicates(string inputFile="duplicates.root",
   oldtree->SetBranchAddress("lumi",&lumi);
   oldtree->SetBranchAddress("event",&evt);
   
-  //Create a new file + a clone of old tree in new file
-  TFile *newfile = new TFile(outputFile.c_str(),"recreate");
-  TTree *newtree = oldtree->CloneTree(0);
+  ////Create a new file + a clone of old tree in new file
+  //TFile *newfile = new TFile(outputFile.c_str(),"recreate");
+  //TTree *newtree = oldtree->CloneTree(0);
   
 
   //Create set where we store list of event keys
@@ -91,14 +91,20 @@ void removeDuplicates(string inputFile="duplicates.root",
 	   << now->tm_sec 
 	   << endl;
     }
-    
-    if(!isDuplicate) {
-      if(fillNewTree) newtree->Fill();
-    }else{
+
+    if( isDuplicate ) {
       nDuplicates++;
-      //cout << "Found duplicate! run,lumi,evt: " 
-      //     << run << " , " << lumi << " , " << evt <<endl;
+      cout << "Found duplicate! run,lumi,evt: " 
+           << run << " , " << lumi << " , " << evt <<endl;
     }
+    
+    //if(!isDuplicate) {
+    //  if(fillNewTree) newtree->Fill();
+    //}else{
+    //  nDuplicates++;
+    //  cout << "Found duplicate! run,lumi,evt: " 
+    //       << run << " , " << lumi << " , " << evt <<endl;
+    //}
 
   }
 
@@ -106,9 +112,9 @@ void removeDuplicates(string inputFile="duplicates.root",
 
 
   //newtree->Print();
-  newtree->AutoSave();
-  delete oldfile;
-  delete newfile;
+  //newtree->AutoSave();
+  //delete oldfile;
+  //delete newfile;
 
   int stop_s=clock();
   cout << "time: " << (stop_s-start_s)/double(CLOCKS_PER_SEC)*1000 << endl;
