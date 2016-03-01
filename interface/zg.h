@@ -53,6 +53,7 @@ public :
    Float_t         HLT_Photon175;
    Float_t         HLT_DiJet;
    Float_t         HLT_DoubleEl;
+   Float_t         HLT_DoubleEl33;
    Float_t         HLT_DoubleMu;
    Float_t         Flag_EcalDeadCellTriggerPrimitiveFilter;
    Float_t         Flag_trkPOG_manystripclus53X;
@@ -483,6 +484,7 @@ public :
    TBranch        *b_HLT_Photon175;   //!
    TBranch        *b_HLT_DiJet;   //!
    TBranch        *b_HLT_DoubleEl;   //!
+   TBranch        *b_HLT_DoubleEl33;   //!
    TBranch        *b_HLT_DoubleMu;   //!
    TBranch        *b_Flag_EcalDeadCellTriggerPrimitiveFilter;   //!
    TBranch        *b_Flag_trkPOG_manystripclus53X;   //!
@@ -977,6 +979,7 @@ void ZGTree::Init(TTree *tree)
    fChain->SetBranchAddress("HLT_Photon175", &HLT_Photon175, &b_HLT_Photon175);
    fChain->SetBranchAddress("HLT_DiJet", &HLT_DiJet, &b_HLT_DiJet);
    fChain->SetBranchAddress("HLT_DoubleEl", &HLT_DoubleEl, &b_HLT_DoubleEl);
+   fChain->SetBranchAddress("HLT_DoubleEl33", &HLT_DoubleEl33, &b_HLT_DoubleEl33);
    fChain->SetBranchAddress("HLT_DoubleMu", &HLT_DoubleMu, &b_HLT_DoubleMu);
    fChain->SetBranchAddress("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter, &b_Flag_EcalDeadCellTriggerPrimitiveFilter);
    fChain->SetBranchAddress("Flag_trkPOG_manystripclus53X", &Flag_trkPOG_manystripclus53X, &b_Flag_trkPOG_manystripclus53X);
