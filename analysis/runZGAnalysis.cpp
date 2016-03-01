@@ -20,12 +20,15 @@
 #include "../interface/rochcor2015.h"
 #include "../interface/muresolution_run2.h"
 
+// photon smearing/scales for 76X
+#include "../interface/EnergyScaleCorrection_class.hh"
+
 
 #define zg_cxx
 #include "interface/zg.h"
 
 
-#define DATABLINDING true
+#define DATABLINDING false
 
 bool doSyst = true;
 
@@ -71,12 +74,16 @@ int main( int argc, char* argv[] ) {
   bool onlyData = false;
   bool onlyMC   = false;
   bool onlySignal = false;
+  bool noSignals = false;
   if( argc > 2 ) {
 
     std::string dataMC(argv[2]);
     if( dataMC=="data" ) onlyData = true;
     else if( dataMC=="MC" || dataMC=="mc" ) onlyMC = true;
-    else if( dataMC=="signal" ) onlySignal = true;
+    else if( dataMC=="mcbg" || dataMC=="mcBG" || dataMC=="MCBG" ) {
+      onlyMC = true;
+      noSignals = true;
+    } else if( dataMC=="signal" ) onlySignal = true;
     else {
       std::cout << "-> You passed a second argument that isn't 'data', nor 'MC', nor 'signal', so I don't know what to do about it." << std::endl;
     }
@@ -129,7 +136,7 @@ int main( int argc, char* argv[] ) {
 
 
   // load signal samples, if any
-  if( cfg.mcSamples()!="" && cfg.additionalStuff()!="noSignals" && !onlyData ) {
+  if( cfg.mcSamples()!="" && cfg.additionalStuff()!="noSignals" && !noSignals && !onlyData ) {
 
     std::string samplesFileName = "../samples/samples_" + cfg.mcSamples() + ".dat";
     std::cout << std::endl << std::endl;
@@ -213,7 +220,9 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
       if( thisId<idMin ) continue;
       if( thisId>idMax ) continue;
     }
-    tree->Add( Form("%s/mt2", samples[i].file.c_str()) );
+    std::string fileName(Form("%s/mt2", samples[i].file.c_str()) );
+    tree->Add( fileName.c_str() );
+    std::cout << "-> Added: " << fileName << std::endl;
   }
     
 
@@ -239,7 +248,7 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
   outTree->Branch( "run", &run, "run/I");
   int lumi;
   outTree->Branch( "lumi", &lumi, "lumi/I");
-  unsigned event;
+  UInt_t event;
   outTree->Branch( "event", &event, "event/i");
   float weight;
   outTree->Branch( "weight", &weight, "weight/F");
@@ -260,8 +269,20 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
   bool isSilver;
   outTree->Branch( "isSilver", &isSilver, "isSilver/O");
 
+  bool passHLT_old;
+  outTree->Branch( "passHLT_old", &passHLT_old, "passHLT_old/O" );
   bool passHLT;
   outTree->Branch( "passHLT", &passHLT, "passHLT/O" );
+  bool HLT_Photon165;
+  outTree->Branch( "HLT_Photon165", &HLT_Photon165, "HLT_Photon165/O" );
+  bool HLT_DoubleEle;
+  outTree->Branch( "HLT_DoubleEle", &HLT_DoubleEle, "HLT_DoubleEle/O" );
+  bool HLT_DoubleEle33;
+  outTree->Branch( "HLT_DoubleEle33", &HLT_DoubleEle33, "HLT_DoubleEle33/O" );
+  bool HLT_DoubleMu;
+  outTree->Branch( "HLT_DoubleMu", &HLT_DoubleMu, "HLT_DoubleMu/O" );
+  bool HLT_SingleMu;
+  outTree->Branch( "HLT_SingleMu", &HLT_SingleMu, "HLT_SingleMu/O" );
 
   float weight_scale;
   outTree->Branch( "weight_scale", &weight_scale, "weight_scale/F");
@@ -319,6 +340,10 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
   // for muon rochester corrections
   rochcor2015 *rmcor = new rochcor2015();
 
+  // for photon energy scale/smearings (76X only)
+  EnergyScaleCorrection_class egcor("76X_16DecRereco_2015");
+  egcor.doScale=true;
+  egcor.doSmearings=false;
 
  
   int nentries = tree->GetEntries();
@@ -355,42 +380,37 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     isGolden = myTree.isGolden;
     isSilver = myTree.isSilver;
 
+    HLT_Photon165   = myTree.HLT_Photon165_HE10;
+    HLT_DoubleEle   = myTree.HLT_DoubleEl;
+    HLT_DoubleMu    = myTree.HLT_DoubleMu;
+    HLT_DoubleEle33 = myTree.HLT_DoubleEl33;
+    HLT_SingleMu    = myTree.HLT_SingleMu;
+
     // hlt on data:
     if( myTree.isData ) {
       //if( !myTree.isGolden ) continue;
       if( !myTree.isSilver ) continue;
       passHLT = false;
       if( id==5 ) passHLT = myTree.HLT_DoubleMu; //DoubleMu PD
-      if( id==4 ) passHLT = myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu; //DoubleEG PD
-      if( id==7 ) passHLT = myTree.HLT_Photon165_HE10 && !myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu; //SinglePhoton PD
+      if( id==8 ) passHLT = myTree.HLT_SingleMu && !myTree.HLT_DoubleMu; //SingleMu PD
+      if( id==4 ) passHLT = (myTree.HLT_DoubleEl || myTree.HLT_DoubleEl33) && !myTree.HLT_DoubleMu && !myTree.HLT_SingleMu; //DoubleEG PD
+      //if( id==7 ) passHLT = myTree.HLT_Photon165_HE10 && !myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu; //SinglePhoton PD
       //if( id==5 ) passHLT = myTree.HLT_DoubleMu; //DoubleMu PD
-      //if( id==8 ) passHLT = myTree.HLT_SingleMu && !myTree.HLT_DoubleMu; //SingleMu PD
       //if( id==4 ) passHLT = myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && !myTree.HLT_SingleMu; //DoubleEG PD
       //if( id==9 ) passHLT = myTree.HLT_SingleEl && !myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && !myTree.HLT_SingleMu; //SingleElectron PD
-      if( cfg.selection()=="hltTest" ) {
-        if( !myTree.HLT_Photon165_HE10 ) continue;
-      } else { // standard HLT logic
-        if( !passHLT ) continue;
-      }
     } else {
       // hlt on mc:
-      passHLT = ( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_Photon165_HE10 );
-      if( id > 1000 && !passHLT ) continue; // hlt on signals
-      //passHLT = ( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_SingleEl || myTree.HLT_SingleMu );
-      //if( cfg.selection()=="hltTest" ) {
-      //  if( !myTree.HLT_Photon165_HE10 ) continue;
-      //} else {
-      //  if( !passHLT ) continue;
-      //}
+      //passHLT = ( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_DoubleEl33 );
+      passHLT = ( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_DoubleEl33 || myTree.HLT_SingleMu );
     }
 
+    if( !passHLT ) continue;
 
     if( myTree.nlep!=2 ) continue; // two leptons
     if( myTree.lep_pdgId[0] != -myTree.lep_pdgId[1] ) continue; // same flavour, opposite sign
 
     leptType = abs(myTree.lep_pdgId[0]);
     if( leptType!=11 && leptType!=13 ) continue; // just in case
-
 
 
       
@@ -404,7 +424,8 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
 
       weight = myTree.evt_scale1fb;
       // pu reweighting:
-      puWeight = ZGCommonTools::getPUweight( nVert, h1_nVert_data, h1_nVert_mc );
+      puWeight = myTree.puWeight;
+      //puWeight = ZGCommonTools::getPUweight( nVert, h1_nVert_data, h1_nVert_mc );
       weight *= puWeight;
       // lepton SF:
       weight *= myTree.weight_lepsf;
@@ -432,7 +453,6 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     if( leptType==11 ) {
       if( myTree.lep_tightId[0]==0 || myTree.lep_tightId[1]==0 ) continue; // loose electron ID
     } else {
-      //if( myTree.lep_tightId[0]==0 || myTree.lep_tightId[1]==0 ) continue; // tight muon ID on at least one of the muons
       if( myTree.lep_tightId[0]==0 && myTree.lep_tightId[1]==0 ) continue; // tight muon ID on at least one of the muons
     }
 
@@ -493,13 +513,16 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
           smearEmEnergy( photon );
       } else {
         applyEmEnergyScale( photon );
+        //float cor = egcor.ScaleCorrection(run, fabs(photon.Eta())<1.479, myTree.gamma_r9[0], photon.Eta(), photon.Pt());
+        //photon.SetPtEtaPhiM( photon.Pt()*cor, photon.Eta(), photon.Phi(), photon.M() );
       }
 
     }
 
 
     TLorentzVector zBoson = lept0+lept1;
-    if( zBoson.M()<50. || zBoson.M()>130. ) continue;
+    if( zBoson.M()<50. ) continue;
+    if( cfg.selection()!="presel" && zBoson.M()>130. ) continue;
 
     TLorentzVector boss = zBoson + photon;
 
