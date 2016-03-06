@@ -41,8 +41,8 @@ int main( int argc, char* argv[] ) {
   //TFile* file_eff = TFile::Open("genAcceptanceTimesEfficiency.root");
   //TF1* f1_eff = (TF1*)file_eff->Get("f1_gr_0p014_times_line_all");
 
-  TFile* file_eff = TFile::Open(Form("%s/signalEfficiency.root", cfg.getEventYieldDir().c_str()));
-  TF1* f1_eff = (TF1*)file_eff->Get("f1_0p014_all");
+  TFile* file_eff = TFile::Open(Form("%s/signalEfficiency_w0p014.root", cfg.getEventYieldDir().c_str()));
+  TF1* f1_eff = (TF1*)file_eff->Get("f1_eff_all");
 
   ZGDrawTools::setStyle();
 
