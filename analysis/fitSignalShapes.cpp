@@ -62,7 +62,7 @@ int main( int argc, char* argv[] ) {
   //masses.push_back( 5000. );
 
   std::vector<std::string> widths;
-  //widths.push_back( "5p6" );
+  widths.push_back( "5p6" );
   widths.push_back( "0p014" );
 
   for( unsigned iw =0; iw<widths.size(); ++iw ) {
@@ -238,7 +238,7 @@ TF1* fitGraph( const std::string& outdir, TGraphErrors* graph, const std::string
 
   TString grName_tstr(graph->GetName());
   std::string formula = "[0] + [1]*x";
-  if( grName_tstr.Contains("sigma") && grName_tstr.Contains("mm") && xMax>1100. )
+  if( grName_tstr.Contains("sigma") && grName_tstr.Contains("mm") && grName_tstr.Contains("0p014") && xMax>1100. )
     formula = "[0] + [1]*x + [2]*x*x";
   TF1* f1 = new TF1( Form("f1_%s", graph->GetName()), formula.c_str(), xMin, xMax );
   //TF1* f1 = new TF1( Form("f1_%s", graph->GetName()), "[0] + [1]*x + [2]*x*x + [3]*x*x*x + [4]*x*x*x*x + [5]*x*x*x*x*x", xMin, xMax );
@@ -311,7 +311,10 @@ void drawCompare( const ZGConfig& cfg, const std::string& outdir, TFile* file, c
   TCanvas* c1 = new TCanvas( "c1", "", 600, 600 );
   c1->cd();
 
-  TH2D* h2_axes = new TH2D( "axes", "", 10, 350., xMax, 10, 0., 1.3*yMax );
+  float xMax_axis = xMax;
+  if( width=="5p6"   ) xMax_axis = 1000.;
+
+  TH2D* h2_axes = new TH2D( "axes", "", 10, 350., xMax_axis, 10, 0., 1.3*yMax );
   h2_axes->SetXTitle( "Generated Mass [GeV]" );
   h2_axes->SetYTitle( axisName.c_str() );
   h2_axes->Draw();
@@ -331,17 +334,17 @@ void drawCompare( const ZGConfig& cfg, const std::string& outdir, TFile* file, c
   gr1->Draw("psame");
   gr2->Draw("psame");
 
-  float xMin_leg = 0.6;
+  float xMin_leg = 0.6; //default: bottom right
   float xMax_leg = 0.9;
   float yMin_leg = 0.2;
   float yMax_leg = 0.38;
-  if( name=="width" || name=="sigma" ) {
+  if( width=="0p014" && (name=="width" || name=="sigma") ) {//top left
     xMin_leg = 0.2;
     xMax_leg = 0.5;
     yMin_leg = 0.72;
     yMax_leg = 0.9;
   } 
-  if( name=="n2" ) {
+  if( (width=="0p014" && name=="n2") || (width=="5p6"&&name=="n1") ) { // top right
     xMin_leg = 0.7;
     xMax_leg = 0.9;
     yMin_leg = 0.7;
