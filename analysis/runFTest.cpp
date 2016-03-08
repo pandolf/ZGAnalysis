@@ -95,9 +95,11 @@ int doFTest( const std::string& outdir, RooRealVar* x, RooDataSet* data, const s
 
     float thisNll = (sumFunctions) ? fitWithModelSum( outdir, x, data, funcFamily, iOrder ) : fitWithModel( outdir, x, data, funcFamily, iOrder );
 
+    int ndof = (sumFunctions) ? 2 : 1;
+
     float chi2 = 2.*( prevNll - thisNll );
     if( chi2<0. && iOrder>1 ) chi2=0.;
-    float prob = TMath::Prob(chi2, 1);
+    float prob = TMath::Prob(chi2, ndof);
 
     ofs << "  order: " << iOrder << " nll: " << thisNll << " chi2: " << chi2 << " Prob(chi2): " << prob << std::endl;
     if( prob>0.05 ) {
