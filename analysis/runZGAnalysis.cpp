@@ -30,7 +30,7 @@
 
 #define DATABLINDING false
 
-bool doSyst = true;
+bool doSyst = false;
 
 
 void addTreeToFile( TFile* file, ZGSample sample, const ZGConfig& cfg );
@@ -227,11 +227,11 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     
 
 
-  TFile* puFile_data = TFile::Open("puData.root");
-  TH1D* h1_nVert_data = (TH1D*)puFile_data->Get("nVert");
+  //TFile* puFile_data = TFile::Open("puData.root");
+  //TH1D* h1_nVert_data = (TH1D*)puFile_data->Get("nVert");
 
-  TFile* puFile_mc = TFile::Open("puMC.root");
-  TH1D* h1_nVert_mc = (TH1D*)puFile_mc->Get("nVert");
+  //TFile* puFile_mc = TFile::Open("puMC.root");
+  //TH1D* h1_nVert_mc = (TH1D*)puFile_mc->Get("nVert");
 
 
   ZGTree myTree;
@@ -239,9 +239,13 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
   myTree.Init(tree);
 
 
+  // compute denominators of efficiency for PDF syst
+  std::vector<float> pdf_denom;
+  std::vector<float> pdf_num;
 
   file->cd();
   gDirectory->Delete(Form("%s;*", treeName.c_str()));
+  gDirectory->Delete(Form("pdf_%s;*", treeName.c_str()));
   TTree* outTree = new TTree( treeName.c_str(), "" );
 
   int run;
@@ -283,6 +287,8 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
   outTree->Branch( "HLT_DoubleMu", &HLT_DoubleMu, "HLT_DoubleMu/O" );
   bool HLT_SingleMu;
   outTree->Branch( "HLT_SingleMu", &HLT_SingleMu, "HLT_SingleMu/O" );
+  bool passStandardIso;
+  outTree->Branch( "passStandardIso", &passStandardIso, "passStandardIso/O" );
 
   float weight_scale;
   outTree->Branch( "weight_scale", &weight_scale, "weight_scale/F");
@@ -359,6 +365,28 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     event = myTree.evt;
     id    = myTree.evt_id;
 
+    bool doSystForThisSample =  doSyst && (id==851 || id==4301 || id==4302);
+
+    if( iEntry==0 && doSystForThisSample ) { // allocate all of the PDF stuff
+
+      for( int i=0; i<myTree.nLHEweight; ++i ) {
+        pdf_num.push_back(0.);
+        std::cout << "[PDF Systematics] Allocating stuff for LHE weight: " << myTree.LHEweight_id[i] << " (" << i << "/" << myTree.nLHEweight << ")" << std::endl;
+        bool goodIndex = (myTree.LHEweight_id[i]>=2000 && myTree.LHEweight_id[i]<=3000);
+        if( goodIndex ) {
+          TH1D* h1_tmp = new TH1D("pdf_tmp", "", 100, 0., 10000. );
+          h1_tmp->Sumw2();
+          tree->Project( "pdf_tmp", "met_pt", Form("LHEweight_wgt[%d]", i) );
+          pdf_denom.push_back( h1_tmp->Integral() );
+          delete h1_tmp;
+        } else {
+          pdf_denom.push_back( 1. );
+        }
+      }
+
+    } // if first entry
+
+
     // remove overlap from DY:
     if( id>=700 && id<710 ) {
       if( myTree.ngamma>0 && myTree.gamma_mcMatchId[0]==22 ) continue;
@@ -404,7 +432,7 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
       passHLT = ( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_DoubleEl33 || myTree.HLT_SingleMu );
     }
 
-    if( !passHLT ) continue;
+    if( !passHLT && cfg.additionalStuff()!="noHLT" ) continue;
 
     if( myTree.nlep!=2 ) continue; // two leptons
     if( myTree.lep_pdgId[0] != -myTree.lep_pdgId[1] ) continue; // same flavour, opposite sign
@@ -472,6 +500,8 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
         rmcor->momcor_data(lept1, myTree.lep_pdgId[1]/(abs(myTree.lep_pdgId[1])), 0, qter);
       }
 
+      passStandardIso = (myTree.lep_relIso04[0]<0.25 && myTree.lep_relIso04[1]<0.25);
+
     } else if( leptType==11 ) {
 
       // already applied at heppy level
@@ -482,7 +512,12 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
       //  applyEmEnergyScale( lept0 );
       //  applyEmEnergyScale( lept1 );
       //}
+
+      bool passStandardIso0 = (fabs(myTree.lep_eta[0])<1.479) ? myTree.lep_relIso03[0]<0.0893 : myTree.lep_relIso03[0]<0.121;
+      bool passStandardIso1 = (fabs(myTree.lep_eta[1])<1.479) ? myTree.lep_relIso03[1]<0.0893 : myTree.lep_relIso03[1]<0.121;
       
+      passStandardIso = passStandardIso0 && passStandardIso1;
+
     }
 
 
@@ -572,46 +607,67 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
 
     if( DATABLINDING && myTree.isData && boss_mass>500. ) continue;
 
-    if( id==851 && doSyst ) { // systematic uncertainties
 
-      // first scale
-      float ref = myTree.LHEweight_original;
-
-      float maxScaleDiff = 0.;
-
-      TH1D* h1_pdf = new TH1D("pdf", "", 1000, -3000., 3000.);
+    if( doSystForThisSample ) { // systematic uncertainties
 
       for( int i=0; i<myTree.nLHEweight; ++i ) {
+        bool goodIndex = (myTree.LHEweight_id[i]>=2000 && myTree.LHEweight_id[i]<=3000);
+        if( goodIndex )
+          pdf_num[i] += myTree.LHEweight_wgt[i];
+      } //for pdf sets 
 
-        if( myTree.LHEweight_id[i]>=1000 && myTree.LHEweight_id[i]<1010 ) {
-          float thisScaleDiff = fabs( (myTree.LHEweight_wgt[i]-ref)/ref );
-          if( thisScaleDiff>maxScaleDiff) 
-            maxScaleDiff = thisScaleDiff+1.;
-        }
+    }
 
-        if( myTree.LHEweight_id[i]>=2000 ) {
-          if( myTree.LHEweight_wgt[i] > h1_pdf->GetXaxis()->GetXmax() || myTree.LHEweight_wgt[i] < h1_pdf->GetXaxis()->GetXmin() )
-            std::cout << "WARNING!! PDF weight out of bounds: " << myTree.LHEweight_wgt[i] << std::endl;
-          h1_pdf->Fill( myTree.LHEweight_wgt[i]/ref );
-        }
 
-      } // for lhe weights
+    //if( id==851 && doSyst ) { // systematic uncertainties
 
-      float meanPdfWgt = h1_pdf->GetMean();
-      float rmsPdfWgt = h1_pdf->GetRMS();
-      weight_pdf *= (1.+rmsPdfWgt/meanPdfWgt);
+    //  // first scale
+    //  float ref = myTree.LHEweight_original;
 
-      weight_scale *= maxScaleDiff;
+    //  float maxScaleDiff = 0.;
 
-      delete h1_pdf;
+    //  TH1D* h1_pdf = new TH1D("pdf", "", 1000, -3000., 3000.);
 
-    } // if correct sample
+    //  for( int i=0; i<myTree.nLHEweight; ++i ) {
+
+    //    if( myTree.LHEweight_id[i]>=1000 && myTree.LHEweight_id[i]<1010 ) {
+    //      float thisScaleDiff = fabs( (myTree.LHEweight_wgt[i]-ref)/ref );
+    //      if( thisScaleDiff>maxScaleDiff) 
+    //        maxScaleDiff = thisScaleDiff+1.;
+    //    }
+
+    //    if( myTree.LHEweight_id[i]>=2000 ) {
+    //      if( myTree.LHEweight_wgt[i] > h1_pdf->GetXaxis()->GetXmax() || myTree.LHEweight_wgt[i] < h1_pdf->GetXaxis()->GetXmin() )
+    //        std::cout << "WARNING!! PDF weight out of bounds: " << myTree.LHEweight_wgt[i] << std::endl;
+    //      h1_pdf->Fill( myTree.LHEweight_wgt[i]/ref );
+    //    }
+
+    //  } // for lhe weights
+
+    //  float meanPdfWgt = h1_pdf->GetMean();
+    //  float rmsPdfWgt = h1_pdf->GetRMS();
+    //  weight_pdf *= (1.+rmsPdfWgt/meanPdfWgt);
+
+    //  weight_scale *= maxScaleDiff;
+
+    //  delete h1_pdf;
+
+    //} // if correct sample
 
     outTree->Fill();
     
   } // for entries
     
-  
+
+  TH1D* h1_pdf = new TH1D( Form("pdf_%s", treeName.c_str()), "", 2000, 0., 1. );
+  for( unsigned i=0; i<pdf_num.size(); ++i ) {
+    if( pdf_num[i]!=0. )
+      h1_pdf->Fill( pdf_num[i]/pdf_denom[i] );
+  }
+
+  if( h1_pdf->GetMean()>0. )
+    h1_pdf->Write();
+ 
   outTree->Write();
 
 }
