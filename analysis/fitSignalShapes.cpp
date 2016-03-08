@@ -113,13 +113,13 @@ void fitGraphs( const ZGConfig& cfg, const std::vector<float> masses, const std:
   TGraphErrors* gr_alpha2 = new TGraphErrors(0);
   TGraphErrors* gr_n2     = new TGraphErrors(0);
 
-  gr_mean  ->SetName(Form("mean_%s" , name.c_str()));
-  gr_sigma ->SetName(Form("sigma_%s", name.c_str()));
-  gr_width ->SetName(Form("width_%s", name.c_str()));
-  gr_alpha1->SetName(Form("alpha1_%s", name.c_str()));
-  gr_n1    ->SetName(Form("n1_%s"    , name.c_str()));
-  gr_alpha2->SetName(Form("alpha2_%s", name.c_str()));
-  gr_n2    ->SetName(Form("n2_%s"    , name.c_str()));
+  gr_mean  ->SetName(Form("mean_w%s_%s"  , width.c_str(), name.c_str()));
+  gr_sigma ->SetName(Form("sigma_w%s_%s" , width.c_str(), name.c_str()));
+  gr_width ->SetName(Form("width_w%s_%s" , width.c_str(), name.c_str()));
+  gr_alpha1->SetName(Form("alpha1_w%s_%s", width.c_str(), name.c_str()));
+  gr_n1    ->SetName(Form("n1_w%s_%s"    , width.c_str(), name.c_str()));
+  gr_alpha2->SetName(Form("alpha2_w%s_%s", width.c_str(), name.c_str()));
+  gr_n2    ->SetName(Form("n2_w%s_%s"    , width.c_str(), name.c_str()));
 
 
 
@@ -238,7 +238,8 @@ TF1* fitGraph( const std::string& outdir, TGraphErrors* graph, const std::string
 
   TString grName_tstr(graph->GetName());
   std::string formula = "[0] + [1]*x";
-  if( grName_tstr.Contains("sigma") && grName_tstr.Contains("mm") && grName_tstr.Contains("0p014") && xMax>1100. )
+  if( (grName_tstr.Contains("sigma") && grName_tstr.Contains("mm") && grName_tstr.Contains("0p014") && xMax>1100.)
+    ||(grName_tstr.Contains("n1") && grName_tstr.Contains("5p6") ) )
     formula = "[0] + [1]*x + [2]*x*x";
   TF1* f1 = new TF1( Form("f1_%s", graph->GetName()), formula.c_str(), xMin, xMax );
   //TF1* f1 = new TF1( Form("f1_%s", graph->GetName()), "[0] + [1]*x + [2]*x*x + [3]*x*x*x + [4]*x*x*x*x + [5]*x*x*x*x*x", xMin, xMax );
@@ -295,8 +296,8 @@ void drawCompare( const ZGConfig& cfg, const std::string& outdir, TFile* file, c
   std::string plotdir = outdir + "/plots";
   system( Form("mkdir -p %s", plotdir.c_str() ) );
 
-  TGraphErrors* gr1 = (TGraphErrors*)file->Get( Form("%s_%s", name.c_str(), cat1.c_str()) );
-  TGraphErrors* gr2 = (TGraphErrors*)file->Get( Form("%s_%s", name.c_str(), cat2.c_str()) );
+  TGraphErrors* gr1 = (TGraphErrors*)file->Get( Form("%s_w%s_%s", name.c_str(), width.c_str(), cat1.c_str()) );
+  TGraphErrors* gr2 = (TGraphErrors*)file->Get( Form("%s_w%s_%s", name.c_str(), width.c_str(), cat2.c_str()) );
 
   float yMax = 0.;
   for( int i=0; i<gr1->GetN(); ++i ) {
