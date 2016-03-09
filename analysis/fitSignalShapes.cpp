@@ -44,6 +44,8 @@ int main( int argc, char* argv[] ) {
   ZGDrawTools::setStyle();
   
   std::vector<float> masses;
+  masses.push_back( 350. );
+  masses.push_back( 375. );
   masses.push_back( 450. );
   masses.push_back( 600. );
   masses.push_back( 750. );
@@ -147,17 +149,19 @@ void fitGraphs( const ZGConfig& cfg, const std::vector<float> masses, const std:
 
     // Crystal-Ball
     RooRealVar mean( "mean", "mean", thisMass, 0.9*thisMass, 1.1*thisMass );
-    RooRealVar sigma( "sigma", "sigma", 0.015*thisMass, 0., 0.07*thisMass );
-    RooRealVar alpha1( "alpha1", "alpha1", 1.2, 0., 2.5 );
+    float sigmaResolution = ( width=="5p6" ) ? 0.03 : 0.015;
+    RooRealVar sigma( "sigma", "sigma", sigmaResolution*thisMass, 0., 0.07*thisMass );
+    float alpha1_init = (width=="5p6" && thisMass<1000. ) ? 0.8 : 1.2;
+    RooRealVar alpha1( "alpha1", "alpha1", alpha1_init, 0., 2.5 );
     RooRealVar n1( "n1", "n1", 3., 0., 5. );
     RooRealVar alpha2( "alpha2", "alpha2", 1.2, 0., 2.5 );
-    RooRealVar n2( "n2", "n2", 3., 0., 10. );
+    RooRealVar n2( "n2", "n2", 3.5, 0., 10. );
     RooDoubleCBShape cb( "cb", "cb", x, mean, sigma, alpha1, n1, alpha2, n2 );
 
 
     RooDataSet* data = new RooDataSet( "data", "data", RooArgSet(x), RooFit::Import(*tree) );
 
-    cb.fitTo( *data );
+    cb.fitTo( *data, RooFit::Strategy(2) );
 
     RooPlot* frame = x.frame();
     data->plotOn(frame);
@@ -234,13 +238,14 @@ TF1* fitGraph( const std::string& outdir, TGraphErrors* graph, const std::string
 
   //float xMin = 200.;
   //float xMax = 7000.;
-  float xMin = 350.;
+  float xMin = 300.;
 
   TString grName_tstr(graph->GetName());
   std::string formula = "[0] + [1]*x";
-  if( (grName_tstr.Contains("sigma") && grName_tstr.Contains("mm") && grName_tstr.Contains("0p014") && xMax>1100.)
-    ||(grName_tstr.Contains("n1") && grName_tstr.Contains("5p6") ) )
+  if( (grName_tstr.Contains("sigma") && grName_tstr.Contains("mm") && xMax>1100.) )
     formula = "[0] + [1]*x + [2]*x*x";
+  if( (grName_tstr.Contains("n1") && grName_tstr.Contains("5p6") ) ) 
+    formula = "[0] + [1]*(x-2000.)*(x-2000.) + [2]*(x-2000.)*(x-2000.)*(x-2000.)*(x-2000.) + [3]*(x-2000.)*(x-2000.)*(x-2000.)*(x-2000.)*(x-2000.)*(x-2000.)";
   TF1* f1 = new TF1( Form("f1_%s", graph->GetName()), formula.c_str(), xMin, xMax );
   //TF1* f1 = new TF1( Form("f1_%s", graph->GetName()), "[0] + [1]*x + [2]*x*x + [3]*x*x*x + [4]*x*x*x*x + [5]*x*x*x*x*x", xMin, xMax );
   f1->SetLineColor(46);
@@ -252,8 +257,19 @@ TF1* fitGraph( const std::string& outdir, TGraphErrors* graph, const std::string
   std::string graphName(graph->GetName());
   TH1D* band;
 
-  //if( grName_tstr.Contains("mm") && ( grName_tstr.Contains("n1") || grName_tstr.Contains("alpha1") ) ) 
-  //  f1->SetRange( xMin, 1800. );
+  //TGraphErrors* graphToFit = new TGraphErrors(0);
+  //int iPoint=0;
+  //for( int i=0; i<graph->GetN(); ++i ) {
+  //  Double_t x, y;
+  //  graph->GetPoint(i, x, y);
+  //  Double_t err_y = graph->GetErrorY(i);
+  //  if( err_y/y > 0.00001 ) {
+  //    graphToFit->SetPoint(iPoint, x, y);
+  //    graphToFit->SetPointError(iPoint, 0., err_y);
+  //    iPoint++;
+  //  }
+  //}
+  //graphToFit->Fit( f1, "QR" );
   graph->Fit( f1, "QR" );
   f1->SetRange( xMin, xMax );
   band = ZGDrawTools::getBand(f1);
@@ -313,9 +329,9 @@ void drawCompare( const ZGConfig& cfg, const std::string& outdir, TFile* file, c
   c1->cd();
 
   float xMax_axis = xMax;
-  if( width=="5p6"   ) xMax_axis = 1000.;
+  //if( width=="5p6"   ) xMax_axis = 1000.;
 
-  TH2D* h2_axes = new TH2D( "axes", "", 10, 350., xMax_axis, 10, 0., 1.3*yMax );
+  TH2D* h2_axes = new TH2D( "axes", "", 10, 300., xMax_axis, 10, 0., 1.3*yMax );
   h2_axes->SetXTitle( "Generated Mass [GeV]" );
   h2_axes->SetYTitle( axisName.c_str() );
   h2_axes->Draw();
