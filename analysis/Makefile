@@ -78,6 +78,12 @@ drawTriggerTurnOn: drawTriggerTurnOn.cpp ZGDrawTools.o
 runFTest: runFTest.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o
 	$(CC) -Wall $(INCLUDES) -o runFTest runFTest.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o  $(ROOTFLAG) $(EXTRALIBS)
 
+drawBiasFunction: drawBiasFunction.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o
+	$(CC) -Wall $(INCLUDES) -o drawBiasFunction drawBiasFunction.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o  $(ROOTFLAG) $(EXTRALIBS)
+
+drawPrivateVsOfficial: drawPrivateVsOfficial.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o
+	$(CC) -Wall $(INCLUDES) -o drawPrivateVsOfficial drawPrivateVsOfficial.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o  $(ROOTFLAG) $(EXTRALIBS)
+
 
 
 provaroofit: provaroofit.C 
