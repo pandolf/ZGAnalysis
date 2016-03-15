@@ -84,6 +84,15 @@ drawBiasFunction: drawBiasFunction.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o 
 drawPrivateVsOfficial: drawPrivateVsOfficial.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o
 	$(CC) -Wall $(INCLUDES) -o drawPrivateVsOfficial drawPrivateVsOfficial.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o  $(ROOTFLAG) $(EXTRALIBS)
 
+drawMiniIsoEfficiency: drawMiniIsoEfficiency.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o
+	$(CC) -Wall $(INCLUDES) -o drawMiniIsoEfficiency drawMiniIsoEfficiency.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o  $(ROOTFLAG) $(EXTRALIBS)
+
+computeMuonScaleSyst: computeMuonScaleSyst.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o rochcor2015.o muresolution_run2.o
+	$(CC) -Wall $(INCLUDES) -o computeMuonScaleSyst computeMuonScaleSyst.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o rochcor2015.o muresolution_run2.o $(ROOTFLAG) $(EXTRALIBS)
+
+drawMuonScaleSyst: drawMuonScaleSyst.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o rochcor2015.o muresolution_run2.o
+	$(CC) -Wall $(INCLUDES) -o drawMuonScaleSyst drawMuonScaleSyst.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o rochcor2015.o muresolution_run2.o $(ROOTFLAG) $(EXTRALIBS)
+
 
 
 provaroofit: provaroofit.C 
