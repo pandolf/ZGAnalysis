@@ -56,6 +56,7 @@ int main( int argc, char* argv[] ) {
   c1->Clear();
 
 
+  h2_axes->SetYTitle("Photon Scale Systematic Uncertainty");
   h2_axes->Draw();
 
   gr_egmScale->SetMarkerStyle(20); 
