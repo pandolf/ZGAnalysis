@@ -13,7 +13,7 @@
 ZGDrawTools::ZGDrawTools( const std::string& outDir, float lumi ) {
 
   lumi_    = lumi;
-  lumiErr_ = 0.12;
+  lumiErr_ = 0.027;
   shapeNorm_ = false;
   outdir_ = outDir;
 
@@ -298,7 +298,7 @@ TPaveText* ZGDrawTools::getLabelTopSimulation( const std::string& text ) {
   label_top->SetFillColor(kWhite);
   label_top->SetTextSize(0.038);
   label_top->SetTextAlign(31); // align right                                                                                                                                        
-  label_top->SetTextFont(62);
+  label_top->SetTextFont(42);
   label_top->AddText(text.c_str());
 
   return label_top;
@@ -313,7 +313,7 @@ TPaveText* ZGDrawTools::getLabelCMS( const std::string& text ) {
   label_cms->SetFillColor(kWhite);
   label_cms->SetTextSize(0.042);
   label_cms->SetTextAlign(11); // align left
-  label_cms->SetTextFont(61);
+  label_cms->SetTextFont(42);
   label_cms->AddText( text.c_str() );
 
   return label_cms;
@@ -988,7 +988,7 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
   
   std::string xAxisTitle;
   if( units!="" ) 
-    xAxisTitle = (std::string)(Form("%s [%s]", axisName.c_str(), units.c_str()) );
+    xAxisTitle = (std::string)(Form("%s (%s)", axisName.c_str(), units.c_str()) );
   else
     xAxisTitle = (std::string)(Form("%s", axisName.c_str()) );
 
