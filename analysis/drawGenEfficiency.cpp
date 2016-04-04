@@ -65,7 +65,7 @@ int main() {
 
   drawEfficiency( outdir, file, "ee", "mm"  , "ee#gamma", "#mu#mu#gamma" );
   drawEfficiency( outdir, file, "noIso", "all"  , "Before Photon Isolation", "After Photon Isolation" );  
-  drawEfficiency( outdir, file, "all"  , "noIso", "Full Selection"         , "Without Photon Isolation" );  
+  drawEfficiency( outdir, file, "noHLT"  , "all", "Before HLT"         , "After HLT" );
 
 
   TTree* gentree = (TTree*)file->Get("genTree");
