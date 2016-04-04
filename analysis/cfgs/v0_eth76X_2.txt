@@ -1,0 +1,4 @@
+lumi 2.6
+mcSamples 76X_miniAODv2
+dataSamples Run2015_25ns76X_2_conv
+smearing false

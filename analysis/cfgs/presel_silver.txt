@@ -1,0 +1,4 @@
+lumi 2.6
+mcSamples Spring15_25ns_miniAODv2
+dataSamples Run2015_25nsGolden_silver
+selection presel

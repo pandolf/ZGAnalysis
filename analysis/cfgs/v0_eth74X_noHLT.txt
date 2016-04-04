@@ -1,0 +1,4 @@
+lumi 2.7
+mcSamples Spring15_25ns_miniAODv2
+dataSamples Run2015_25ns74X_conv
+additionalStuff noHLT
