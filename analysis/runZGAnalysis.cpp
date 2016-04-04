@@ -116,14 +116,16 @@ int main( int argc, char* argv[] ) {
     std::cout << std::endl << std::endl;
     std::cout << "-> Loading samples from file: " << samplesFileName << std::endl;
 
-    std::vector<ZGSample> fSamples = ZGSample::loadSamples(samplesFileName, 101, 999); // not interested in signal here (see later)
+    std::vector<ZGSample> fSamples = ZGSample::loadSamples(samplesFileName);
+    //std::vector<ZGSample> fSamples = ZGSample::loadSamples(samplesFileName, 101, 999); // not interested in signal here (see later)
     if( fSamples.size()==0 ) {
       std::cout << "There must be an error: samples is empty!" << std::endl;
       exit(120);
     }
 
 
-    addTreeToFile( outfile, "zg", fSamples, cfg, 851 );
+    addTreeToFile( outfile, "zg", fSamples, cfg );
+    //addTreeToFile( outfile, "zg", fSamples, cfg, 851 );
     addTreeToFile( outfile, "dy", fSamples, cfg, 700, 710 );
     //addTreeToFile( outfile, "top", fSamples, cfg, 300, 499 ); // irrelevant
     
@@ -303,6 +305,12 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
   outTree->Branch( "lept0_eta", &lept0_eta, "lept0_eta/F" );
   float lept0_phi;
   outTree->Branch( "lept0_phi", &lept0_phi, "lept0_phi/F" );
+  float lept0_mass;
+  outTree->Branch( "lept0_mass", &lept0_mass, "lept0_mass/F" );
+  float lept0_miniRelIso;
+  outTree->Branch( "lept0_miniRelIso", &lept0_miniRelIso, "lept0_miniRelIso/F" );
+  int lept0_pdgId;
+  outTree->Branch( "lept0_pdgId", &lept0_pdgId, "lept0_pdgId/I" );
 
   float lept1_pt;
   outTree->Branch( "lept1_pt", &lept1_pt, "lept1_pt/F" );
@@ -310,6 +318,12 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
   outTree->Branch( "lept1_eta", &lept1_eta, "lept1_eta/F" );
   float lept1_phi;
   outTree->Branch( "lept1_phi", &lept1_phi, "lept1_phi/F" );
+  float lept1_mass;
+  outTree->Branch( "lept1_mass", &lept1_mass, "lept1_mass/F" );
+  float lept1_miniRelIso;
+  outTree->Branch( "lept1_miniRelIso", &lept1_miniRelIso, "lept1_miniRelIso/F" );
+  int lept1_pdgId;
+  outTree->Branch( "lept1_pdgId", &lept1_pdgId, "lept1_pdgId/I" );
 
   float deltaR_lept;
   outTree->Branch( "deltaR_lept", &deltaR_lept, "deltaR_lept/F" );
@@ -320,6 +334,8 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
   outTree->Branch( "gamma_eta", &gamma_eta, "gamma_eta/F" );
   float gamma_phi;
   outTree->Branch( "gamma_phi", &gamma_phi, "gamma_phi/F" );
+  float gamma_mass;
+  outTree->Branch( "gamma_mass", &gamma_mass, "gamma_mass/F" );
   float gamma_iso;
   outTree->Branch( "gamma_iso", &gamma_iso, "gamma_iso/F" );
 
@@ -520,6 +536,11 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
 
     }
 
+    lept0_miniRelIso = myTree.lep_miniRelIso[0];
+    lept1_miniRelIso = myTree.lep_miniRelIso[1];
+
+    lept0_pdgId = myTree.lep_pdgId[0];
+    lept1_pdgId = myTree.lep_pdgId[1];
 
     TLorentzVector photon;
 
@@ -544,8 +565,11 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
 
       // photon energy corrections/smearing NOT done at heppy (in 74X, will be in for 76X)
       if( !myTree.isData ) {
-        if( cfg.smearing() )
-          smearEmEnergy( photon );
+        if( cfg.smearing() ) {
+          //if( id<14000 ) {
+            smearEmEnergy( photon ); // 74X smearings
+          //} else {};
+        }
       } else {
         applyEmEnergyScale( photon );
         //float cor = egcor.ScaleCorrection(run, fabs(photon.Eta())<1.479, myTree.gamma_r9[0], photon.Eta(), photon.Pt());
@@ -562,13 +586,15 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     TLorentzVector boss = zBoson + photon;
 
 
-    lept0_pt  = lept0.Pt();
-    lept0_eta = lept0.Eta();
-    lept0_phi = lept0.Phi();
+    lept0_pt   = lept0.Pt();
+    lept0_eta  = lept0.Eta();
+    lept0_phi  = lept0.Phi();
+    lept0_mass = lept0.M();
 
-    lept1_pt  = lept1.Pt();
-    lept1_eta = lept1.Eta();
-    lept1_phi = lept1.Phi();
+    lept1_pt   = lept1.Pt();
+    lept1_eta  = lept1.Eta();
+    lept1_phi  = lept1.Phi();
+    lept1_mass = lept1.M();
 
     deltaR_lept = lept0.DeltaR(lept1);
 
@@ -576,16 +602,18 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
 
     if( photon.Pt()>0. ) {
 
-      gamma_pt  = photon.Pt();
-      gamma_eta = photon.Eta();
-      gamma_phi = photon.Phi();
+      gamma_pt   = photon.Pt();
+      gamma_eta  = photon.Eta();
+      gamma_phi  = photon.Phi();
+      gamma_mass = photon.M();
       gamma_iso = myTree.gamma_chHadIso[0];
 
     } else {
 
-      gamma_pt  = 0.;
-      gamma_eta = 0.;
-      gamma_phi = 0.;
+      gamma_pt   = 0.;
+      gamma_eta  = 0.;
+      gamma_phi  = 0.;
+      gamma_mass = 0.;
       gamma_iso = -1.;
 
     }
