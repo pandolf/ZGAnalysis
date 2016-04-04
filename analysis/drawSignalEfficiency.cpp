@@ -42,7 +42,7 @@ int main( int argc, char* argv[] ) {
   std::cout << std::endl << std::endl;
   std::cout << "-> Loading signal samples from file: " << samplesFileName << std::endl;
 
-  std::vector<ZGSample> fSamples = ZGSample::loadSamples(samplesFileName, 1000); // only signal (id>=1000)
+  std::vector<ZGSample> fSamples = ZGSample::loadSamples(samplesFileName, 1000, 10000); // only signal (id>=1000)
 
 
   if( fSamples.size()==0 ) {
@@ -57,8 +57,8 @@ int main( int argc, char* argv[] ) {
 
   for( unsigned iWidth=0;iWidth<widths.size(); ++iWidth ) {
 
-    if( widths[iWidth]=="5p6" ) xMax = 1000.;
-    else                        xMax = 2100.;
+    //if( widths[iWidth]=="5p6" ) xMax = 1000.;
+    //else                        xMax = 2100.;
 
     TFile* file = TFile::Open( Form("%s/signalEfficiency_w%s.root", cfg.getEventYieldDir().c_str(), widths[iWidth].c_str()), "recreate" );
     file->cd();
@@ -156,7 +156,8 @@ void drawCompare( const ZGConfig& cfg, const std::string& width, TGraphErrors* g
   
   TH2D* h2_axes = new TH2D("axes", "", 10, 300., xMax, 10, 0., 1.0001 );
   h2_axes->SetXTitle( "Generated Z#gamma Mass [GeV]" );
-  h2_axes->SetYTitle( "Efficiency" );
+  h2_axes->GetXaxis()->SetNdivisions(1006, false);
+  h2_axes->SetYTitle( "Efficiency #times Acceptance" );
   h2_axes->Draw();
 
   gr_eff_ee->SetMarkerStyle(20);
@@ -306,7 +307,7 @@ void drawCompare( const ZGConfig& cfg, const std::string& width, TGraphErrors* g
   
   TH2D* h2_axes = new TH2D("axes", "", 10, 300., xMax, 10, 0., 1.0001 );
   h2_axes->SetXTitle( "Generated Z#gamma Mass [GeV]" );
-  h2_axes->SetYTitle( "Efficiency" );
+  h2_axes->SetYTitle( "Efficiency #times Acceptance" );
   h2_axes->Draw();
 
   f1->SetLineColor(46);
@@ -437,7 +438,9 @@ TF1* fitConstantPar( TF1* f1, TGraphErrors* gr_eff, float shift ) {
 
 TF1* fitEfficiency( TGraphErrors* gr ) {
 
-  TF1* f1_new = new TF1( Form("f1_%s_cust", gr->GetName()), "[0] + [1]*x + [2]*x*x", 300., xMax );
+  TF1* f1_new = new TF1( Form("f1_%s_cust", gr->GetName()), "[0] + [1]*(x-2000.)*(x-2000.) + [2]*(x-2000.)*(x-2000.)*(x-2000.)*(x-2000.)", 300., xMax );
+  //TF1* f1_new = new TF1( Form("f1_%s_cust", gr->GetName()), "[0] + [1]*(x-2000.)*(x-2000.)", 300., xMax );
+  //TF1* f1_new = new TF1( Form("f1_%s_cust", gr->GetName()), "[0] + [1]*x + [2]*x*x", 300., xMax );
 
   gr->Fit( f1_new, "QR0" );
 
