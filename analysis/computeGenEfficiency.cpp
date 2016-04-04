@@ -242,8 +242,7 @@ int main( int argc, char* argv[] ) {
     float weight = (myTree.isData) ? 1. : myTree.evt_scale1fb;
     // pu reweighting:
     if( !myTree.isData ) {
-      float puWeight = ZGCommonTools::getPUweight( myTree.nVert, h1_nVert_data, h1_nVert_mc );
-      weight *= puWeight;
+      //weight *= myTree.puWeight;
     }
 
 
@@ -285,6 +284,7 @@ int main( int argc, char* argv[] ) {
 
     TLorentzVector genZ = genLep0 + genLep1;
     if( genZ.M()<50. ) continue;
+    //if( genZ.M()<50. || genZ.M()>130. ) continue;
 
 
     TLorentzVector genPhoton;
@@ -369,17 +369,19 @@ int main( int argc, char* argv[] ) {
     if( lept0.Pt()<25. ) continue;
     if( lept1.Pt()<20. ) continue; 
 
-    if( leptType==11 ) {
+    if( leptType==11 ) { //electrons
       if( myTree.lep_tightId[0]==0 || myTree.lep_tightId[1]==0 ) continue; // loose electron ID
-    } else {
+    } else { // muons
       float qter = 1.0;
       rmcor->momcor_mc(lept0, myTree.lep_pdgId[0]/(abs(myTree.lep_pdgId[0])), 0, qter);
       rmcor->momcor_mc(lept1, myTree.lep_pdgId[1]/(abs(myTree.lep_pdgId[1])), 0, qter);
+      //if( myTree.lep_tightId[0]==0 && myTree.lep_tightId[1]==0 ) continue; // tight muon ID on one leg
     }
 
 
     TLorentzVector zBoson = lept0+lept1;
     if( zBoson.M()<50. ) continue;
+    //if( zBoson.M()<50. || zBoson.M()>130. ) continue;
 
 
     if( myTree.ngamma==0 ) continue; // photon
@@ -396,6 +398,11 @@ int main( int argc, char* argv[] ) {
       if( fabs(tmp_photon.Eta())>1.44 && fabs(tmp_photon.Eta())<1.57 ) continue;
       if( fabs(tmp_photon.Eta())>2.5 ) continue;
       if( myTree.gamma_idCutBased[iPhot]==0 ) continue;
+      //if( fabs(myTree.gamma_eta[iPhot])<1.44 ) {
+      //  if( myTree.gamma_sigmaIetaIeta[iPhot]>0.0102 ) continue;
+      //} else {
+      //  if( myTree.gamma_sigmaIetaIeta[iPhot]>0.0274 ) continue;
+      //}
       float deltaR_thresh = 0.4;
       if( tmp_photon.DeltaR(lept0)<deltaR_thresh || tmp_photon.DeltaR(lept1)<deltaR_thresh ) continue;
 
@@ -414,7 +421,7 @@ int main( int argc, char* argv[] ) {
 
     h1_eff_noHLT_num->Fill( genMass, weight );
 
-    if( !( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_SingleEl || myTree.HLT_SingleMu ) ) continue;
+    if( !( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_DoubleEl33 || myTree.HLT_SingleMu ) ) continue;
 
     h1_eff_noIso_num->Fill( genMass, weight );
 
