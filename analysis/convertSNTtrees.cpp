@@ -37,7 +37,22 @@ int main( int argc, char* argv[] ) {
   convertFiles(samples, "SingleMuon"    , 8, doSkim, doPrune);
   convertFiles(samples, "SingleElectron", 9, doSkim, doPrune);
 
-  convertFiles(samples, "ZGTo2LG",      851, doSkim, doPrune);
+  //convertFiles(samples, "ZGTo2LG",      851, doSkim, doPrune);
+  convertFiles(samples, "GluGluSpin0ToZG_ZToLL_W0p014_M1000", 14251, doSkim, doPrune );
+  convertFiles(samples, "GluGluSpin0ToZG_ZToLL_W0p014_M1250", 14250, doSkim, doPrune );
+  convertFiles(samples, "GluGluSpin0ToZG_ZToLL_W0p014_M1500", 14249, doSkim, doPrune );
+  convertFiles(samples, "GluGluSpin0ToZG_ZToLL_W0p014_M1750", 14248, doSkim, doPrune );
+  convertFiles(samples, "GluGluSpin0ToZG_ZToLL_W0p014_M2000", 14247, doSkim, doPrune );
+  convertFiles(samples, "GluGluSpin0ToZG_ZToLL_W0p014_M500" , 14236, doSkim, doPrune );
+  convertFiles(samples, "GluGluSpin0ToZG_ZToLL_W0p014_M750" , 14229, doSkim, doPrune );
+  convertFiles(samples, "GluGluSpin0ToZG_ZToLL_W5p6_M2000"  , 14214, doSkim, doPrune );
+  convertFiles(samples, "GluGluSpin0ToZG_ZToLL_W5p6_M500"   , 14210, doSkim, doPrune );
+  convertFiles(samples, "GluGluSpin0ToZG_ZToLL_W5p6_M750"   , 14205, doSkim, doPrune );
+  convertFiles(samples, "GluGluSpin0ToZG_ZToLL_W5p6_M770"   , 14201, doSkim, doPrune );
+
+  convertFiles(samples, "XZg_Spin0_ZToLL_W_0p014_M_750"   , 4005, doSkim, doPrune );
+  convertFiles(samples, "XZg_Spin0_ZToLL_W_0p014_M_900"   , 4006, doSkim, doPrune );
+  convertFiles(samples, "XZg_Spin0_ZToLL_W_0p014_M_2000"  , 4008, doSkim, doPrune );
 
   std::cout << "-> Find your trees in: " << samples << "_conv" << std::endl;
 
@@ -116,6 +131,7 @@ void convertFiles( const std::string& samples, const std::string& expr, int id, 
   Int_t         snt_HLT_Photon175;
   Int_t         snt_HLT_DiJet;
   Int_t         snt_HLT_DoubleEl;
+  Int_t         snt_HLT_DoubleEl33;
   Int_t         snt_HLT_DoubleMu;
   Int_t         snt_Flag_EcalDeadCellTriggerPrimitiveFilter;
   Int_t         snt_Flag_trkPOG_manystripclus53X;
@@ -155,6 +171,7 @@ void convertFiles( const std::string& samples, const std::string& expr, int id, 
   TBranch        *b_snt_HLT_Photon175;   //!
   TBranch        *b_snt_HLT_DiJet;   //!
   TBranch        *b_snt_HLT_DoubleEl;   //!
+  TBranch        *b_snt_HLT_DoubleEl33;   //!
   TBranch        *b_snt_HLT_DoubleMu;   //!
   TBranch        *b_snt_Flag_EcalDeadCellTriggerPrimitiveFilter;   //!
   TBranch        *b_snt_Flag_trkPOG_manystripclus53X;   //!
@@ -194,6 +211,10 @@ void convertFiles( const std::string& samples, const std::string& expr, int id, 
   tree->SetBranchAddress("HLT_Photon175", &snt_HLT_Photon175, &b_snt_HLT_Photon175);
   tree->SetBranchAddress("HLT_DiJet", &snt_HLT_DiJet, &b_snt_HLT_DiJet);
   tree->SetBranchAddress("HLT_DoubleEl", &snt_HLT_DoubleEl, &b_snt_HLT_DoubleEl);
+  if( id<14000 )
+    tree->SetBranchAddress("HLT_DoubleEl33", &snt_HLT_DoubleEl33, &b_snt_HLT_DoubleEl33);
+  else
+    tree->SetBranchAddress("HLT_DoubleEle33", &snt_HLT_DoubleEl33, &b_snt_HLT_DoubleEl33);
   tree->SetBranchAddress("HLT_DoubleMu", &snt_HLT_DoubleMu, &b_snt_HLT_DoubleMu);
   tree->SetBranchAddress("Flag_EcalDeadCellTriggerPrimitiveFilter", &snt_Flag_EcalDeadCellTriggerPrimitiveFilter, &b_snt_Flag_EcalDeadCellTriggerPrimitiveFilter);
   tree->SetBranchAddress("Flag_trkPOG_manystripclus53X", &snt_Flag_trkPOG_manystripclus53X, &b_snt_Flag_trkPOG_manystripclus53X);
@@ -233,6 +254,10 @@ void convertFiles( const std::string& samples, const std::string& expr, int id, 
   tree2->SetBranchStatus("HLT_Photon175", 0 );
   tree2->SetBranchStatus("HLT_DiJet", 0 );
   tree2->SetBranchStatus("HLT_DoubleEl", 0 );
+  if( id<14000 )
+    tree2->SetBranchStatus("HLT_DoubleEl33", 0 );
+  else
+    tree2->SetBranchStatus("HLT_DoubleEle33", 0 );
   tree2->SetBranchStatus("HLT_DoubleMu", 0 );
   tree2->SetBranchStatus("Flag_EcalDeadCellTriggerPrimitiveFilter", 0 );
   tree2->SetBranchStatus("Flag_trkPOG_manystripclus53X", 0 );
@@ -284,6 +309,7 @@ void convertFiles( const std::string& samples, const std::string& expr, int id, 
   Float_t         HLT_Photon175;
   Float_t         HLT_DiJet;
   Float_t         HLT_DoubleEl;
+  Float_t         HLT_DoubleEl33;
   Float_t         HLT_DoubleMu;
   Float_t         Flag_EcalDeadCellTriggerPrimitiveFilter;
   Float_t         Flag_trkPOG_manystripclus53X;
@@ -323,6 +349,7 @@ void convertFiles( const std::string& samples, const std::string& expr, int id, 
   outTree->Branch("HLT_Photon175", &HLT_Photon175, "HLT_Photon175/F" );
   outTree->Branch("HLT_DiJet", &HLT_DiJet, "HLT_DiJet/F" );
   outTree->Branch("HLT_DoubleEl", &HLT_DoubleEl, "HLT_DoubleEl/F" );
+  outTree->Branch("HLT_DoubleEl33", &HLT_DoubleEl33, "HLT_DoubleEl33/F" );
   outTree->Branch("HLT_DoubleMu", &HLT_DoubleMu, "HLT_DoubleMu/F" );
   outTree->Branch("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter, "Flag_EcalDeadCellTriggerPrimitiveFilter/F" );
   outTree->Branch("Flag_trkPOG_manystripclus53X", &Flag_trkPOG_manystripclus53X, "Flag_trkPOG_manystripclus53X/F" );
@@ -414,6 +441,7 @@ void convertFiles( const std::string& samples, const std::string& expr, int id, 
     HLT_Photon175                           = (float)snt_HLT_Photon175;
     HLT_DiJet                               = (float)snt_HLT_DiJet;
     HLT_DoubleEl                            = (float)snt_HLT_DoubleEl;
+    HLT_DoubleEl33                          = (float)snt_HLT_DoubleEl33;
     HLT_DoubleMu                            = (float)snt_HLT_DoubleMu;
     Flag_EcalDeadCellTriggerPrimitiveFilter = (float)snt_Flag_EcalDeadCellTriggerPrimitiveFilter;
     Flag_trkPOG_manystripclus53X            = (float)snt_Flag_trkPOG_manystripclus53X;
