@@ -93,6 +93,9 @@ computeMuonScaleSyst: computeMuonScaleSyst.cpp ZGCommonTools.o ZGDrawTools.o ZGC
 drawMuonScaleSyst: drawMuonScaleSyst.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o rochcor2015.o muresolution_run2.o
 	$(CC) -Wall $(INCLUDES) -o drawMuonScaleSyst drawMuonScaleSyst.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o rochcor2015.o muresolution_run2.o $(ROOTFLAG) $(EXTRALIBS)
 
+drawSignalHLTEfficiency: drawSignalHLTEfficiency.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o rochcor2015.o muresolution_run2.o
+	$(CC) -Wall $(INCLUDES) -o drawSignalHLTEfficiency drawSignalHLTEfficiency.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o rochcor2015.o muresolution_run2.o $(ROOTFLAG) $(EXTRALIBS)
+
 
 
 provaroofit: provaroofit.C 
