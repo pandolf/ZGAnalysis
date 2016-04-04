@@ -152,6 +152,7 @@ void fitGraphs( const ZGConfig& cfg, const std::vector<float> masses, const std:
     float sigmaResolution = ( width=="5p6" ) ? 0.03 : 0.015;
     RooRealVar sigma( "sigma", "sigma", sigmaResolution*thisMass, 0., 0.07*thisMass );
     float alpha1_init = (width=="5p6" && thisMass<1000. ) ? 0.8 : 1.2;
+    if( width=="5p6" && thisMass==1500.) alpha1_init=1.4;
     RooRealVar alpha1( "alpha1", "alpha1", alpha1_init, 0., 2.5 );
     RooRealVar n1( "n1", "n1", 3., 0., 5. );
     RooRealVar alpha2( "alpha2", "alpha2", 1.2, 0., 2.5 );
