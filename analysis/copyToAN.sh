@@ -2,8 +2,6 @@ scp \
     EventYields_presel/eff_ptCut.pdf \
     EventYields_presel_eth74X/plots/mZee.pdf \
     EventYields_presel_eth74X/plots/mZmm.pdf \
-    EventYields_presel_eth74X/plots/mZee_log.pdf \
-    EventYields_presel_eth74X/plots/mZmm_log.pdf \
     EventYields_presel_eth74X/plots/ptgOmZg_bossCut.pdf \
     EventYields_presel_eth74X/plots/nVert.pdf \
     EventYields_presel_eth74X/plots/nVert_noPU.pdf \
@@ -12,28 +10,38 @@ scp \
     EventYields_presel_eth74X/plots/ptZ_log.pdf \
     EventYields_presel_eth74X/plots/ptGamma_log.pdf \
     EventYields_presel_eth74X/plotsSignal/sig_ptgOmZg.pdf \
-    EventYields_v0_eth74X/limit_Zllgamma_fit_ee.pdf \
-    EventYields_v0_eth74X/limit_Zllgamma_fit_mm.pdf \
-    EventYields_v0_eth74X/limit_Zllgamma_fit_em.pdf \
-    EventYields_v0_eth74X/limit_Zgamma_fit_em.pdf \
+    EventYields_presel_eth74X/plots/mZee_log.pdf \
+    EventYields_presel_eth74X/plots/mZmm_log.pdf \
+    EventYields_v0_eth74X/plots/mZg_ee_log.pdf \
+    EventYields_v0_eth74X/plots/mZg_mm_log.pdf \
+    EventYields_v0_eth74X/limit_Zgamma_*fit_em.pdf \
+    EventYields_v0_eth74X/limit_Zgamma_*fit_em_long.pdf \
+    EventYields_v0_eth74X/limit_Zllgamma_*fit_ee.pdf \
+    EventYields_v0_eth74X/limit_Zllgamma_*fit_mm.pdf \
+    EventYields_v0_eth74X/limit_Zllgamma_*fit_em.pdf \
+    EventYields_v0_eth74X/limit_Zllgamma_*fit_em_long.pdf \
     EventYields_v0_eth74X/signalShapes_w0p014/plots/*pdf \
     EventYields_v0_eth74X/signalShapes_w5p6/plots/*pdf \
-    EventYields_v0_eth74X/signalEfficiency_eff_ee_vs_eff_mm.pdf \
-    EventYields_v0_eth74X/signalEfficiency_ee.pdf \
-    EventYields_v0_eth74X/signalEfficiency_mm.pdf \
-    EventYields_v0_eth74X/signalEfficiency_ee_scale.pdf \
-    EventYields_v0_eth74X/signalEfficiency_mm_scale.pdf \
-    EventYields_v0_eth74X/signalEfficiency_all.pdf \
-    EventYields_v0_eth74X/signalEfficiency_all_scale.pdf \
-    plotsGenEfficiency/genreso_ee.pdf \
-    plotsGenEfficiency/genreso_mm.pdf \
-    plotsGenEfficiency/geneff_ee.pdf \
-    plotsGenEfficiency/geneff_mm.pdf \
-    genAcceptance/genAcceptance.pdf \
-    genAcceptance/cutEffSignal.pdf \
-    genAcceptanceTimesEfficiency.pdf \
-    genAcceptanceTimesEfficiency_ee_mm.pdf \
+    EventYields_v0_eth74X/signalEfficiency*pdf \
     plotsGenSignal/gensig_deltaRLept.pdf \
     massWeightCompare_log.pdf \
+    turnOn_ee_vs_mm.pdf \
+    biasFunction.pdf \
     EventYields_presel/syst*pdf \
     lxplus.cern.ch:~/tdr2/notes/AN-16-057/trunk/figures/
+
+    #EventYields_v0_eth74X/signalEfficiency_eff_ee_vs_eff_mm.pdf \
+    #EventYields_v0_eth74X/signalEfficiency_ee.pdf \
+    #EventYields_v0_eth74X/signalEfficiency_mm.pdf \
+    #EventYields_v0_eth74X/signalEfficiency_ee_scale.pdf \
+    #EventYields_v0_eth74X/signalEfficiency_mm_scale.pdf \
+    #EventYields_v0_eth74X/signalEfficiency_all.pdf \
+    #EventYields_v0_eth74X/signalEfficiency_all_scale.pdf \
+    #plotsGenEfficiency/genreso_ee.pdf \
+    #plotsGenEfficiency/genreso_mm.pdf \
+    #plotsGenEfficiency/geneff_ee.pdf \
+    #plotsGenEfficiency/geneff_mm.pdf \
+    #genAcceptance/genAcceptance.pdf \
+    #genAcceptance/cutEffSignal.pdf \
+    #genAcceptanceTimesEfficiency.pdf \
+    #genAcceptanceTimesEfficiency_ee_mm.pdf \
