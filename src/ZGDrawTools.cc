@@ -582,7 +582,7 @@ TGraphErrors* ZGDrawTools::getSFFitBand(TF1* f, float xMin, float xMax){
 TPaveText* ZGDrawTools::getFitText( TF1* f ){
  
 
-  TPaveText* ratioText = new TPaveText( 0.135, -0.051, 0.4, 0.1 , "brNDC" );
+  TPaveText* ratioText = new TPaveText( 0.15, -0.051, 0.4, 0.1 , "brNDC" );
   //ratioText->SetTextSize(0.025);
   ratioText->SetTextSize(0.031);
   ratioText->SetTextFont(62);
@@ -801,6 +801,12 @@ TH1D* ZGDrawTools::getBand_partialDerivatives(TF1 *f, TMatrixD const& m, std::st
 
 TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& varName, const std::string& selection, int nBins, float xMin, float xMax, std::string axisName, const std::string& units ) {
 
+
+  bool specialBins = false;
+  TString saveName_tstr(saveName);
+  if( saveName_tstr.Contains("specialBins") )
+    specialBins = true;
+
   std::vector<int> colors;
   colors.push_back(411);
   colors.push_back(401);
@@ -830,12 +836,50 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
   if( axisName=="" ) axisName = varName;
 
 
-  //TH1::AddDirectory(kTRUE); // stupid ROOT memory allocation needs this
+  //int nBins_special = 15;
+  //Double_t bins_special[nBins_special+1];
+  //bins_special[ 0] = 200.;
+  //bins_special[ 1] = 220.;
+  //bins_special[ 2] = 240.;
+  //bins_special[ 3] = 260.;
+  //bins_special[ 4] = 280.;
+  //bins_special[ 5] = 300.;
+  //bins_special[ 6] = 340.;
+  //bins_special[ 7] = 380.;
+  //bins_special[ 8] = 420.;
+  //bins_special[ 9] = 460.;
+  //bins_special[10] = 500.;
+  //bins_special[11] = 550.;
+  //bins_special[12] = 600.;
+  //bins_special[13] = 700.;
+  //bins_special[14] = 850.;
+  //bins_special[15] = 1000.;
+
+  const double dx = pow((xMax / xMin), (1. / (double)nBins));
+  Double_t bins_special[nBins+1];
+  bins_special[0] = xMin;
+  for (int i = 1; i != nBins; ++i) {
+
+    bins_special[i] = bins_special[i-1] * dx;
+    //if (plotLog) Lower[i] = Lower[i-1] * dx;
+    //else         Lower[i] = Lower[i-1] + dx;
+
+
+  }
+
+  bins_special[nBins] = xMax;
+
+
+
+
 
   TH1D* h1_data = 0;
   TGraphAsymmErrors* gr_data = 0;
   if( data_ ) {
-    h1_data = new TH1D("h1_data", "", nBins, xMin, xMax );
+    if( specialBins )
+      h1_data = new TH1D("h1_data", "", nBins, bins_special );
+    else
+      h1_data = new TH1D("h1_data", "", nBins, xMin, xMax );
     data_->Project( "h1_data", varName.c_str(), selection.c_str() );
     //tree_data->Project( "h1_data", varName.c_str(), Form("%f*(%s)", data_->getWeight(), selection.c_str()) );
     if( addOverflow_ )
@@ -852,7 +896,11 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
     std::string thisName( Form("h1_%s", mc_[i]->GetName()) );
     TObject* obj = gROOT->FindObject(thisName.c_str());
     if( obj ) delete obj;
-    TH1D* h1_mc = new TH1D( thisName.c_str(), "", nBins, xMin, xMax );
+    TH1D* h1_mc;
+    if( specialBins )
+      h1_mc = new TH1D( thisName.c_str(), "", nBins, bins_special );
+    else
+      h1_mc = new TH1D( thisName.c_str(), "", nBins, xMin, xMax );
     h1_mc->Sumw2();
     if( selection!="" )
       mc_[i]->Project( thisName.c_str(), varName.c_str(), Form("%f*weight*(%s)", lumi_, selection.c_str()) );
@@ -916,7 +964,11 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
     std::string thisName( Form("h1_%s", overlay_[i]->GetName()) );
     TObject* obj = gROOT->FindObject(thisName.c_str());
     if( obj ) delete obj;
-    TH1D* h1_overlay = new TH1D( thisName.c_str(), "", nBins, xMin, xMax );
+    TH1D* h1_overlay;
+    if( specialBins )
+      h1_overlay= new TH1D( thisName.c_str(), "", nBins, bins_special );
+    else
+      h1_overlay= new TH1D( thisName.c_str(), "", nBins, xMin, xMax );
     h1_overlay->Sumw2();
     if( selection!="" )
       overlay_[i]->Project( thisName.c_str(), varName.c_str(), Form("%f*weight*(%s)", lumi_, selection.c_str()) );
@@ -988,28 +1040,36 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
   
   std::string xAxisTitle;
   if( units!="" ) 
-    xAxisTitle = (std::string)(Form("%s (%s)", axisName.c_str(), units.c_str()) );
+    xAxisTitle = (std::string)(Form("%s [%s]", axisName.c_str(), units.c_str()) );
   else
     xAxisTitle = (std::string)(Form("%s", axisName.c_str()) );
 
   std::string yAxisTitle;
-  if(binWidth>0.99){
-    if( units!="" ) 
-      yAxisTitle = (std::string)(Form("Events / (%.0f %s)", binWidth, units.c_str()));
-    else
-      yAxisTitle = (std::string)(Form("Events / (%.0f)", binWidth));
-  }
-  else if(binWidth>0.099){
-    if( units!="" ) 
-      yAxisTitle = (std::string)(Form("Events / (%.2f %s)", binWidth, units.c_str()));
-    else
-      yAxisTitle = (std::string)(Form("Events / (%.2f)", binWidth));
-  }
-  else{
-    if( units!="" ) 
-      yAxisTitle = (std::string)(Form("Events / (%.4f %s)", binWidth, units.c_str()));
-    else
-      yAxisTitle = (std::string)(Form("Events / (%.4f)", binWidth));
+  if( specialBins ) {
+
+    yAxisTitle = "Events";
+
+  } else {
+
+    if(binWidth>0.99){
+      if( units!="" ) 
+        yAxisTitle = (std::string)(Form("Events / (%.0f %s)", binWidth, units.c_str()));
+      else
+        yAxisTitle = (std::string)(Form("Events / (%.0f)", binWidth));
+    }
+    else if(binWidth>0.099){
+      if( units!="" ) 
+        yAxisTitle = (std::string)(Form("Events / (%.2f %s)", binWidth, units.c_str()));
+      else
+        yAxisTitle = (std::string)(Form("Events / (%.2f)", binWidth));
+    }
+    else{
+      if( units!="" ) 
+        yAxisTitle = (std::string)(Form("Events / (%.4f %s)", binWidth, units.c_str()));
+      else
+        yAxisTitle = (std::string)(Form("Events / (%.4f)", binWidth));
+    }
+
   }
 
   TH2D* h2_axes = new TH2D("axes", "", 10, xMin, xMax, 10, 0., yMax );
@@ -1018,6 +1078,9 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
     h2_axes->SetYTitle("Normalized to Unity" );
   else
     h2_axes->SetYTitle(yAxisTitle.c_str());
+
+  if( specialBins )
+    h2_axes->GetXaxis()->SetNdivisions(1006,false);
 
   c1->cd();
 
@@ -1039,6 +1102,9 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
     h2_axes_log->SetYTitle("Normalized to Unity" );
   else
     h2_axes_log->SetYTitle(yAxisTitle.c_str());
+
+  if( specialBins )
+    h2_axes_log->GetXaxis()->SetNdivisions(1006,false);
 
   c1_log->cd();
 
@@ -1103,9 +1169,12 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
   //    TGraphErrors* SFband = ZGDrawTools::getSFBand(integral_data, error_data, integral_mc, error_mc, xMin, xMax);
   
   float yMinR=0.0;
-  float yMaxR=2.0;
+  float yMaxR=(specialBins) ? 3.1 : 2.0;
   
   TH2D* h2_axes_ratio = ZGDrawTools::getRatioAxes( xMin, xMax, yMinR, yMaxR );
+  if( specialBins ) {
+    h2_axes_ratio->GetXaxis()->SetNdivisions(1006,false);
+  }
 
   std::string CMStext = doPaperPlots_ ? "CMS" : "CMS Preliminary";
 
