@@ -331,7 +331,7 @@ TGraphErrors* getSingleWidthMasses( const std::string& outdir, const std::string
       if( photon.DeltaR( leptMinus ) < 0.4 ) continue;
 
       TLorentzVector zBoson = leptPlus + leptMinus;
-      if( zBoson.M() < 50. ) continue;
+      if( zBoson.M() < 50. || zBoson.M()>130. ) continue;
 
       TLorentzVector boss = zBoson + photon;
       if( boss.M() < 200. ) continue;
