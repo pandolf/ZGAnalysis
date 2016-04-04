@@ -75,6 +75,8 @@ int main( int argc, char* argv[] ) {
   f1->Write();
   outfile->Close();
 
+  std::cout << "-> Find your shit in: " << dir << std::endl;
+
   return 0;
 
 }
@@ -252,6 +254,8 @@ float computePtSyst( const TLorentzVector& lept, int pdgId, float sign ) {
 
 float computePtSystFromToys( const TLorentzVector& lept, int pdgId ) {
 
+  //return 1.;
+
   int ntoys = 100;
   TH1D* h1_pt = new TH1D("pt", "", 100, 0.5*lept.Pt(), 1.5*lept.Pt() );
 
@@ -266,7 +270,7 @@ float computePtSystFromToys( const TLorentzVector& lept, int pdgId ) {
 
   }
 
-  float returnSyst = lept.Pt()*h1_pt->GetRMS()/h1_pt->GetMean();
+  float returnSyst = lept.Pt()*(1.+h1_pt->GetRMS()/h1_pt->GetMean());
   delete h1_pt;
 
   return returnSyst;
