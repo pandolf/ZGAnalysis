@@ -18,12 +18,14 @@ int main() {
 
   ZGDrawTools::setStyle();
 
-  TFile* file = TFile::Open("EventYields_v0_eth74X/trees.root");
+  TFile* file = TFile::Open("EventYields_v0_eth74X_noHLT/trees.root");
   TTree* tree_zg = (TTree*)file->Get("zg");
 
   std::vector<std::string> selections;
   selections.push_back("ee");
   selections.push_back("mm");
+
+  std::vector<TEfficiency*> v_eff;
 
   for( unsigned i=0; i<selections.size(); ++i ) {
 
@@ -33,11 +35,12 @@ int main() {
       trig2 = "HLT_DoubleEle33";
     } else if( selections[i]=="mm" ) {
       trig1 = "HLT_DoubleMu";
-      trig2 = "lept0_pt>50.";
+      trig2 = "HLT_SingleMu";
     }
     TEfficiency* eff_trig1 = getTurnOn( tree_zg, trig1, selections[i] );
     TEfficiency* eff_trig2 = getTurnOn( tree_zg, trig2, selections[i] );
     TEfficiency* eff_all   = getTurnOn( tree_zg, trig1 + " || " + trig2, selections[i] );
+    eff_all->SetName(Form("eff_all_%s", selections[i].c_str()));
 
     TCanvas* c1 = new TCanvas( "c1", "", 600, 600 );
     c1->cd();
@@ -74,8 +77,10 @@ int main() {
     legend->SetTextSize(0.035);
     if( selections[i]=="ee" ) {
       legend->SetHeader( "Electron Channel" );
+      eff_all->SetTitle( "Electron Channel" );
     } else if( selections[i]=="mm" ) {
       legend->SetHeader( "Muon Channel" );
+      eff_all->SetTitle( "Muon Channel" );
     }
     legend->AddEntry( eff_trig1, trig1.c_str(), "P" );
     legend->AddEntry( eff_trig2, trig2.c_str(), "P" );
@@ -92,7 +97,41 @@ int main() {
     delete c1;
     delete h2_axes;
 
+    v_eff.push_back( eff_all );
+
   }
+
+  TCanvas* c1 = new TCanvas( "c1", "", 600, 600 );
+  c1->cd();
+
+  TH2D* h2_axes = new TH2D("axes", "", 10, xMin, xMax, 10, 0., 1.1 );
+  h2_axes->SetXTitle( "M(Z#gamma) [GeV]");
+  h2_axes->SetYTitle( "Efficiency" );
+  h2_axes->Draw();
+
+  TLine* lineone = new TLine( xMin, 1., xMax, 1. );
+  lineone->Draw("same");
+
+  TLegend* legend = new TLegend( 0.2, 0.2, 0.5, 0.4 );
+  legend->SetFillColor(0);
+  legend->SetTextSize(0.035);
+
+  for( unsigned i=0; i<v_eff.size(); ++i ) {
+    v_eff[i]->SetMarkerColor(i+1);
+    v_eff[i]->SetLineColor(i+1);
+    v_eff[i]->Draw("p same");
+    legend->AddEntry( v_eff[i], v_eff[i]->GetTitle(), "P" );
+  }
+
+  legend->Draw("same");
+
+  ZGDrawTools::addLabels( c1, -1, "CMS Simulation" );
+
+  gPad->RedrawAxis();
+
+  c1->SaveAs( "turnOn_ee_vs_mm.eps" );
+  c1->SaveAs( "turnOn_ee_vs_mm.pdf" );
+
 
   return 0;
 
