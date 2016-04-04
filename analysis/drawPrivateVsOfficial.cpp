@@ -201,7 +201,7 @@ void compareEffToPriv( TGraphErrors* eff, TF1* f1_eff_priv, const std::string& w
 
   TH2D* h2_axes = new TH2D("axes", "", 10, 300., 2100., 10, 0., 1.);
   h2_axes->SetXTitle( "M(Z#gamma) [GeV]");
-  h2_axes->SetYTitle( "Efficiency" );
+  h2_axes->SetYTitle( "Efficiency #times Acceptance" );
   h2_axes->Draw("same");
 
   f1_eff_priv->SetLineColor(46);
