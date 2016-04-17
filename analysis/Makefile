@@ -33,6 +33,9 @@ drawGenSignals: drawGenSignals.cpp ZGDrawTools.o ZGConfig.o
 drawLimitPlot: drawLimitPlot.cpp ZGDrawTools.o ZGConfig.o
 	$(CC) -Wall $(INCLUDES) -o drawLimitPlot drawLimitPlot.cpp ZGDrawTools.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
 
+drawCombinedLimitPlot: drawCombinedLimitPlot.cpp ZGDrawTools.o ZGConfig.o
+	$(CC) -Wall $(INCLUDES) -o drawCombinedLimitPlot drawCombinedLimitPlot.cpp ZGDrawTools.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
+
 drawGenEfficiency: drawGenEfficiency.cpp ZGDrawTools.o 
 	$(CC) -Wall $(INCLUDES) -o drawGenEfficiency drawGenEfficiency.cpp ZGDrawTools.o $(ROOTFLAG) $(EXTRALIBS)
 
