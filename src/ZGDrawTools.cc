@@ -333,6 +333,15 @@ void ZGDrawTools::addLabels( TCanvas* c1, float lumi, const std::string& text  )
 }
 
 
+void ZGDrawTools::addLabels( TCanvas* c1, const std::string& text  ) {
+
+  c1->cd();
+  TPaveText* labelTop = ZGDrawTools::getLabelTop( text );
+  labelTop->Draw("same");
+
+}
+
+
 
 
 

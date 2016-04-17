@@ -51,6 +51,7 @@ class ZGDrawTools {
   static TStyle* setStyle();
 
   static void addLabels( TCanvas* c1, float lumi, const std::string& text="CMS Preliminary");
+  static void addLabels( TCanvas* c1, const std::string& text="CMS Preliminary");
 
   static TPaveText* getLabelTop( float lumi );
   static TPaveText* getLabelTopSimulation( float lumi );
