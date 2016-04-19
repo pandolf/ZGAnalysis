@@ -64,52 +64,61 @@ int main( int argc, char* argv[] ) {
   TCanvas* c1 = new TCanvas( "c1", "", 600, 600 );
   c1->cd();
 
-  TH2D* h2_axes = new TH2D("axes", "", 10, 350., 1400., 10, 0., 10. );
+  TH2D* h2_axes = new TH2D("axes", "", 10, 350., 1200., 10, 0., 9. );
   h2_axes->SetYTitle( axisName.c_str() );
   //h2_axes->SetYTitle( "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma#rightarrowl^{+}l^{-}#gamma) [fb]");
   h2_axes->SetXTitle( "Resonance Mass [GeV]");
   h2_axes->Draw();
 
 
-  gr_comb_obs  ->SetLineWidth(2);
-  gr_only13_obs->SetLineWidth(2);
-  gr_only8_obs ->SetLineWidth(2);
+  gr_comb_obs  ->SetLineWidth(3);
+  gr_only13_obs->SetLineWidth(3);
+  gr_only8_obs ->SetLineWidth(3);
 
   gr_comb_obs  ->SetLineColor(kBlack);
-  gr_only13_obs->SetLineColor(kRed);
-  gr_only8_obs ->SetLineColor(kGreen);
+  gr_only13_obs->SetLineColor(46);
+  gr_only8_obs ->SetLineColor(8);
 
-  gr_comb_exp  ->SetLineWidth(2);
-  gr_only13_exp->SetLineWidth(2);
-  gr_only8_exp ->SetLineWidth(2);
+  gr_comb_exp  ->SetLineWidth(3);
+  gr_only13_exp->SetLineWidth(3);
+  gr_only8_exp ->SetLineWidth(3);
 
   gr_comb_exp  ->SetLineStyle(2);
   gr_only13_exp->SetLineStyle(2);
   gr_only8_exp ->SetLineStyle(2);
 
   gr_comb_exp  ->SetLineColor(kBlack);
-  gr_only13_exp->SetLineColor(kRed);
-  gr_only8_exp ->SetLineColor(kGreen);
+  gr_only13_exp->SetLineColor(46);
+  gr_only8_exp ->SetLineColor(8);
 
 
-  TLegend* legend = new TLegend( 0.55, 0.6, 0.9, 0.9 );
+  TLegend* legend = new TLegend( 0.6, 0.65, 0.9, 0.9 );
   legend->SetFillColor(0);
   legend->SetTextSize(0.038);
   legend->SetTextFont(42);
-  legend->SetHeader("Narrow Resonance Model");
+  legend->SetHeader("W = 0.014%");
   legend->AddEntry( gr_only8_obs , "8 TeV", "L" );
   legend->AddEntry( gr_only13_obs, "13 TeV", "L" );
   legend->AddEntry( gr_comb_obs, "Combination", "L" );
   legend->Draw("same");
 
 
-  TLegend* legend2 = new TLegend( 0.2, 0.7, 0.55, 0.9 );
+  TLegend* legend2 = new TLegend( 0.3, 0.75, 0.6, 0.9 );
   legend2->SetFillColor(0);
   legend2->SetTextSize(0.038);
   legend2->SetTextFont(42);
   legend2->AddEntry( gr_comb_exp, "Expected", "L" );
   legend2->AddEntry( gr_comb_obs, "Observed", "L" );
   legend2->Draw("same");
+
+  gr_only13_exp->Draw("L same");
+  gr_only8_exp ->Draw("L same");
+  gr_comb_exp  ->Draw("L same");
+
+  gr_only13_obs->Draw("L same");
+  gr_only8_obs ->Draw("L same");
+  gr_comb_obs  ->Draw("L same");
+
 
 
   ZGDrawTools::addLabels( c1, "CMS Preliminary, 19.7 fb^{-1} (8 TeV) + 2.7 fb^{-1} (13 TeV)");
@@ -150,7 +159,7 @@ void getLimitGraphs( const std::string& limitsFile, TGraph* gr_obs, TGraph* gr_e
 
 
 
-    if( obs>0.001 ) {
+    if( obs>0.001 && m!=610 && m!=620 && m!=730 && m!=920 && m!= 970 ) {
       gr_obs       ->SetPoint( iPointObs, m, obs );
       iPointObs++;
     }
