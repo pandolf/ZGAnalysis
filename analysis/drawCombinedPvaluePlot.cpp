@@ -221,7 +221,7 @@ void getPvalueGraphs( const std::string& pvaluesFile, TGraph* gr_pvalue ) {
     //if( m==350. ) continue;
 
 
-    std::cout << "m: " << m << " pvalue: " << pvalue << std::endl;
+    //std::cout << "m: " << m << " pvalue: " << pvalue << std::endl;
 
 
     if( pvalue>0. ) {
