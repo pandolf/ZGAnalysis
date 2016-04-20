@@ -46,25 +46,45 @@ int main( int argc, char* argv[] ) {
   TGraphAsymmErrors* gr_comb_exp_1sigma = new TGraphAsymmErrors(0);
   TGraphAsymmErrors* gr_comb_exp_2sigma = new TGraphAsymmErrors(0);
   
+  gr_comb_obs       ->SetName("comb_obs");
+  gr_comb_exp       ->SetName("comb_exp");
+  gr_comb_exp_1sigma->SetName("comb_exp_1sigma");
+  gr_comb_exp_2sigma->SetName("comb_exp_2sigma");
+
+  
   TGraph* gr_only13_obs = new TGraph(0);
   TGraph* gr_only13_exp = new TGraph(0);
   TGraphAsymmErrors* gr_only13_exp_1sigma = new TGraphAsymmErrors(0);
   TGraphAsymmErrors* gr_only13_exp_2sigma = new TGraphAsymmErrors(0);
+
+  gr_only13_obs       ->SetName("only13_obs");
+  gr_only13_exp       ->SetName("only13_exp");
+  gr_only13_exp_1sigma->SetName("only13_exp_1sigma");
+  gr_only13_exp_2sigma->SetName("only13_exp_2sigma");
+  
   
   TGraph* gr_only8_obs = new TGraph(0);
   TGraph* gr_only8_exp = new TGraph(0);
   TGraphAsymmErrors* gr_only8_exp_1sigma = new TGraphAsymmErrors(0);
   TGraphAsymmErrors* gr_only8_exp_2sigma = new TGraphAsymmErrors(0);
 
-  getLimitGraphs( limitsFile_comb, gr_comb_obs, gr_comb_exp, gr_comb_exp_1sigma, gr_comb_exp_2sigma );
+  gr_only8_obs       ->SetName("only8_obs");
+  gr_only8_exp       ->SetName("only8_exp");
+  gr_only8_exp_1sigma->SetName("only8_exp_1sigma");
+  gr_only8_exp_2sigma->SetName("only8_exp_2sigma");
+  
+
+
+
+  getLimitGraphs( limitsFile_comb  , gr_comb_obs  , gr_comb_exp  , gr_comb_exp_1sigma  , gr_comb_exp_2sigma   );
   getLimitGraphs( limitsFile_only13, gr_only13_obs, gr_only13_exp, gr_only13_exp_1sigma, gr_only13_exp_2sigma );
-  getLimitGraphs( limitsFile_only8, gr_only8_obs, gr_only8_exp, gr_only8_exp_1sigma, gr_only8_exp_2sigma );
+  getLimitGraphs( limitsFile_only8 , gr_only8_obs , gr_only8_exp , gr_only8_exp_1sigma , gr_only8_exp_2sigma  );
 
 
   TCanvas* c1 = new TCanvas( "c1", "", 600, 600 );
   c1->cd();
 
-  TH2D* h2_axes = new TH2D("axes", "", 10, 350., 1200., 10, 0., 9. );
+  TH2D* h2_axes = new TH2D("axes", "", 10, 350., 2000., 10, 0., 9. );
   h2_axes->SetYTitle( axisName.c_str() );
   //h2_axes->SetYTitle( "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma#rightarrowl^{+}l^{-}#gamma) [fb]");
   h2_axes->SetXTitle( "Resonance Mass [GeV]");
@@ -129,6 +149,65 @@ int main( int argc, char* argv[] ) {
   c1->SaveAs( Form("%s/limit_comb_w0p014.eps" , dir.c_str() ));
   c1->SaveAs( Form("%s/limit_comb_w0p014.pdf" , dir.c_str() ));
 
+  c1->SetLogx();
+  h2_axes->GetXaxis()->SetMoreLogLabels();
+  h2_axes->GetXaxis()->SetNoExponent();
+
+  c1->SaveAs( Form("%s/limit_comb_w0p014_logx.eps" , dir.c_str() ));
+  c1->SaveAs( Form("%s/limit_comb_w0p014_logx.pdf" , dir.c_str() ));
+
+
+  c1->Clear();
+
+  h2_axes->Draw();
+
+  gr_comb_exp_1sigma->SetLineWidth(0);
+  gr_comb_exp_1sigma->SetFillColor(8);
+
+  gr_comb_exp_2sigma->SetLineWidth(0);
+  gr_comb_exp_2sigma->SetFillColor(219);
+  
+  gr_comb_exp_2sigma->Draw("E3 same");
+  gr_comb_exp_1sigma->Draw("E3 same");
+
+  TFile* pippo = TFile::Open("prova.root", "recreate");
+  pippo->cd();
+  gr_comb_exp_2sigma->Write();
+  gr_comb_exp_1sigma->Write();
+  pippo->Close();
+
+  gr_comb_exp  ->Draw("L same");
+  gr_comb_obs  ->Draw("L same");
+  gr_comb_exp_1sigma->SetLineWidth(2);
+  gr_comb_exp_1sigma->SetLineStyle(2);
+  gr_comb_exp_2sigma->SetLineWidth(2);
+  gr_comb_exp_2sigma->SetLineStyle(2);
+
+  TLegend* legend3 = new TLegend( 0.55, 0.65, 0.9, 0.9 );
+  legend3->SetFillColor(0);
+  legend3->SetTextSize(0.038);
+  legend3->SetTextFont(42);
+  legend3->SetHeader("W = 0.014%");
+  legend3->AddEntry( gr_comb_obs, "Observed", "L" );
+  legend3->AddEntry( gr_comb_exp_1sigma, "Expected #pm 1#sigma", "LF" );
+  legend3->AddEntry( gr_comb_exp_2sigma, "Expected #pm 2#sigma", "LF" );
+  legend3->Draw("same");
+
+  ZGDrawTools::addLabels( c1, "CMS Preliminary, 19.7 fb^{-1} (8 TeV) + 2.7 fb^{-1} (13 TeV)");
+
+  gPad->RedrawAxis();
+
+  c1->SaveAs( Form("%s/limit_comb_w0p014_bands.eps" , dir.c_str() ));
+  c1->SaveAs( Form("%s/limit_comb_w0p014_bands.pdf" , dir.c_str() ));
+
+  c1->SetLogx();
+  h2_axes->GetXaxis()->SetMoreLogLabels();
+  h2_axes->GetXaxis()->SetNoExponent();
+
+  c1->SaveAs( Form("%s/limit_comb_w0p014_bands_logx.eps" , dir.c_str() ));
+  c1->SaveAs( Form("%s/limit_comb_w0p014_bands_logx.pdf" , dir.c_str() ));
+
+
   return 0;
 
 }
@@ -168,13 +247,14 @@ void getLimitGraphs( const std::string& limitsFile, TGraph* gr_obs, TGraph* gr_e
     //              || (m>=400. && m<900.  && (int(m) % 50 == 0) && m!=750.) 
     //              //|| (m>=700. && m<1100. && (int(m) % 100 == 0))
     //              || (m>=900. && (int(m-100) % 200 == 0))  );
-    //if( okForExp ) {
-    gr_exp       ->SetPoint( iPointExp, m, exp );
-    gr_exp_1sigma->SetPoint( iPointExp, m, exp );
-    gr_exp_2sigma->SetPoint( iPointExp, m, exp );
-    gr_exp_1sigma->SetPointError( iPointExp, 0., 0., exp-exp_m1s, exp_p1s-exp );
-    gr_exp_2sigma->SetPointError( iPointExp, 0., 0., exp-exp_m2s, exp_p2s-exp );
-    iPointExp++;
+    if( m!=510 && m!=440 && m!=360 ) {
+      gr_exp       ->SetPoint( iPointExp, m, exp );
+      gr_exp_1sigma->SetPoint( iPointExp, m, exp );
+      gr_exp_2sigma->SetPoint( iPointExp, m, exp );
+      gr_exp_1sigma->SetPointError( iPointExp, 0., 0., exp-exp_m1s, exp_p1s-exp );
+      gr_exp_2sigma->SetPointError( iPointExp, 0., 0., exp-exp_m2s, exp_p2s-exp );
+      iPointExp++;
+    }
 
     lastMass = m;
     lastObs = obs;
