@@ -213,7 +213,7 @@ int main( int argc, char* argv[] ) {
 
 void getPvalueGraphs( const std::string& pvaluesFile, TGraph* gr_pvalue ) {
 
-  ifstream ifs(pvaluesFile.c_str());
+  std::ifstream ifs(pvaluesFile.c_str());
   std::cout << "-> Opened file: " << pvaluesFile << std::endl;
   int iPointExp = 0;
   int iPointObs = 0;
