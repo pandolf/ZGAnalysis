@@ -37,7 +37,8 @@ int main( int argc, char* argv[] ) {
 
 
   std::string axisName;
-  axisName = std::string(Form("95\%% CL UL on #sigma #times BR(A#rightarrowZ#gamma#rightarrow l^{+}l^{-}#gamma) [fb]"));
+  axisName = std::string(Form("95\%% CL UL on #sigma #times BR(A#rightarrowZ#gamma) [fb]"));
+  //axisName = std::string(Form("95\%% CL UL on #sigma #times BR(A#rightarrowZ#gamma#rightarrow l^{+}l^{-}#gamma) [fb]"));
 
 
   
@@ -84,7 +85,7 @@ int main( int argc, char* argv[] ) {
   TCanvas* c1 = new TCanvas( "c1", "", 600, 600 );
   c1->cd();
 
-  TH2D* h2_axes = new TH2D("axes", "", 10, 350., 2000., 10, 0., 9. );
+  TH2D* h2_axes = new TH2D("axes", "", 10, 350., 2000., 10, 0., 270. );
   h2_axes->SetYTitle( axisName.c_str() );
   //h2_axes->SetYTitle( "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma#rightarrowl^{+}l^{-}#gamma) [fb]");
   h2_axes->SetXTitle( "Resonance Mass [GeV]");
@@ -216,7 +217,7 @@ int main( int argc, char* argv[] ) {
 
 void getLimitGraphs( const std::string& limitsFile, TGraph* gr_obs, TGraph* gr_exp, TGraphAsymmErrors* gr_exp_1sigma, TGraphAsymmErrors* gr_exp_2sigma ) {
 
-  ifstream ifs(limitsFile.c_str());
+  std::ifstream ifs(limitsFile.c_str());
   std::cout << "-> Opened file: " << limitsFile << std::endl;
   int iPointExp = 0;
   int iPointObs = 0;
@@ -236,6 +237,13 @@ void getLimitGraphs( const std::string& limitsFile, TGraph* gr_obs, TGraph* gr_e
 
     //std::cout << "m: " << m << " obs: " << obs << " exp: " << exp << " exp_m1s: " << exp_m1s << " exp_m2s: " << exp_m2s << " exp_p1s: " << exp_p1s << " exp_p2s: " << exp_p2s << std::endl;
 
+    // remove BR:
+    obs     /= 0.033;
+    exp     /= 0.033;
+    exp_p1s /= 0.033;
+    exp_p2s /= 0.033;
+    exp_m1s /= 0.033;
+    exp_m2s /= 0.033;
 
 
     if( obs>0.001 && m!=610 && m!=620 && m!=730 && m!=920 && m!= 970 ) {
