@@ -38,6 +38,7 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
 void smearEmEnergy     ( TLorentzVector& p );
 void applyEmEnergyScale( TLorentzVector& p );
 
+TLorentzVector selectPhoton( const ZGConfig& cfg, const ZGTree& myTree, int index, const TLorentzVector& lept0, const TLorentzVector& lept1 );
 
 
 TRandom3 myRandom_(13);
@@ -357,6 +358,15 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
   float boss_mass;
   outTree->Branch( "boss_mass", &boss_mass, "boss_mass/F" );
 
+  float boss2_pt;
+  outTree->Branch( "boss2_pt", &boss2_pt, "boss2_pt/F" );
+  float boss2_eta;
+  outTree->Branch( "boss2_eta", &boss2_eta, "boss2_eta/F" );
+  float boss2_phi;
+  outTree->Branch( "boss2_phi", &boss2_phi, "boss2_phi/F" );
+  float boss2_mass;
+  outTree->Branch( "boss2_mass", &boss2_mass, "boss2_mass/F" );
+
 
 
   // for muon rochester corrections
@@ -543,38 +553,19 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     lept1_pdgId = myTree.lep_pdgId[1];
 
     TLorentzVector photon;
+    TLorentzVector photon2;
 
 
     if( cfg.selection()!="veryloose" ) {
 
       if( myTree.ngamma==0 ) continue; // photon
-      photon.SetPtEtaPhiM( myTree.gamma_pt[0], myTree.gamma_eta[0], myTree.gamma_phi[0], myTree.gamma_mass[0] );
-   
-      if( photon.Pt()<40. ) continue;
-      if( fabs(photon.Eta())>1.44 && fabs(photon.Eta())<1.57 ) continue;
-      if( fabs(photon.Eta())>2.5 ) continue;
-      if( myTree.gamma_idCutBased[0]==0 ) continue;
-      if( myTree.gamma_chHadIso[0]>2.5 ) continue;
-      if( fabs(myTree.gamma_eta[0])<1.44 ) {
-        if( myTree.gamma_sigmaIetaIeta[0]>0.0102 ) continue;
-      } else {
-        if( myTree.gamma_sigmaIetaIeta[0]>0.0274 ) continue;
-      }
-      float deltaR_thresh = 0.4;
-      if( photon.DeltaR(lept0)<deltaR_thresh || photon.DeltaR(lept1)<deltaR_thresh ) continue;
 
-      // photon energy corrections/smearing NOT done at heppy (in 74X, will be in for 76X)
-      if( !myTree.isData ) {
-        if( cfg.smearing() ) {
-          //if( id<14000 ) {
-            smearEmEnergy( photon ); // 74X smearings
-          //} else {};
-        }
-      } else {
-        applyEmEnergyScale( photon );
-        //float cor = egcor.ScaleCorrection(run, fabs(photon.Eta())<1.479, myTree.gamma_r9[0], photon.Eta(), photon.Pt());
-        //photon.SetPtEtaPhiM( photon.Pt()*cor, photon.Eta(), photon.Phi(), photon.M() );
-      }
+      photon  = selectPhoton(cfg, myTree, 0, lept0, lept1);
+
+      if( photon.Pt()<1. ) continue;
+
+      photon2 = selectPhoton(cfg, myTree, 1, lept0, lept1);
+
 
     }
 
@@ -584,6 +575,11 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     if( cfg.selection()!="presel" && zBoson.M()>130. ) continue;
 
     TLorentzVector boss = zBoson + photon;
+    TLorentzVector boss2;
+    if( photon2.Pt()>1. )
+      boss2 = zBoson + photon + photon2;
+    else
+      boss2.SetPtEtaPhiM( 0.1, 0., 0., 0.);
 
 
     lept0_pt   = lept0.Pt();
@@ -627,6 +623,11 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     boss_eta  = boss.Eta();
     boss_phi  = boss.Phi();
     boss_mass = boss.M();
+
+    boss2_pt   = boss2.Pt();
+    boss2_eta  = boss2.Eta();
+    boss2_phi  = boss2.Phi();
+    boss2_mass = boss2.M();
 
     met = myTree.met_pt;
 
@@ -740,5 +741,45 @@ void applyEmEnergyScale( TLorentzVector& p ) {
   else if (fabs(eta)>=1.5 && fabs(eta)<2.   ) theScale = scaleEElowEta;
   else if (fabs(eta)>=2.  && fabs(eta)<2.5  ) theScale = scaleEEhighEta;
   p.SetPtEtaPhiM( theScale*pt, eta, phi, mass ); // keep mass and direction same
+
+}
+
+
+TLorentzVector selectPhoton( const ZGConfig& cfg, const ZGTree& myTree, int index, const TLorentzVector& lept0, const TLorentzVector& lept1 ) {
+
+  TLorentzVector photon;
+  photon.SetPtEtaPhiM( myTree.gamma_pt[index], myTree.gamma_eta[index], myTree.gamma_phi[index], myTree.gamma_mass[index] );
+
+  bool goodPhoton = true;
+  if( photon.Pt()<40. ) goodPhoton=false;
+  if( fabs(photon.Eta())>1.44 && fabs(photon.Eta())<1.57 ) goodPhoton=false;
+  if( fabs(photon.Eta())>2.5 ) goodPhoton=false;
+  if( myTree.gamma_idCutBased[index]==0 ) goodPhoton=false;
+  if( myTree.gamma_chHadIso[index]>2.5 ) goodPhoton=false;
+  if( fabs(myTree.gamma_eta[index])<1.44 ) {
+    if( myTree.gamma_sigmaIetaIeta[index]>0.0102 ) goodPhoton=false;
+  } else {
+    if( myTree.gamma_sigmaIetaIeta[index]>0.0274 ) goodPhoton=false;
+  }
+  float deltaR_thresh = 0.4;
+  if( photon.DeltaR(lept0)<deltaR_thresh || photon.DeltaR(lept1)<deltaR_thresh ) goodPhoton=false;
+
+  // photon energy corrections/smearing NOT done at heppy (in 74X, will be in for 76X)
+  if( !myTree.isData ) {
+    if( cfg.smearing() ) {
+      //if( id<14000 ) {
+        smearEmEnergy( photon ); // 74X smearings
+      //} else {};
+    }
+  } else {
+    applyEmEnergyScale( photon );
+    //float cor = egcor.ScaleCorrection(run, fabs(photon.Eta())<1.479, myTree.gamma_r9[0], photon.Eta(), photon.Pt());
+    //photon.SetPtEtaPhiM( photon.Pt()*cor, photon.Eta(), photon.Phi(), photon.M() );
+  }
+
+  if( !goodPhoton )
+    photon.SetPtEtaPhiM( 0.01, 0., 0., 0. );
+
+  return photon;
 
 }
