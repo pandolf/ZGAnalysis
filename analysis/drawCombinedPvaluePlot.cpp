@@ -193,7 +193,17 @@ int main( int argc, char* argv[] ) {
   c1->SaveAs( Form("%s/pvalue_comb_w0p014_logx.eps" , dir.c_str() ));
   c1->SaveAs( Form("%s/pvalue_comb_w0p014_logx.pdf" , dir.c_str() ));
 
+  TFile* file = TFile::Open(Form("%s/pvalues.root", dir.c_str()), "recreate");
+  file->cd();
+  gr_only13_obs->SetName("pvalue_only13");
+  gr_only8_obs ->SetName("pvalue_only8");
+  gr_comb_obs  ->SetName("pvalue_comb");
+  gr_only13_obs->Write();
+  gr_only8_obs ->Write();
+  gr_comb_obs  ->Write();
+  file->Close();
 
+  std::cout << "-> p-value graphs saved in: " << file->GetName() << std::endl;
 
   return 0;
 
