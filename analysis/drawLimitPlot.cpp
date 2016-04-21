@@ -124,10 +124,10 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
     if( m==lastMass ) continue;
     if( m==350. ) continue;
 
-    float thisEff = f1_eff->Eval(m);
+    float thisEff = (f1_eff!=0 ) ? f1_eff->Eval(m) : 1.;
 
 
-    float conversion = thisEff*cfg.lumi()*br;
+    float conversion = (cat=="comb_all") ? 1. : thisEff*cfg.lumi()*br;
     //float conversion = 2.*eff*lumi;
 
     obs    /=conversion;
@@ -182,6 +182,7 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
   if( cfg.lumi()*br<1. ) yMax = 300.;
   if( cat=="fit_ee" || cat=="fit_mm" ) yMax *= 2.;
   if( width=="5p6" ) yMax *= 2.;
+  if( cat=="comb_all" ) yMax = 5.;
 
   TH2D* h2_axes = new TH2D("axes", "", 10, 350., 1000., 10, 0., yMax );
   h2_axes->SetYTitle( axisName.c_str() );
