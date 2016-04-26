@@ -36,8 +36,14 @@ drawLimitPlot: drawLimitPlot.cpp ZGDrawTools.o ZGConfig.o
 drawCombinedLimitPlot: drawCombinedLimitPlot.cpp ZGDrawTools.o ZGConfig.o
 	$(CC) -Wall $(INCLUDES) -o drawCombinedLimitPlot drawCombinedLimitPlot.cpp ZGDrawTools.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
 
+drawCombinedLimitPlot_all: drawCombinedLimitPlot_all.cpp ZGDrawTools.o ZGConfig.o
+	$(CC) -Wall $(INCLUDES) -o drawCombinedLimitPlot_all drawCombinedLimitPlot_all.cpp ZGDrawTools.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
+
 drawCombinedPvaluePlot: drawCombinedPvaluePlot.cpp ZGDrawTools.o ZGConfig.o
 	$(CC) -Wall $(INCLUDES) -o drawCombinedPvaluePlot drawCombinedPvaluePlot.cpp ZGDrawTools.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
+
+drawCombinedPvaluePlot_all: drawCombinedPvaluePlot_all.cpp ZGDrawTools.o ZGConfig.o
+	$(CC) -Wall $(INCLUDES) -o drawCombinedPvaluePlot_all drawCombinedPvaluePlot_all.cpp ZGDrawTools.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
 
 drawGenEfficiency: drawGenEfficiency.cpp ZGDrawTools.o 
 	$(CC) -Wall $(INCLUDES) -o drawGenEfficiency drawGenEfficiency.cpp ZGDrawTools.o $(ROOTFLAG) $(EXTRALIBS)
@@ -71,6 +77,9 @@ drawCutEfficiency: drawCutEfficiency.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.
 
 drawSignalEfficiency: drawSignalEfficiency.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o
 	$(CC) -Wall $(INCLUDES) -o drawSignalEfficiency drawSignalEfficiency.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o  $(ROOTFLAG) $(EXTRALIBS)
+
+drawSignalEfficiency_convVeto: drawSignalEfficiency_convVeto.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o
+	$(CC) -Wall $(INCLUDES) -o drawSignalEfficiency_convVeto drawSignalEfficiency_convVeto.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o  $(ROOTFLAG) $(EXTRALIBS)
 
 draw74vs76: draw74vs76.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o
 	$(CC) -Wall $(INCLUDES) -o draw74vs76 draw74vs76.cpp ZGCommonTools.o ZGDrawTools.o ZGConfig.o ZGSample.o  $(ROOTFLAG) $(EXTRALIBS)
