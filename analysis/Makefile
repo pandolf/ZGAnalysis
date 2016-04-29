@@ -24,6 +24,9 @@ convertSNTtrees: convertSNTtrees.cpp
 drawZG: drawZG.cpp ZGDrawTools.o ZGConfig.o
 	$(CC) -Wall $(INCLUDES) -o drawZG drawZG.cpp ZGDrawTools.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
 
+drawQ: drawQ.cpp ZGDrawTools.o ZGConfig.o
+	$(CC) -Wall $(INCLUDES) -o drawQ drawQ.cpp ZGDrawTools.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
+
 drawSignals: drawSignals.cpp ZGDrawTools.o ZGConfig.o
 	$(CC) -Wall $(INCLUDES) -o drawSignals drawSignals.cpp ZGDrawTools.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
 
@@ -32,6 +35,9 @@ drawGenSignals: drawGenSignals.cpp ZGDrawTools.o ZGConfig.o
 
 drawLimitPlot: drawLimitPlot.cpp ZGDrawTools.o ZGConfig.o
 	$(CC) -Wall $(INCLUDES) -o drawLimitPlot drawLimitPlot.cpp ZGDrawTools.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
+
+drawLimitPlotQgamma: drawLimitPlotQgamma.cpp ZGDrawTools.o ZGConfig.o
+	$(CC) -Wall $(INCLUDES) -o drawLimitPlotQgamma drawLimitPlotQgamma.cpp ZGDrawTools.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
 
 drawCombinedLimitPlot: drawCombinedLimitPlot.cpp ZGDrawTools.o ZGConfig.o
 	$(CC) -Wall $(INCLUDES) -o drawCombinedLimitPlot drawCombinedLimitPlot.cpp ZGDrawTools.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
