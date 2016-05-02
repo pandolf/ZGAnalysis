@@ -61,9 +61,9 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, fl
 
   std::string axisName;
   if( cat=="fit_v0") 
-    axisName = "95\% CL UL on #sigma #times BR(Q#rightarrowq#gamma)";
+    axisName = "95\% CL UL on #sigma #times BR(Q#rightarrowq#gamma) [fb]";
   else if (cat=="fit_em")
-    axisName = "95\% CL UL on #sigma #times BR(Q#rightarrowqZ)";
+    axisName = "95\% CL UL on #sigma #times BR(Q#rightarrowqZ) [fb]";
   else {
     std::cout << "Unknown category " << cat << " !!! Exiting!" << std::endl;
     exit(1);
