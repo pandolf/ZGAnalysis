@@ -98,7 +98,7 @@ int main( int argc, char* argv[] ) {
   TCanvas* c1 = new TCanvas( "c1", "", 600, 600 );
   c1->cd();
 
-  TH2D* h2_axes = new TH2D("axes", "", 10, 350., 3000., 10, 0., 270. );
+  TH2D* h2_axes = new TH2D("axes", "", 10, 200., 3000., 10, 0., 370. );
   h2_axes->SetYTitle( axisName.c_str() );
   //h2_axes->SetYTitle( "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma#rightarrowl^{+}l^{-}#gamma) [fb]");
   h2_axes->SetXTitle( "Resonance Mass [GeV]");
@@ -131,18 +131,6 @@ int main( int argc, char* argv[] ) {
   gr_only8_exp      ->SetLineColor(38);
 
 
-  TLegend* legend = new TLegend( 0.6, 0.62, 0.9, 0.9 );
-  legend->SetFillColor(0);
-  legend->SetTextSize(0.038);
-  legend->SetTextFont(42);
-  legend->SetHeader("W = 0.014%");
-  legend->AddEntry( gr_only8_obs      , "8 TeV ll#gamma", "L" );
-  legend->AddEntry( gr_only13_obs     , "13 TeV ll#gamma", "L" );
-  legend->AddEntry( gr_only13_hadr_obs, "13 TeV qq#gamma", "L" );
-  legend->AddEntry( gr_comb_obs, "Combination", "L" );
-  legend->Draw("same");
-
-
   TLegend* legend2 = new TLegend( 0.3, 0.75, 0.6, 0.9 );
   legend2->SetFillColor(0);
   legend2->SetTextSize(0.038);
@@ -150,6 +138,19 @@ int main( int argc, char* argv[] ) {
   legend2->AddEntry( gr_comb_exp, "Expected", "L" );
   legend2->AddEntry( gr_comb_obs, "Observed", "L" );
   legend2->Draw("same");
+
+
+  TLegend* legend = new TLegend( 0.58, 0.62, 0.9, 0.9 );
+  legend->SetFillColor(0);
+  legend->SetTextSize(0.038);
+  legend->SetTextFont(42);
+  legend->SetHeader("Narrow Signal Model");
+  legend->AddEntry( gr_only8_obs      , "8 TeV Z(ll)#gamma", "L" );
+  legend->AddEntry( gr_only13_obs     , "13 TeV Z(ll)#gamma", "L" );
+  legend->AddEntry( gr_only13_hadr_obs, "13 TeV Z(qq)#gamma", "L" );
+  legend->AddEntry( gr_comb_obs, "Combination", "L" );
+  legend->Draw("same");
+
 
   gr_only13_exp     ->Draw("L same");
   gr_only13_hadr_exp->Draw("L same");
@@ -163,7 +164,10 @@ int main( int argc, char* argv[] ) {
 
 
 
-  ZGDrawTools::addLabels( c1, "CMS Preliminary, 19.7 fb^{-1} (8 TeV) + 2.3-2.7 fb^{-1} (13 TeV)");
+  ZGDrawTools::addLabels( c1, "19.7 fb^{-1} (8 TeV) + 2.7 fb^{-1} (13 TeV)");
+
+  TPaveText* label_cms = ZGDrawTools::getLabelCMS("CMS");
+  label_cms->Draw("same");
 
 
   gPad->RedrawAxis();
@@ -180,6 +184,7 @@ int main( int argc, char* argv[] ) {
 
 
   c1->Clear();
+  c1->SetLogx(false);
 
   h2_axes->Draw();
 
@@ -215,7 +220,9 @@ int main( int argc, char* argv[] ) {
   legend3->AddEntry( gr_comb_exp_2sigma, "Expected #pm 2#sigma", "LF" );
   legend3->Draw("same");
 
-  ZGDrawTools::addLabels( c1, "CMS Preliminary, 19.7 fb^{-1} (8 TeV) + 2.3-2.7 fb^{-1} (13 TeV)");
+  ZGDrawTools::addLabels( c1, "19.7 fb^{-1} (8 TeV) + 2.7 fb^{-1} (13 TeV)");
+
+  label_cms->Draw("same");
 
   gPad->RedrawAxis();
 
@@ -270,7 +277,8 @@ void getLimitGraphs( const std::string& limitsFile, TGraph* gr_obs, TGraph* gr_e
 
 
     
-    if( !(limitsFile_tstr.EndsWith("only13.txt") && (m==1920 || m==1970)) ) {
+    if( !(limitsFile_tstr.EndsWith("only13.txt") && (m==1920 || m==1970)) &&
+        !( m==1050 || m==1120) ) {
     //if( obs>0.001 && m!=610 && m!=620 && m!=730 && m!=920 && m!= 970 ) {
       gr_obs       ->SetPoint( iPointObs, m, obs );
       iPointObs++;
@@ -280,8 +288,7 @@ void getLimitGraphs( const std::string& limitsFile, TGraph* gr_obs, TGraph* gr_e
     //              || (m>=400. && m<900.  && (int(m) % 50 == 0) && m!=750.) 
     //              //|| (m>=700. && m<1100. && (int(m) % 100 == 0))
     //              || (m>=900. && (int(m-100) % 200 == 0))  );
-    if( m!=790 ) {
-    //if( m!=510 && m!=440 && m!=360 ) {
+    if( m!=510 && m!=410 && m!=530 && !(m>=600 && m<=640) && m!=790 ) {
       gr_exp       ->SetPoint( iPointExp, m, exp );
       gr_exp_1sigma->SetPoint( iPointExp, m, exp );
       gr_exp_2sigma->SetPoint( iPointExp, m, exp );
