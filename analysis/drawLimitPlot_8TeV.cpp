@@ -55,6 +55,7 @@ int main( int argc, char* argv[] ) {
   TH2D* h2_axes = new TH2D("axes", "", 10, 200., 1200., 10, 0., yMax );
   h2_axes->SetYTitle( axisName.c_str() );
   h2_axes->SetXTitle( "Resonance Mass [GeV]");
+  h2_axes->GetXaxis()->SetNdivisions(1006);
   h2_axes->Draw();
 
 
@@ -88,6 +89,7 @@ int main( int argc, char* argv[] ) {
   label_cms->SetTextAlign(11); // align left
   label_cms->SetTextFont(42);  
   label_cms->AddText( "CMS" );
+  label_cms->Draw("same");
 
   TPaveText* label_top = new TPaveText(0.4,0.959,0.975,0.963, "brNDC");
   label_top->SetBorderSize(0);
