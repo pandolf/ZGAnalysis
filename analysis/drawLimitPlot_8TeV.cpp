@@ -14,6 +14,11 @@
 #include "../interface/ZGConfig.h"
 
 
+
+bool sigmaTimesBR = true;
+
+
+
 void scaleGraph( TGraphAsymmErrors* gr );
 
 
@@ -23,7 +28,11 @@ int main( int argc, char* argv[] ) {
   ZGDrawTools::setStyle();
 
 
-  std::string axisName = "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma) [fb]";
+  std::string axisName;
+  if( sigmaTimesBR )
+    axisName = "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma#rightarrowl^{+}l^{-}#gamma) [fb]";
+  else
+    axisName = "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma) [fb]";
 
   TFile* file = TFile::Open("limit_plots.root");
   TGraphAsymmErrors* gr_exp        = (TGraphAsymmErrors*)file->Get("expected");
@@ -31,10 +40,12 @@ int main( int argc, char* argv[] ) {
   TGraphAsymmErrors* gr_exp_2sigma = (TGraphAsymmErrors*)file->Get("twoSigma");
   TGraphAsymmErrors* gr_obs        = (TGraphAsymmErrors*)file->Get("observed");
   
-  scaleGraph( gr_exp );
-  scaleGraph( gr_exp_1sigma );
-  scaleGraph( gr_exp_2sigma );
-  scaleGraph( gr_obs        );
+  if( !sigmaTimesBR ) {
+    scaleGraph( gr_exp );
+    scaleGraph( gr_exp_1sigma );
+    scaleGraph( gr_exp_2sigma );
+    scaleGraph( gr_obs        );
+  }
 
   gr_obs->SetLineWidth(2);
 
@@ -51,6 +62,7 @@ int main( int argc, char* argv[] ) {
   c1->cd();
 
   float yMax = 150.;
+  if( sigmaTimesBR ) yMax = 5.;
 
   TH2D* h2_axes = new TH2D("axes", "", 10, 200., 1200., 10, 0., yMax );
   h2_axes->SetYTitle( axisName.c_str() );
