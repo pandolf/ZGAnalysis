@@ -30,9 +30,11 @@ int main( int argc, char* argv[] ) {
 
   std::string axisName;
   if( sigmaTimesBR )
-    axisName = "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma#rightarrowl^{+}l^{-}#gamma) [fb]";
+    //axisName = "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma#rightarrowl^{+}l^{-}#gamma) [fb]";
+    axisName = "#sigma(pp#rightarrowA+X#rightarrowZ#gamma+X, Z#rightarrowl^{+}l^{-}) [fb]";
   else
-    axisName = "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma) [fb]";
+    axisName = "#sigma(pp#rightarrowA+X#rightarrowZ#gamma+X) [fb]";
+    //axisName = "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma) [fb]";
 
   TFile* file = TFile::Open("limit_plots.root");
   TGraphAsymmErrors* gr_exp        = (TGraphAsymmErrors*)file->Get("expected");
@@ -77,10 +79,10 @@ int main( int argc, char* argv[] ) {
   gr_obs       ->Draw("L  same");
 
 
-  gr_exp_1sigma->SetLineWidth(2);
-  gr_exp_1sigma->SetLineStyle(2);
-  gr_exp_2sigma->SetLineWidth(2);
-  gr_exp_2sigma->SetLineStyle(2);
+  gr_exp_1sigma->SetLineWidth(0);
+  gr_exp_2sigma->SetLineWidth(0);
+  gr_exp_1sigma->SetLineStyle(0);
+  gr_exp_2sigma->SetLineStyle(0);
 
   TLegend* legend;
   std::string title = "Narrow Signal Model";
@@ -89,9 +91,10 @@ int main( int argc, char* argv[] ) {
   legend->SetTextSize(0.038);
   legend->SetTextFont(42);
   legend->SetHeader(title.c_str());
-  legend->AddEntry( gr_obs, "Observed", "L" );
-  legend->AddEntry( gr_exp_1sigma, "Expected #pm 1#sigma", "LF" );
-  legend->AddEntry( gr_exp_2sigma, "Expected #pm 2#sigma", "LF" );
+  legend->AddEntry( gr_obs, "95% CL limit", "L" );
+  legend->AddEntry( gr_exp, "Median Expected", "L" );
+  legend->AddEntry( gr_exp_1sigma, "68% Expected", "F" );
+  legend->AddEntry( gr_exp_2sigma, "95% Expected", "F" );
   legend->Draw("same");
 
   TPaveText* label_cms = new TPaveText(0.143,0.96,0.27,0.965, "brNDC");

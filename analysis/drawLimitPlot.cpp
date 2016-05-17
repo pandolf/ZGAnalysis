@@ -29,7 +29,7 @@ int main( int argc, char* argv[] ) {
   std::string configFileName(argv[1]);
   ZGConfig cfg(configFileName);
 
-  std::string fitName = "fit_v0";
+  std::string fitName = "fit_em";
   if( argc>2 ) {
     fitName = std::string((argv[2]));
   }
@@ -72,7 +72,8 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
   std::string axisName;
   float br = 1.;
   if( name=="Zgamma" ) {
-    axisName = "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma) [fb]";
+    axisName = "#sigma(pp#rightarrowA+X#rightarrowZ#gamma+X) [fb]";
+    //axisName = "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma) [fb]";
     if( cat=="fit_em" || cat=="fit_v0" )      br = 2.*0.0337;
     else if( cat=="fit_ee" || cat=="fit_mm" ) br = 0.0337;
   } else if( name=="Zllgamma" ) {
@@ -80,7 +81,8 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
     if( cat=="fit_em" || cat=="fit_v0" ) leptType="l";
     if( cat=="fit_ee" ) leptType="e";
     if( cat=="fit_mm" ) leptType="#mu";
-    axisName = std::string(Form("95\%% CL UL on #sigma #times BR(A#rightarrowZ#gamma#rightarrow %s^{+}%s^{-}#gamma) [fb]", leptType.c_str(), leptType.c_str()));
+    //axisName = std::string(Form("95\%% CL UL on #sigma #times BR(A#rightarrowZ#gamma#rightarrow %s^{+}%s^{-}#gamma) [fb]", leptType.c_str(), leptType.c_str()));
+    axisName = std::string(Form("#sigma(pp#rightarrowA+X#rightarrowZ#gamma+X, Z#rightarrow%s^{+}%s^{-}) [fb]", leptType.c_str(), leptType.c_str()));
   } else {
     std::cout << "UNKNOWN NAME! (" << name << ")" << std::endl;
     return;
@@ -107,7 +109,7 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
   TGraphAsymmErrors* gr_exp_1sigma = new TGraphAsymmErrors(0);
   TGraphAsymmErrors* gr_exp_2sigma = new TGraphAsymmErrors(0);
 
-  ifstream ifs(limitsFile.c_str());
+  std::ifstream ifs(limitsFile.c_str());
   std::cout << "-> Opened file: " << limitsFile << std::endl;
   int iPointExp = 0;
   int iPointObs = 0;
@@ -178,7 +180,7 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
   TCanvas* c1 = new TCanvas( "c1", "", 600, 600 );
   c1->cd();
 
-  float yMax = (cfg.lumi()<10.) ? 10. : 2.;
+  float yMax = (cfg.lumi()<10.) ? 20. : 2.;
   if( cfg.lumi()*br<1. ) yMax = 300.;
   if( cat=="fit_ee" || cat=="fit_mm" ) yMax *= 2.;
   if( width=="5p6" ) yMax *= 2.;
@@ -198,14 +200,15 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
     gr_obs       ->Draw("L  same");
 
 
-  gr_exp_1sigma->SetLineWidth(2);
-  gr_exp_1sigma->SetLineStyle(2);
-  gr_exp_2sigma->SetLineWidth(2);
-  gr_exp_2sigma->SetLineStyle(2);
+  gr_exp_1sigma->SetLineWidth(0);
+  gr_exp_2sigma->SetLineWidth(0);
+  gr_exp_1sigma->SetLineStyle(0);
+  gr_exp_2sigma->SetLineStyle(0);
 
   TLegend* legend;
   std::string title = "";
-  if( width=="0p014" ) title = "W = 0.014%";
+  if( width=="0p014" ) title = "Narrow Signal Model";
+  //if( width=="0p014" ) title = "W = 0.014%";
   if( width=="5p6"   ) title = "W = 5.6%";
   if( onlyExpected )
     legend = new TLegend( 0.55, 0.65, 0.9, 0.9 );
@@ -218,16 +221,19 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
     legend->SetHeader(title.c_str());
   //legend->AddEntry( gr_exp, "Expected", "L" );
   if( !onlyExpected )
-    legend->AddEntry( gr_obs, "Observed", "L" );
-  legend->AddEntry( gr_exp_1sigma, "Expected #pm 1#sigma", "LF" );
-  legend->AddEntry( gr_exp_2sigma, "Expected #pm 2#sigma", "LF" );
+    legend->AddEntry( gr_obs, "95% CL limit", "L" );
+  legend->AddEntry( gr_exp, "Median Expected", "L" );
+  legend->AddEntry( gr_exp_1sigma, "68% Expected", "F" );
+  legend->AddEntry( gr_exp_2sigma, "95% Expected", "F" );
+  gr_exp_1sigma->SetLineColor(kBlack);
+  gr_exp_2sigma->SetLineColor(kBlack);
   legend->Draw("same");
 
 
   if( onlyExpected )
     ZGDrawTools::addLabels( c1, cfg.lumi(), "CMS Simulation");
   else
-    ZGDrawTools::addLabels( c1, cfg.lumi(), "CMS Preliminary");
+    ZGDrawTools::addLabels( c1, cfg.lumi(), "CMS");
 
 
   gPad->RedrawAxis();
@@ -265,7 +271,7 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
   if( onlyExpected )
     ZGDrawTools::addLabels( c1, cfg.lumi(), "CMS Simulation");
   else
-    ZGDrawTools::addLabels( c1, cfg.lumi(), "CMS Preliminary");
+    ZGDrawTools::addLabels( c1, cfg.lumi(), "CMS");
 
   gPad->RedrawAxis();
 
