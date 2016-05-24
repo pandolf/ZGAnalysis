@@ -85,7 +85,7 @@ int main( int argc, char* argv[] ) {
   TCanvas* c1 = new TCanvas( "c1", "", 600, 600 );
   c1->cd();
 
-  TH2D* h2_axes = new TH2D("axes", "", 10, 350., 2000., 10, 0., 270. );
+  TH2D* h2_axes = new TH2D("axes", "", 10, 200., 2000., 10, 0., 370. );
   h2_axes->SetYTitle( axisName.c_str() );
   //h2_axes->SetYTitle( "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma#rightarrowl^{+}l^{-}#gamma) [fb]");
   h2_axes->SetXTitle( "Resonance Mass [GeV]");
@@ -98,7 +98,7 @@ int main( int argc, char* argv[] ) {
 
   gr_comb_obs  ->SetLineColor(kBlack);
   gr_only13_obs->SetLineColor(46);
-  gr_only8_obs ->SetLineColor(8);
+  gr_only8_obs ->SetLineColor(38);
 
   gr_comb_exp  ->SetLineWidth(3);
   gr_only13_exp->SetLineWidth(3);
@@ -110,18 +110,7 @@ int main( int argc, char* argv[] ) {
 
   gr_comb_exp  ->SetLineColor(kBlack);
   gr_only13_exp->SetLineColor(46);
-  gr_only8_exp ->SetLineColor(8);
-
-
-  TLegend* legend = new TLegend( 0.6, 0.65, 0.9, 0.9 );
-  legend->SetFillColor(0);
-  legend->SetTextSize(0.038);
-  legend->SetTextFont(42);
-  legend->SetHeader("W = 0.014%");
-  legend->AddEntry( gr_only8_obs , "8 TeV", "L" );
-  legend->AddEntry( gr_only13_obs, "13 TeV", "L" );
-  legend->AddEntry( gr_comb_obs, "Combination", "L" );
-  legend->Draw("same");
+  gr_only8_exp ->SetLineColor(38);
 
 
   TLegend* legend2 = new TLegend( 0.3, 0.75, 0.6, 0.9 );
@@ -131,6 +120,19 @@ int main( int argc, char* argv[] ) {
   legend2->AddEntry( gr_comb_exp, "Expected", "L" );
   legend2->AddEntry( gr_comb_obs, "Observed", "L" );
   legend2->Draw("same");
+
+
+  TLegend* legend = new TLegend( 0.58, 0.65, 0.9, 0.9 );
+  legend->SetFillColor(0);
+  legend->SetTextSize(0.038);
+  legend->SetTextFont(42);
+  legend->SetHeader("Narrow Signal Model");
+  //legend->SetHeader("W = 0.014%");
+  legend->AddEntry( gr_only8_obs , "8 TeV", "L" );
+  legend->AddEntry( gr_only13_obs, "13 TeV", "L" );
+  legend->AddEntry( gr_comb_obs, "Combination", "L" );
+  legend->Draw("same");
+
 
   gr_only13_exp->Draw("L same");
   gr_only8_exp ->Draw("L same");
@@ -142,7 +144,9 @@ int main( int argc, char* argv[] ) {
 
 
 
-  ZGDrawTools::addLabels( c1, "CMS Preliminary, 19.7 fb^{-1} (8 TeV) + 2.7 fb^{-1} (13 TeV)");
+  ZGDrawTools::addLabels( c1, "19.7 fb^{-1} (8 TeV) + 2.7 fb^{-1} (13 TeV)");
+  TPaveText* label_cms = ZGDrawTools::getLabelCMS("CMS");
+  label_cms->Draw("same");
 
 
   gPad->RedrawAxis();
@@ -188,13 +192,15 @@ int main( int argc, char* argv[] ) {
   legend3->SetFillColor(0);
   legend3->SetTextSize(0.038);
   legend3->SetTextFont(42);
-  legend3->SetHeader("W = 0.014%");
+  legend3->SetHeader("Narrow Signal Model");
+  //legend3->SetHeader("W = 0.014%");
   legend3->AddEntry( gr_comb_obs, "Observed", "L" );
   legend3->AddEntry( gr_comb_exp_1sigma, "Expected #pm 1#sigma", "LF" );
   legend3->AddEntry( gr_comb_exp_2sigma, "Expected #pm 2#sigma", "LF" );
   legend3->Draw("same");
 
-  ZGDrawTools::addLabels( c1, "CMS Preliminary, 19.7 fb^{-1} (8 TeV) + 2.7 fb^{-1} (13 TeV)");
+  ZGDrawTools::addLabels( c1, "19.7 fb^{-1} (8 TeV) + 2.7 fb^{-1} (13 TeV)");
+  label_cms->Draw("same");
 
   gPad->RedrawAxis();
 
@@ -223,6 +229,7 @@ void getLimitGraphs( const std::string& limitsFile, TGraph* gr_obs, TGraph* gr_e
   int iPointObs = 0;
   float lastMass = -1;
   float lastObs = -1;
+  float lastExp2sig;
 
   while( ifs.good() ) {
 
@@ -237,25 +244,19 @@ void getLimitGraphs( const std::string& limitsFile, TGraph* gr_obs, TGraph* gr_e
 
     //std::cout << "m: " << m << " obs: " << obs << " exp: " << exp << " exp_m1s: " << exp_m1s << " exp_m2s: " << exp_m2s << " exp_p1s: " << exp_p1s << " exp_p2s: " << exp_p2s << std::endl;
 
-    // remove BR:
-    obs     /= 0.033;
-    exp     /= 0.033;
-    exp_p1s /= 0.033;
-    exp_p2s /= 0.033;
-    exp_m1s /= 0.033;
-    exp_m2s /= 0.033;
 
-
-    if( obs>0.001 && m!=610 && m!=620 && m!=730 && m!=920 && m!= 970 ) {
+    if( obs>0.1 ) {
+    //if( obs>0.001 && m!=610 && m!=620 && m!=730 && m!=920 && m!= 970 ) {
       gr_obs       ->SetPoint( iPointObs, m, obs );
       iPointObs++;
     }
 
-    //bool okForExp = ((m==348.) || (m==2000.) || (m==748.)
+    bool okForExp = m!=360 && m!=510;
     //              || (m>=400. && m<900.  && (int(m) % 50 == 0) && m!=750.) 
     //              //|| (m>=700. && m<1100. && (int(m) % 100 == 0))
     //              || (m>=900. && (int(m-100) % 200 == 0))  );
-    if( m!=510 && m!=440 && m!=360 ) {
+    //if( m!=510 && m!=440 && m!=360 ) {
+    if( okForExp && (exp_p2s < 1.05*lastExp2sig || m==2000) ) {
       gr_exp       ->SetPoint( iPointExp, m, exp );
       gr_exp_1sigma->SetPoint( iPointExp, m, exp );
       gr_exp_2sigma->SetPoint( iPointExp, m, exp );
@@ -266,6 +267,7 @@ void getLimitGraphs( const std::string& limitsFile, TGraph* gr_obs, TGraph* gr_e
 
     lastMass = m;
     lastObs = obs;
+    lastExp2sig = exp_p2s;
 
   }
 

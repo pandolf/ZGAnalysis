@@ -77,7 +77,7 @@ int main( int argc, char* argv[] ) {
   c1->SetLogy();
   c1->SetRightMargin(0.055);
 
-  float xMin = 350.;
+  float xMin = 200.;
   float xMax = 2000.;
   float yMin = 0.001;
 
@@ -98,7 +98,7 @@ int main( int argc, char* argv[] ) {
 
   gr_comb_obs  ->SetLineColor(kBlack);
   gr_only13_obs->SetLineColor(46);
-  gr_only8_obs ->SetLineColor(8);
+  gr_only8_obs ->SetLineColor(38);
 
   gr_comb_exp  ->SetLineWidth(3);
   gr_only13_exp->SetLineWidth(3);
@@ -110,14 +110,15 @@ int main( int argc, char* argv[] ) {
 
   gr_comb_exp  ->SetLineColor(kBlack);
   gr_only13_exp->SetLineColor(46);
-  gr_only8_exp ->SetLineColor(8);
+  gr_only8_exp ->SetLineColor(38);
 
 
-  TLegend* legend = new TLegend( 0.6, 0.2, 0.9, 0.45 );
+  TLegend* legend = new TLegend( 0.58, 0.2, 0.9, 0.45 );
   legend->SetFillColor(0);
   legend->SetTextSize(0.038);
   legend->SetTextFont(42);
-  legend->SetHeader("W = 0.014%");
+  legend->SetHeader("Narrow Signal Model");
+  //legend->SetHeader("W = 0.014%");
   legend->AddEntry( gr_only8_obs , "8 TeV", "L" );
   legend->AddEntry( gr_only13_obs, "13 TeV", "L" );
   legend->AddEntry( gr_comb_obs, "Combination", "L" );
@@ -178,7 +179,9 @@ int main( int argc, char* argv[] ) {
 
 
 
-  ZGDrawTools::addLabels( c1, "CMS Preliminary, 19.7 fb^{-1} (8 TeV) + 2.7 fb^{-1} (13 TeV)");
+  ZGDrawTools::addLabels( c1, "19.7 fb^{-1} (8 TeV) + 2.7 fb^{-1} (13 TeV)");
+  TPaveText* label_cms = ZGDrawTools::getLabelCMS("CMS");
+  label_cms->Draw("same");
 
 
   gPad->RedrawAxis();

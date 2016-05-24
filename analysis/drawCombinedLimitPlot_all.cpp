@@ -214,7 +214,8 @@ int main( int argc, char* argv[] ) {
   legend3->SetFillColor(0);
   legend3->SetTextSize(0.038);
   legend3->SetTextFont(42);
-  legend3->SetHeader("W = 0.014%");
+  legend3->SetHeader("Narrow Signal Model");
+  //legend3->SetHeader("W = 0.014%");
   legend3->AddEntry( gr_comb_obs, "Observed", "L" );
   legend3->AddEntry( gr_comb_exp_1sigma, "Expected #pm 1#sigma", "LF" );
   legend3->AddEntry( gr_comb_exp_2sigma, "Expected #pm 2#sigma", "LF" );
