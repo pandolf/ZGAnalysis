@@ -912,9 +912,11 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
       h1_mc = new TH1D( thisName.c_str(), "", nBins, xMin, xMax );
     h1_mc->Sumw2();
     if( selection!="" )
-      mc_[i]->Project( thisName.c_str(), varName.c_str(), Form("%f*weight*(%s)", lumi_, selection.c_str()) );
+      mc_[i]->Project( thisName.c_str(), varName.c_str(), Form("weight*(%s)", selection.c_str()) );
+      //mc_[i]->Project( thisName.c_str(), varName.c_str(), Form("%f*weight*(%s)", lumi_, selection.c_str()) );
     else
-      mc_[i]->Project( thisName.c_str(), varName.c_str(), Form("%f*weight", lumi_) );
+      mc_[i]->Project( thisName.c_str(), varName.c_str(), Form("weight") );
+      //mc_[i]->Project( thisName.c_str(), varName.c_str(), Form("%f*weight", lumi_) );
 
     if( addOverflow_ )
       ZGDrawTools::addOverflowSingleHisto(h1_mc);
@@ -980,9 +982,11 @@ TCanvas* ZGDrawTools::drawPlot( const std::string& saveName, const std::string& 
       h1_overlay= new TH1D( thisName.c_str(), "", nBins, xMin, xMax );
     h1_overlay->Sumw2();
     if( selection!="" )
-      overlay_[i]->Project( thisName.c_str(), varName.c_str(), Form("%f*weight*(%s)", lumi_, selection.c_str()) );
+      overlay_[i]->Project( thisName.c_str(), varName.c_str(), Form("weight*(%s)", selection.c_str()) );
+      //overlay_[i]->Project( thisName.c_str(), varName.c_str(), Form("%f*weight*(%s)", lumi_, selection.c_str()) );
     else
-      overlay_[i]->Project( thisName.c_str(), varName.c_str(), Form("%f*weight", lumi_) );
+      overlay_[i]->Project( thisName.c_str(), varName.c_str(), Form("weight") );
+      //overlay_[i]->Project( thisName.c_str(), varName.c_str(), Form("%f*weight", lumi_) );
 
     if( addOverflow_ )
       ZGDrawTools::addOverflowSingleHisto(h1_overlay);
