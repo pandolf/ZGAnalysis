@@ -92,12 +92,12 @@ public :
    Float_t         Flag_trackingFailureFilter;
    Float_t         Flag_CSCTightHaloFilter;
    Float_t         Flag_HBHENoiseFilter;
-   Float_t         Flag_HBHEIsoNoiseFilter;
+   Float_t         Flag_HBHENoiseIsoFilter;
    Float_t         Flag_goodVertices;
    Float_t         Flag_METFilters;
    Float_t         Flag_eeBadScFilter;
    Float_t         puWeight;
-   Int_t           nTrueInt;
+   Float_t         nTrueInt;
    Float_t         genWeight;
    Float_t         rho;
    Int_t           nVert;
@@ -344,7 +344,7 @@ public :
    TBranch        *b_Flag_trackingFailureFilter;   //!
    TBranch        *b_Flag_CSCTightHaloFilter;   //!
    TBranch        *b_Flag_HBHENoiseFilter;   //!
-   TBranch        *b_Flag_HBHEIsoNoiseFilter;   //!
+   TBranch        *b_Flag_HBHENoiseIsoFilter;   //!
    TBranch        *b_Flag_goodVertices;   //!
    TBranch        *b_Flag_METFilters;   //!
    TBranch        *b_Flag_eeBadScFilter;   //!
@@ -660,7 +660,7 @@ void ZGTree::Init(TTree *tree)
    fChain->SetBranchAddress("Flag_trackingFailureFilter", &Flag_trackingFailureFilter, &b_Flag_trackingFailureFilter);
    fChain->SetBranchAddress("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter, &b_Flag_CSCTightHaloFilter);
    fChain->SetBranchAddress("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter, &b_Flag_HBHENoiseFilter);
-   fChain->SetBranchAddress("Flag_HBHEIsoNoiseFilter", &Flag_HBHEIsoNoiseFilter, &b_Flag_HBHEIsoNoiseFilter);
+   fChain->SetBranchAddress("Flag_HBHENoiseIsoFilter", &Flag_HBHENoiseIsoFilter, &b_Flag_HBHENoiseIsoFilter);
    fChain->SetBranchAddress("Flag_goodVertices", &Flag_goodVertices, &b_Flag_goodVertices);
    fChain->SetBranchAddress("Flag_METFilters", &Flag_METFilters, &b_Flag_METFilters);
    fChain->SetBranchAddress("Flag_eeBadScFilter", &Flag_eeBadScFilter, &b_Flag_eeBadScFilter);
@@ -886,7 +886,7 @@ void ZGTree::Show(Long64_t entry)
 
 
 Bool_t ZGTree::passFilters() const {
-  return nVert>0 && Flag_HBHENoiseFilter && Flag_HBHEIsoNoiseFilter && Flag_eeBadScFilter; // Beam halo from txt file
+  return nVert>0 && Flag_HBHENoiseFilter && Flag_HBHENoiseIsoFilter && Flag_eeBadScFilter; // Beam halo from txt file
 }
 
 
