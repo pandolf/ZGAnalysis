@@ -47,7 +47,7 @@ int main( int argc, char* argv[] ) {
   TFile* file = TFile::Open( Form("%s/trees.root", eventYieldDir.c_str()) );
   TTree* tree = (TTree*)file->Get("zg");
 
-  RooRealVar* x = new RooRealVar("boss_mass", "boss_mass", 200., 200., 2200. );
+  RooRealVar* x = new RooRealVar("boss_mass", "boss_mass", 200., 200., 3200. );
   //RooRealVar* w = new RooRealVar("weight", "weight", 1., -1000., 1000. );
   RooDataSet* data = new RooDataSet( "data", "data", RooArgSet(*x), RooFit::Import(*tree) );
 
@@ -59,7 +59,7 @@ int main( int argc, char* argv[] ) {
   families.push_back("invpowlin");
  
   std::string filename(Form("%s/ftest.txt", outdir.c_str()));
-  ofstream ofs(filename.c_str());
+  std::ofstream ofs(filename.c_str());
   ofs << "family     order" << std::endl;
   for( unsigned i=0; i<families.size(); ++i )
     ofs << families[i] << ": " << doFTest( outdir, x, data, families[i] ) << std::endl;
@@ -80,7 +80,7 @@ int main( int argc, char* argv[] ) {
 int doFTest( const std::string& outdir, RooRealVar* x, RooDataSet* data, const std::string& funcFamily, bool sumFunctions ) {
 
   std::string suffix = (sumFunctions) ? "sum" : "";
-  ofstream ofs( Form("%s/ftest_%s%s.log", outdir.c_str(), suffix.c_str(), funcFamily.c_str()) );
+  std::ofstream ofs( Form("%s/ftest_%s%s.log", outdir.c_str(), suffix.c_str(), funcFamily.c_str()) );
 
   if( sumFunctions )
     ofs << "-> Starting F-test for sum of: " << funcFamily << std::endl;
