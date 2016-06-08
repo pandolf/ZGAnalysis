@@ -11,6 +11,7 @@
 #include "../interface/ZGConfig.h"
 
 
+#define DATABLINDING true
 
 
 
@@ -33,11 +34,11 @@ int main( int argc, char* argv[] ) {
     std::string normType(argv[2]);
     if( normType=="lumi" ) shapeNorm=false;
     else if( normType=="shape" ) shapeNorm=true;
-    else if( normType=="onlyMC" ) {
+    else if( normType=="onlyMC" || "mcOnly"  ) {
       shapeNorm=false;
       onlyMC=true;
     } else {
-      std::cout << "-> Only 'lumi' and 'shape' are supported normTypes." << std::endl;
+      std::cout << "-> Only 'lumi' and 'shape' and 'onlyMC' are supported normTypes." << std::endl;
       exit(17);
     }
   }
@@ -95,13 +96,15 @@ int main( int argc, char* argv[] ) {
   dt.drawPlot( "leptType"     , "leptType"     , "", 5, 9.5 , 14.5, "Lepton PDG ID" );
   dt.drawPlot( "leptType_bossCut"     , "leptType"     , "boss_mass>200. && boss_mass<500.", 5, 9.5 , 14.5, "Lepton PDG ID" );
 
-  dt.drawPlot( "mZg_all"     , "boss_mass", "", 120, 0., 1200., "M(Z#gamma)", "GeV" );
-  dt.drawPlot( "mZg_lowMass"  , "boss_mass", "", 40, 200., 600., "M(Z#gamma)", "GeV" );
-  dt.drawPlot( "mZg"  , "boss_mass", "", 40, 200., 1000., "M(Z#gamma)", "GeV" );
-  dt.drawPlot( "mZg_ee_specialBins"  , "boss_mass", "leptType==11", 8, 200., 1400., "M(e^{+}e^{-}#gamma)", "GeV" );
-  dt.drawPlot( "mZg_mm_specialBins"  , "boss_mass", "leptType==13", 8, 200., 1400., "M(#mu^{+}#mu^{-}#gamma)", "GeV" );
-  dt.drawPlot( "mZg_ee"  , "boss_mass", "leptType==11", 40, 200., 1000., "M(e^{+}e^{-}#gamma)", "GeV" );
-  dt.drawPlot( "mZg_mm"  , "boss_mass", "leptType==13", 40, 200., 1000., "M(#mu^{+}#mu^{-}#gamma)", "GeV" );
+  if( !DATABLINDING || onlyMC ) {
+    dt.drawPlot( "mZg_all"     , "boss_mass", "", 120, 0., 1200., "M(Z#gamma)", "GeV" );
+    dt.drawPlot( "mZg_lowMass"  , "boss_mass", "", 40, 200., 600., "M(Z#gamma)", "GeV" );
+    dt.drawPlot( "mZg"  , "boss_mass", "", 40, 200., 1000., "M(Z#gamma)", "GeV" );
+    dt.drawPlot( "mZg_ee_specialBins"  , "boss_mass", "leptType==11", 8, 200., 1400., "M(e^{+}e^{-}#gamma)", "GeV" );
+    dt.drawPlot( "mZg_mm_specialBins"  , "boss_mass", "leptType==13", 8, 200., 1400., "M(#mu^{+}#mu^{-}#gamma)", "GeV" );
+    dt.drawPlot( "mZg_ee"  , "boss_mass", "leptType==11", 40, 200., 1000., "M(e^{+}e^{-}#gamma)", "GeV" );
+    dt.drawPlot( "mZg_mm"  , "boss_mass", "leptType==13", 40, 200., 1000., "M(#mu^{+}#mu^{-}#gamma)", "GeV" );
+  }
 
   dt.drawPlot( "mZ"   , "z_mass", ""            , 50, 50., 150., "M(l^{+}l^{-})", "GeV" );
   dt.drawPlot( "mZee" , "z_mass", "leptType==11", 50, 50., 150., "M(e^{+}e^{-})", "GeV" );
@@ -118,6 +121,9 @@ int main( int argc, char* argv[] ) {
   dt.drawPlot( "etaGamma" , "gamma_eta", "", 50, -3., 3., "Photon #eta" );
   dt.drawPlot( "isoGamma" , "gamma_iso", "", 50, 0., 10., "Photon Charged Hadron Isolation", "GeV" );
 
+  dt.drawPlot( "ptGamma_mm" , "gamma_pt", "leptType==13", 60, 40., 340., "Photon p_{T}" , "GeV" );
+  dt.drawPlot( "ptGamma_ee" , "gamma_pt", "leptType==11", 60, 40., 340., "Photon p_{T}" , "GeV" );
+
   dt.drawPlot( "ptLept0" , "lept0_pt" , "", 30, 25., 325., "Leading Lepton p_{T}" , "GeV" );
   dt.drawPlot( "etaLept0", "lept0_eta", "", 30, -3.,   3., "Leading Lepton #eta" );
 
@@ -126,12 +132,14 @@ int main( int argc, char* argv[] ) {
 
   dt.drawPlot( "ptMu0" , "lept0_pt" , "leptType==13", 30, 25., 525., "Leading Muon p_{T}" , "GeV" );
   dt.drawPlot( "ptMu1" , "lept1_pt" , "leptType==13", 30, 25., 225., "Trailing Muon p_{T}" , "GeV" );
+  dt.drawPlot( "etaMu0" , "lept0_eta", "leptType==13", 30, -3.,   3., "Leading Muon #eta" );
+  dt.drawPlot( "etaMu1" , "lept1_eta", "leptType==13", 30, -3.,   3., "Trailing Muon #eta" );
 
-  dt.drawPlot( "z_mass_mu370"  , "z_mass"   , "leptType==13 && boss_mass>350. && boss_mass<400.", 25, 50., 130., "M(#mu^{+}#mu^{-})"  , "GeV" );
-  dt.drawPlot( "lept0_pt_mu370", "lept0_pt" , "leptType==13 && boss_mass>350. && boss_mass<400.", 25, 25., 325., "Leading Muon p_{T}" , "GeV" );
-  dt.drawPlot( "lept1_pt_mu370", "lept1_pt" , "leptType==13 && boss_mass>350. && boss_mass<400.", 25, 20., 225., "Trailing Muon p_{T}", "GeV" );
-  dt.drawPlot( "lept0_eta_mu370","lept0_eta", "leptType==13 && boss_mass>350. && boss_mass<400.", 25., -2.5, 2.5,"Leading Muon #eta"  , "" );
-  dt.drawPlot( "lept1_eta_mu370","lept1_eta", "leptType==13 && boss_mass>350. && boss_mass<400.", 25., -2.5, 2.5,"Trailing Muon #eta" , "" );
+  //dt.drawPlot( "z_mass_mu370"  , "z_mass"   , "leptType==13 && boss_mass>350. && boss_mass<400.", 25, 50., 130., "M(#mu^{+}#mu^{-})"  , "GeV" );
+  //dt.drawPlot( "lept0_pt_mu370", "lept0_pt" , "leptType==13 && boss_mass>350. && boss_mass<400.", 25, 25., 325., "Leading Muon p_{T}" , "GeV" );
+  //dt.drawPlot( "lept1_pt_mu370", "lept1_pt" , "leptType==13 && boss_mass>350. && boss_mass<400.", 25, 20., 225., "Trailing Muon p_{T}", "GeV" );
+  //dt.drawPlot( "lept0_eta_mu370","lept0_eta", "leptType==13 && boss_mass>350. && boss_mass<400.", 25., -2.5, 2.5,"Leading Muon #eta"  , "" );
+  //dt.drawPlot( "lept1_eta_mu370","lept1_eta", "leptType==13 && boss_mass>350. && boss_mass<400.", 25., -2.5, 2.5,"Trailing Muon #eta" , "" );
 
   dt.drawPlot( "met"     , "met"     , "", 60, 0. , 300., "Missing E_{T}", "GeV" );
   dt.drawPlot( "ptgOmZg", "gamma_pt/boss_mass", "", 25, 0., 1., "p_{T}(#gamma) / M(Z#gamma)", "" );
