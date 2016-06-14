@@ -30,7 +30,7 @@ ZGConfig::ZGConfig( const std::string& name ) {
   dataSamples_ = "";
   additionalStuff_ = "";
   analysisType_ = "zg";
-  selection_ = "";
+  selection_ = "v0";
   smearing_ = true;
 
 
