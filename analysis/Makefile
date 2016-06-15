@@ -27,6 +27,10 @@ optimizeCut: optimizeCut.cpp ZGDrawTools.o ZGConfig.o
 stitchZGMC: stitchZGMC.cpp 
 	$(CC) -Wall $(INCLUDES) -o stitchZGMC stitchZGMC.cpp $(ROOTFLAG) $(EXTRALIBS)
 
+compareStitching: compareStitching.cpp ZGDrawTools.o ZGConfig.o
+	$(CC) -Wall $(INCLUDES) -o compareStitching compareStitching.cpp ZGDrawTools.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
+
+
 drawZG: drawZG.cpp ZGDrawTools.o ZGConfig.o
 	$(CC) -Wall $(INCLUDES) -o drawZG drawZG.cpp ZGDrawTools.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
 
