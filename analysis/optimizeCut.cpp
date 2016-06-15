@@ -23,22 +23,43 @@ int main() {
 
   TTree* tree_zg = (TTree*)file->Get("zg");
   //TTree* tree_dy = (TTree*)file->Get("dy"); //ignore high-weight DY and multiply ZG by 1.1
+  TTree* tree_350 = (TTree*)file->Get("XZg_Spin0_ZToLL_W_0p014_M_350");
   TTree* tree_375 = (TTree*)file->Get("XZg_Spin0_ZToLL_W_0p014_M_375");
+  TTree* tree_450 = (TTree*)file->Get("XZg_Spin0_ZToLL_W_0p014_M_450");
+  TTree* tree_600 = (TTree*)file->Get("XZg_Spin0_ZToLL_W_0p014_M_600");
   TTree* tree_750 = (TTree*)file->Get("XZg_Spin0_ZToLL_W_0p014_M_750");
-  TTree* tree_1500 = (TTree*)file->Get("XZg_Spin0_ZToLL_W_0p014_M_1500");
+
+  TFile* file_eff = TFile::Open("signalEfficiency_w0p014.root");
+  TF1* f1_eff = (TF1*)file_eff->Get("f1_eff_all");
 
   std::string outdir = "optCuts";
   system( Form("mkdir -p %s", outdir.c_str()) );
 
 
-  TH1D* h1_sig_375 = optimizeCut( outdir, tree_zg, tree_375, 375., 0.03, 200., 0.5 );
+  TH1D* h1_sig_350 = optimizeCut( outdir, tree_zg, tree_350, 350., 0.03,  80., f1_eff->Eval(350.) );
+  TH1D* h1_sig_375 = optimizeCut( outdir, tree_zg, tree_375, 375., 0.03,  75., f1_eff->Eval(375.) );
+  TH1D* h1_sig_450 = optimizeCut( outdir, tree_zg, tree_450, 450., 0.03,  60., f1_eff->Eval(450.) );
+  TH1D* h1_sig_600 = optimizeCut( outdir, tree_zg, tree_600, 600., 0.03,  35., f1_eff->Eval(600.) );
+  TH1D* h1_sig_750 = optimizeCut( outdir, tree_zg, tree_750, 750., 0.03,  30., f1_eff->Eval(750.) );
 
   TFile* outfile = TFile::Open( Form("%s/file_opt.root", outdir.c_str()), "recreate");
   outfile->cd();
 
+  h1_sig_375->SetMarkerStyle(20);
+  h1_sig_750->SetMarkerStyle(20);
+
+  h1_sig_375->SetMarkerSize(1.5);
+  h1_sig_750->SetMarkerSize(1.5);
+
+  h1_sig_350->Write();
   h1_sig_375->Write();
+  h1_sig_450->Write();
+  h1_sig_600->Write();
+  h1_sig_750->Write();
 
   outfile->Close();
+
+  std::cout << "-> Find your stuff here: " << outfile->GetName() << std::endl;
    
   return 0;
 
@@ -52,7 +73,7 @@ TH1D* optimizeCut( const std::string& outdir, TTree* tree_zg, TTree* tree_sig, f
 
   float minCut = 0.;
   float maxCut = 0.7;
-  float step = 0.02;
+  float step = 0.01;
   int nSteps = (maxCut-minCut)/step;
 
   TH1D* h1_significance = new TH1D( Form("sig_%.0f", mass), "", nSteps, minCut, maxCut );
@@ -94,7 +115,7 @@ TH1D* optimizeCut( const std::string& outdir, TTree* tree_zg, TTree* tree_sig, f
 
     float thresh = minCut + (float)iStep*step;
 
-    std::cout << "step " << iStep << "::   cut: " << thresh << std::endl;
+    //std::cout << "step " << iStep << "::   cut: " << thresh << std::endl;
 
     int binMin = h1_ptOm_massCut_zg->FindBin( thresh );
     int binMax = h1_ptOm_massCut_zg->FindBin( maxCut );
@@ -108,14 +129,19 @@ TH1D* optimizeCut( const std::string& outdir, TTree* tree_zg, TTree* tree_sig, f
     thisBG  *= lumi;
     thisSig *= lumi;
 
-    std::cout << " bg: " << thisBG << std::endl;
-    std::cout << " sig: " << thisSig << std::endl;
+    //std::cout << " bg: " << thisBG << std::endl;
+    //std::cout << " sig: " << thisSig << std::endl;
 
     if( thisBG <=0. ) continue;
 
     h1_significance->SetBinContent( binMin, thisSig/sqrt(thisBG) );
 
   }
+
+  delete h1_ptOm_zg ;
+  delete h1_ptOm_sig;
+  delete h1_ptOm_massCut_zg ;
+  delete h1_ptOm_massCut_sig;
 
   return h1_significance;
 
