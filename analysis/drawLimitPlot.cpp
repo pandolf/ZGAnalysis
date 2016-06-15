@@ -78,7 +78,10 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
     else if( cat=="fit_ee" || cat=="fit_mm" ) br = 0.0337;
   } else if( name=="Zllgamma" ) {
     std::string leptType = "l";
-    if( cat=="fit_em" || cat=="fit_v0" ) leptType="l";
+    if( cat=="fit_em" || cat=="fit_v0" ) {
+      leptType="l";
+      br = 2.;
+    }
     if( cat=="fit_ee" ) leptType="e";
     if( cat=="fit_mm" ) leptType="#mu";
     //axisName = std::string(Form("95\%% CL UL on #sigma #times BR(A#rightarrowZ#gamma#rightarrow %s^{+}%s^{-}#gamma) [fb]", leptType.c_str(), leptType.c_str()));
@@ -180,7 +183,7 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
   TCanvas* c1 = new TCanvas( "c1", "", 600, 600 );
   c1->cd();
 
-  float yMax = (cfg.lumi()<10.) ? 20. : 2.;
+  float yMax = (cfg.lumi()<10.) ? 10. : 2.;
   if( cfg.lumi()*br<1. ) yMax = 300.;
   if( cat=="fit_ee" || cat=="fit_mm" ) yMax *= 2.;
   if( width=="5p6" ) yMax *= 2.;
