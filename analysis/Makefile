@@ -24,6 +24,9 @@ convertSNTtrees: convertSNTtrees.cpp
 optimizeCut: optimizeCut.cpp ZGDrawTools.o ZGConfig.o
 	$(CC) -Wall $(INCLUDES) -o optimizeCut optimizeCut.cpp ZGDrawTools.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
 
+stitchZGMC: stitchZGMC.cpp 
+	$(CC) -Wall $(INCLUDES) -o stitchZGMC stitchZGMC.cpp $(ROOTFLAG) $(EXTRALIBS)
+
 drawZG: drawZG.cpp ZGDrawTools.o ZGConfig.o
 	$(CC) -Wall $(INCLUDES) -o drawZG drawZG.cpp ZGDrawTools.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
 
