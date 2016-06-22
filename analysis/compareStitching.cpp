@@ -8,7 +8,7 @@
 #include "../interface/ZGDrawTools.h"
 
 
-void drawVar( const std::string& outdir, const std::string& saveName, const std::string& varName, const std::string& axisName, int nBins, float xMin, float xMax, TTree* tree_old, TTree* tree_stitch, TTree* tree_stitch_ptWeight ) ;
+void drawVar( const std::string& outdir, const std::string& saveName, const std::string& varName, const std::string& axisName, int nBins, float xMin, float xMax, TTree* tree_old, TTree* tree_stitch, TTree* tree_stitch_ptWeight, const std::string& selection="" );
 
 int main() {
 
@@ -16,7 +16,7 @@ int main() {
 
   TFile* file_old             = TFile::Open("$DCAP/pnfs/psi.ch/cms/trivcat/store/user/pandolf/ZGproduction/80X/PostProcessed/mc2016_v1_pu/skimAndPrune/ZGTo2LG_post_skim.root");
   TFile* file_stitch          = TFile::Open("ZGTo2LG_post_skim_stitch.root");
-  TFile* file_stitch_ptWeight = TFile::Open("ZGTo2LG_post_skim_stitch_ptWeights.root");
+  TFile* file_stitch_ptWeight = TFile::Open("ZGTo2LG_post_skim_stitch_ptWeight.root");
 
   TTree* tree_old             = (TTree*)file_old            ->Get("mt2");
   TTree* tree_stitch          = (TTree*)file_stitch         ->Get("mt2");
@@ -26,14 +26,15 @@ int main() {
   std::string outdir = "compareStitch";
   system( Form("mkdir -p %s", outdir.c_str()));
 
-  drawVar( outdir, "gamma_pt", "gamma_pt[0]", "Photon p_{T} [GeV]", 50, 80., 380., tree_old, tree_stitch, tree_stitch_ptWeight );
+  drawVar( outdir, "gamma_pt", "gamma_pt[0]", "Photon p_{T} [GeV]", 25, 80., 380., tree_old, tree_stitch, tree_stitch_ptWeight, "nlep==2 && ngamma>0" );
+  drawVar( outdir, "lept0_pt", "lep_pt[0]", "Leading Lepton p_{T} [GeV]", 25, 0., 300., tree_old, tree_stitch, tree_stitch_ptWeight, "nlep==2 && ngamma>0" );
 
   return 0;
 
 }
 
 
-void drawVar( const std::string& outdir, const std::string& saveName, const std::string& varName, const std::string& axisName, int nBins, float xMin, float xMax, TTree* tree_old, TTree* tree_stitch, TTree* tree_stitch_ptWeight ) {
+void drawVar( const std::string& outdir, const std::string& saveName, const std::string& varName, const std::string& axisName, int nBins, float xMin, float xMax, TTree* tree_old, TTree* tree_stitch, TTree* tree_stitch_ptWeight, const std::string& selection ) {
 
 
   TH1D* h1_old             = new TH1D(Form("%s_old"            , varName.c_str()), "", nBins, xMin, xMax );
@@ -44,9 +45,9 @@ void drawVar( const std::string& outdir, const std::string& saveName, const std:
   h1_stitch         ->Sumw2();
   h1_stitch_ptWeight->Sumw2();
 
-  tree_old            ->Project( h1_old            ->GetName(), varName.c_str(), "evt_scale1fb" );
-  tree_stitch         ->Project( h1_stitch         ->GetName(), varName.c_str(), "evt_scale1fb" );
-  tree_stitch_ptWeight->Project( h1_stitch_ptWeight->GetName(), varName.c_str(), "evt_scale1fb" );
+  tree_old            ->Project( h1_old            ->GetName(), varName.c_str(), Form("evt_scale1fb*(%s)", selection.c_str()) );
+  tree_stitch         ->Project( h1_stitch         ->GetName(), varName.c_str(), Form("evt_scale1fb*(%s)", selection.c_str()) );
+  tree_stitch_ptWeight->Project( h1_stitch_ptWeight->GetName(), varName.c_str(), Form("evt_scale1fb*(%s)", selection.c_str()) );
 
 
   TCanvas* c1 = new TCanvas("c1", "", 600, 600);
@@ -84,8 +85,8 @@ void drawVar( const std::string& outdir, const std::string& saveName, const std:
 
   ZGDrawTools::addLabels( c1, -1., "CMS Simulation" );
 
-  c1->SaveAs( Form("%s/compare_%s.eps", outdir.c_str(), saveName.c_str()) );
-  c1->SaveAs( Form("%s/compare_%s.pdf", outdir.c_str(), saveName.c_str()) );
+  c1->SaveAs( Form("%s/%s.eps", outdir.c_str(), saveName.c_str()) );
+  c1->SaveAs( Form("%s/%s.pdf", outdir.c_str(), saveName.c_str()) );
 
   delete c1;
   delete h2_axes;
