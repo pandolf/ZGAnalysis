@@ -10,18 +10,21 @@
 TH1D* optimizeCut( const std::string& outdir, TTree* tree_zg, TTree* tree_sig, float mass, float width, float crossSec, float eff_sel );
 
 
-
 float lumi = 10.;
 
 
+int main( int argc, char* argv[] ) {
 
 
-int main() {
+  if( argc>1 ) {
+    std::string lumi_str(argv[1]);
+    lumi = atof(lumi_str.c_str());
+  }
 
+  TFile* file_80X = TFile::Open("EventYields_presel_stitchPt/trees.root");
+  TTree* tree_zg = (TTree*)file_80X->Get("zg");
 
   TFile* file = TFile::Open("~/CMSSW_7_6_3_ZG/src/ZGAnalysis/analysis/EventYields_presel_eth74X/trees.root");
-
-  TTree* tree_zg = (TTree*)file->Get("zg");
   //TTree* tree_dy = (TTree*)file->Get("dy"); //ignore high-weight DY and multiply ZG by 1.1
   TTree* tree_350 = (TTree*)file->Get("XZg_Spin0_ZToLL_W_0p014_M_350");
   TTree* tree_375 = (TTree*)file->Get("XZg_Spin0_ZToLL_W_0p014_M_375");
@@ -32,7 +35,7 @@ int main() {
   TFile* file_eff = TFile::Open("signalEfficiency_w0p014.root");
   TF1* f1_eff = (TF1*)file_eff->Get("f1_eff_all");
 
-  std::string outdir = "optCuts";
+  std::string outdir( Form("optCuts_%.0ffb", lumi) );
   system( Form("mkdir -p %s", outdir.c_str()) );
 
 
@@ -72,7 +75,7 @@ TH1D* optimizeCut( const std::string& outdir, TTree* tree_zg, TTree* tree_sig, f
   std::cout << "++ STARTING SIGNAL: " << mass << std::endl;
 
   float minCut = 0.;
-  float maxCut = 0.7;
+  float maxCut = 1.0;
   float step = 0.01;
   int nSteps = (maxCut-minCut)/step;
 
@@ -115,7 +118,7 @@ TH1D* optimizeCut( const std::string& outdir, TTree* tree_zg, TTree* tree_sig, f
 
     float thresh = minCut + (float)iStep*step;
 
-    //std::cout << "step " << iStep << "::   cut: " << thresh << std::endl;
+    std::cout << "step " << iStep << "::   cut: " << thresh << std::endl;
 
     int binMin = h1_ptOm_massCut_zg->FindBin( thresh );
     int binMax = h1_ptOm_massCut_zg->FindBin( maxCut );
@@ -129,8 +132,8 @@ TH1D* optimizeCut( const std::string& outdir, TTree* tree_zg, TTree* tree_sig, f
     thisBG  *= lumi;
     thisSig *= lumi;
 
-    //std::cout << " bg: " << thisBG << std::endl;
-    //std::cout << " sig: " << thisSig << std::endl;
+    std::cout << " bg: " << thisBG << std::endl;
+    std::cout << " sig: " << thisSig << std::endl;
 
     if( thisBG <=0. ) continue;
 
