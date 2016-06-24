@@ -1,35 +1,49 @@
 scp \
-    EventYields_presel/eff_ptCut.pdf \
-    EventYields_presel_eth74X/plots/mZee.pdf \
-    EventYields_presel_eth74X/plots/mZmm.pdf \
-    EventYields_presel_eth74X/plots/ptgOmZg_bossCut.pdf \
-    EventYields_presel_eth74X/plots/nVert.pdf \
-    EventYields_presel_eth74X/plots/nVert_noPU.pdf \
-    EventYields_presel_eth74X/plots/ptLept0_log.pdf \
-    EventYields_presel_eth74X/plots/ptLept1_log.pdf \
-    EventYields_presel_eth74X/plots/ptZ_log.pdf \
-    EventYields_presel_eth74X/plots/ptGamma_log.pdf \
-    EventYields_presel_eth74X/plotsSignal/sig_ptgOmZg.pdf \
-    EventYields_presel_eth74X/plots/mZee_log.pdf \
-    EventYields_presel_eth74X/plots/mZmm_log.pdf \
-    EventYields_v0_eth74X/plots/mZg_ee_log.pdf \
-    EventYields_v0_eth74X/plots/mZg_mm_log.pdf \
-    EventYields_v0_eth74X/limit_Zgamma_*fit_em.pdf \
-    EventYields_v0_eth74X/limit_Zgamma_*fit_em_long.pdf \
-    EventYields_v0_eth74X/limit_Zllgamma_*fit_ee.pdf \
-    EventYields_v0_eth74X/limit_Zllgamma_*fit_mm.pdf \
-    EventYields_v0_eth74X/limit_Zllgamma_*fit_em.pdf \
-    EventYields_v0_eth74X/limit_Zllgamma_*fit_em_long.pdf \
-    EventYields_v0_eth74X/signalShapes_w0p014/plots/*pdf \
-    EventYields_v0_eth74X/signalShapes_w5p6/plots/*pdf \
-    EventYields_v0_eth74X/signalEfficiency*pdf \
-    plotsGenSignal/gensig_deltaRLept.pdf \
-    massWeightCompare_log.pdf \
-    turnOn_ee_vs_mm.pdf \
-    biasFunction.pdf \
-    EventYields_presel/syst*pdf \
-    lxplus.cern.ch:~/tdr2/notes/AN-16-057/trunk/figures/
+    EventYields_presel_stitchPt/plots/mZee.pdf \
+    EventYields_presel_stitchPt/plots/mZmm.pdf \
+    EventYields_presel_stitchPt/plots/mZee_log.pdf \
+    EventYields_presel_stitchPt/plots/mZmm_log.pdf \
+    EventYields_presel_stitchPt/plots/ptgOmZg.pdf \
+    EventYields_presel_stitchPt/plots/nVert.pdf \
+    EventYields_presel_stitchPt/plots/nVert_noPU.pdf \
+    EventYields_presel_stitchPt/plots/ptLept0_log.pdf \
+    EventYields_presel_stitchPt/plots/ptLept1_log.pdf \
+    EventYields_presel_stitchPt/plots/ptZ_log.pdf \
+    EventYields_presel_stitchPt/plots/ptGamma_log.pdf \
+    EventYields_v0_stitchPt/plots_MConly/mZg_ee_log.pdf \
+    EventYields_v0_stitchPt/plots_MConly/mZg_mm_log.pdf \
+    EventYields_v0_2016v3/limitExp_Zgamma_*fit_em_long.pdf \
+    EventYields_v0_2016v3/limitExp_Zllgamma_*fit_ee_long.pdf \
+    EventYields_v0_2016v3/limitExp_Zllgamma_*fit_mm_long.pdf \
+    compareStitch/mZg_stitch.pdf \
+    compareStitch/gamma_pt_stitch.pdf \
+    optCuts_10fb/optPlot.pdf \
+    lxplus.cern.ch:~/tdr2/notes/AN-16-193/trunk/figures/
 
+    #EventYields_presel_2016v3/plots/mZee.pdf \
+    #EventYields_presel_2016v3/plots/mZmm.pdf \
+    #EventYields_presel_2016v3/plots/ptgOmZg.pdf \
+    #EventYields_presel_2016v3/plots/nVert.pdf \
+    #EventYields_presel_2016v3/plots/nVert_noPU.pdf \
+    #EventYields_presel_2016v3/plots/ptLept0_log.pdf \
+    #EventYields_presel_2016v3/plots/ptLept1_log.pdf \
+    #EventYields_presel_2016v3/plots/ptZ_log.pdf \
+    #EventYields_presel_2016v3/plots/ptGamma_log.pdf \
+    #EventYields_v0_2016v3/plots_MConly/mZg_ee_log.pdf \
+    #EventYields_v0_2016v3/plots_MConly/mZg_mm_log.pdf \
+
+    #EventYields_presel_eth74X/plotsSignal/sig_ptgOmZg.pdf \
+    #EventYields_presel_eth74X/plots/mZee_log.pdf \
+    #EventYields_presel_eth74X/plots/mZmm_log.pdf \
+    #EventYields_v0_eth74X/signalShapes_w0p014/plots/*pdf \
+    #EventYields_v0_eth74X/signalShapes_w5p6/plots/*pdf \
+    #EventYields_v0_eth74X/signalEfficiency*pdf \
+    #plotsGenSignal/gensig_deltaRLept.pdf \
+    #massWeightCompare_log.pdf \
+    #EventYields_presel/eff_ptCut.pdf \
+    #biasFunction.pdf \
+    #turnOn_ee_vs_mm.pdf \
+    #EventYields_presel/syst*pdf \
     #EventYields_v0_eth74X/signalEfficiency_eff_ee_vs_eff_mm.pdf \
     #EventYields_v0_eth74X/signalEfficiency_ee.pdf \
     #EventYields_v0_eth74X/signalEfficiency_mm.pdf \
