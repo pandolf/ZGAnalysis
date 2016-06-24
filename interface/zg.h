@@ -51,7 +51,6 @@ public :
    Int_t         HLT_Photon155;
    Int_t         HLT_PFHT900;
    Int_t         HLT_Photon175;
-   Int_t         HLT_DiJet;
    Int_t         HLT_DoubleEl;
    Int_t         HLT_DoubleEle33;
    Int_t         HLT_DoubleMu;
@@ -77,33 +76,36 @@ public :
    //Float_t         HLT_Photon155;
    //Float_t         HLT_PFHT900;
    //Float_t         HLT_Photon175;
-   //Float_t         HLT_DiJet;
    //Float_t         HLT_DoubleEl;
    //Float_t         HLT_DoubleEle33;
    //Float_t         HLT_DoubleMu;
    //Float_t         HLT_Mu30_TkMu11;
-   Float_t         Flag_EcalDeadCellTriggerPrimitiveFilter;
-   Float_t         Flag_trkPOG_manystripclus53X;
-   Float_t         Flag_ecalLaserCorrFilter;
-   Float_t         Flag_trkPOG_toomanystripclus53X;
-   Float_t         Flag_hcalLaserEventFilter;
-   Float_t         Flag_trkPOG_logErrorTooManyClusters;
-   Float_t         Flag_trkPOGFilters;
-   Float_t         Flag_trackingFailureFilter;
-   Float_t         Flag_CSCTightHaloFilter;
-   Float_t         Flag_HBHENoiseFilter;
-   Float_t         Flag_HBHENoiseIsoFilter;
-   Float_t         Flag_goodVertices;
-   Float_t         Flag_METFilters;
-   Float_t         Flag_eeBadScFilter;
+   //Int_t           Flag_EcalDeadCellTriggerPrimitiveFilter;
+   //Int_t           Flag_trkPOG_manystripclus53X;
+   //Int_t           Flag_ecalLaserCorrFilter;
+   //Int_t           Flag_trkPOG_toomanystripclus53X;
+   //Int_t           Flag_hcalLaserEventFilter;
+   //Int_t           Flag_trkPOG_logErrorTooManyClusters;
+   //Int_t           Flag_trkPOGFilters;
+   //Int_t           Flag_trackingFailureFilter;
+   //Int_t           Flag_CSCTightHaloFilter;
+   //Int_t           Flag_HBHENoiseFilter;
+   //Int_t           Flag_HBHENoiseIsoFilter;
+   //Int_t           Flag_goodVertices;
+   //Int_t           Flag_METFilters;
+   //Int_t           Flag_eeBadScFilter;
+   Int_t           Flag_EcalDeadCellTriggerPrimitiveFilter;
+   Int_t           Flag_HBHENoiseIsoFilter;
+   Int_t           Flag_goodVertices;
+   Int_t           Flag_HBHENoiseFilter;
+   Int_t           Flag_CSCTightHalo2015Filter;
+   Int_t           Flag_eeBadScFilter;
+   Int_t           Flag_globalTightHalo2016Filter;
    Float_t         puWeight;
    Float_t         nTrueInt;
    Float_t         genWeight;
    Float_t         rho;
    Int_t           nVert;
-   Int_t           GenHeaviestQCDFlavour;
-   Float_t         LepEff_1lep;
-   Float_t         LepEff_2lep;
    Float_t         genQScale;
    Float_t         met_rawPt;
    Float_t         met_rawPhi;
@@ -252,17 +254,6 @@ public :
    Float_t         gamma_genIso03[20];   //[ngamma]
    Float_t         gamma_genIso04[20];   //[ngamma]
    Float_t         gamma_drMinParton[20];   //[ngamma]
-   Int_t           nGenP6StatusThree;
-   Float_t         GenP6StatusThree_pt[54];   //[nGenP6StatusThree]
-   Float_t         GenP6StatusThree_eta[54];   //[nGenP6StatusThree]
-   Float_t         GenP6StatusThree_phi[54];   //[nGenP6StatusThree]
-   Float_t         GenP6StatusThree_mass[54];   //[nGenP6StatusThree]
-   Int_t           GenP6StatusThree_pdgId[54];   //[nGenP6StatusThree]
-   Float_t         GenP6StatusThree_charge[54];   //[nGenP6StatusThree]
-   Int_t           GenP6StatusThree_status[54];   //[nGenP6StatusThree]
-   Int_t           GenP6StatusThree_motherId[54];   //[nGenP6StatusThree]
-   Int_t           GenP6StatusThree_motherIndex[54];   //[nGenP6StatusThree]
-   Int_t           GenP6StatusThree_grandmaId[54];   //[nGenP6StatusThree]
    Int_t           ngenLep;
    Float_t         genLep_pt[2];   //[ngenLep]
    Float_t         genLep_eta[2];   //[ngenLep]
@@ -329,33 +320,36 @@ public :
    TBranch        *b_HLT_Photon155;   //!
    TBranch        *b_HLT_PFHT900;   //!
    TBranch        *b_HLT_Photon175;   //!
-   TBranch        *b_HLT_DiJet;   //!
    TBranch        *b_HLT_DoubleEl;   //!
    TBranch        *b_HLT_DoubleEle33;   //!
    TBranch        *b_HLT_DoubleMu;   //!
    TBranch        *b_HLT_Mu30_TkMu11;
+   //TBranch        *b_Flag_EcalDeadCellTriggerPrimitiveFilter;   //!
+   //TBranch        *b_Flag_trkPOG_manystripclus53X;   //!
+   //TBranch        *b_Flag_ecalLaserCorrFilter;   //!
+   //TBranch        *b_Flag_trkPOG_toomanystripclus53X;   //!
+   //TBranch        *b_Flag_hcalLaserEventFilter;   //!
+   //TBranch        *b_Flag_trkPOG_logErrorTooManyClusters;   //!
+   //TBranch        *b_Flag_trkPOGFilters;   //!
+   //TBranch        *b_Flag_trackingFailureFilter;   //!
+   //TBranch        *b_Flag_CSCTightHaloFilter;   //!
+   //TBranch        *b_Flag_HBHENoiseFilter;   //!
+   //TBranch        *b_Flag_HBHENoiseIsoFilter;   //!
+   //TBranch        *b_Flag_goodVertices;   //!
+   //TBranch        *b_Flag_METFilters;   //!
+   //TBranch        *b_Flag_eeBadScFilter;   //!
    TBranch        *b_Flag_EcalDeadCellTriggerPrimitiveFilter;   //!
-   TBranch        *b_Flag_trkPOG_manystripclus53X;   //!
-   TBranch        *b_Flag_ecalLaserCorrFilter;   //!
-   TBranch        *b_Flag_trkPOG_toomanystripclus53X;   //!
-   TBranch        *b_Flag_hcalLaserEventFilter;   //!
-   TBranch        *b_Flag_trkPOG_logErrorTooManyClusters;   //!
-   TBranch        *b_Flag_trkPOGFilters;   //!
-   TBranch        *b_Flag_trackingFailureFilter;   //!
-   TBranch        *b_Flag_CSCTightHaloFilter;   //!
-   TBranch        *b_Flag_HBHENoiseFilter;   //!
    TBranch        *b_Flag_HBHENoiseIsoFilter;   //!
    TBranch        *b_Flag_goodVertices;   //!
-   TBranch        *b_Flag_METFilters;   //!
+   TBranch        *b_Flag_HBHENoiseFilter;   //!
+   TBranch        *b_Flag_CSCTightHalo2015Filter;   //!
    TBranch        *b_Flag_eeBadScFilter;   //!
+   TBranch        *b_Flag_globalTightHalo2016Filter;   //!
    TBranch        *b_puWeight;   //!
    TBranch        *b_nTrueInt;   //!
    TBranch        *b_genWeight;   //!
    TBranch        *b_rho;   //!
    TBranch        *b_nVert;   //!
-   TBranch        *b_GenHeaviestQCDFlavour;   //!
-   TBranch        *b_LepEff_1lep;   //!
-   TBranch        *b_LepEff_2lep;   //!
    TBranch        *b_genQScale;   //!
    TBranch        *b_met_rawPt;   //!
    TBranch        *b_met_rawPhi;   //!
@@ -504,17 +498,6 @@ public :
    TBranch        *b_gamma_genIso04;   //!
    TBranch        *b_gamma_genIso03;   //!
    TBranch        *b_gamma_drMinParton;   //!
-   TBranch        *b_nGenP6StatusThree;   //!
-   TBranch        *b_GenP6StatusThree_pt;   //!
-   TBranch        *b_GenP6StatusThree_eta;   //!
-   TBranch        *b_GenP6StatusThree_phi;   //!
-   TBranch        *b_GenP6StatusThree_mass;   //!
-   TBranch        *b_GenP6StatusThree_pdgId;   //!
-   TBranch        *b_GenP6StatusThree_charge;   //!
-   TBranch        *b_GenP6StatusThree_status;   //!
-   TBranch        *b_GenP6StatusThree_motherId;   //!
-   TBranch        *b_GenP6StatusThree_motherIndex;   //!
-   TBranch        *b_GenP6StatusThree_grandmaId;   //!
    TBranch        *b_ngenLep;   //!
    TBranch        *b_genLep_pt;   //!
    TBranch        *b_genLep_eta;   //!
@@ -645,33 +628,36 @@ void ZGTree::Init(TTree *tree)
    fChain->SetBranchAddress("HLT_Photon155", &HLT_Photon155, &b_HLT_Photon155);
    fChain->SetBranchAddress("HLT_PFHT900", &HLT_PFHT900, &b_HLT_PFHT900);
    fChain->SetBranchAddress("HLT_Photon175", &HLT_Photon175, &b_HLT_Photon175);
-   fChain->SetBranchAddress("HLT_DiJet", &HLT_DiJet, &b_HLT_DiJet);
    fChain->SetBranchAddress("HLT_DoubleEl", &HLT_DoubleEl, &b_HLT_DoubleEl);
    fChain->SetBranchAddress("HLT_DoubleEle33", &HLT_DoubleEle33, &b_HLT_DoubleEle33);
    fChain->SetBranchAddress("HLT_DoubleMu", &HLT_DoubleMu, &b_HLT_DoubleMu);
    fChain->SetBranchAddress("HLT_Mu30_TkMu11", &HLT_Mu30_TkMu11, &b_HLT_Mu30_TkMu11);
+   //fChain->SetBranchAddress("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter, &b_Flag_EcalDeadCellTriggerPrimitiveFilter);
+   //fChain->SetBranchAddress("Flag_trkPOG_manystripclus53X", &Flag_trkPOG_manystripclus53X, &b_Flag_trkPOG_manystripclus53X);
+   //fChain->SetBranchAddress("Flag_ecalLaserCorrFilter", &Flag_ecalLaserCorrFilter, &b_Flag_ecalLaserCorrFilter);
+   //fChain->SetBranchAddress("Flag_trkPOG_toomanystripclus53X", &Flag_trkPOG_toomanystripclus53X, &b_Flag_trkPOG_toomanystripclus53X);
+   //fChain->SetBranchAddress("Flag_hcalLaserEventFilter", &Flag_hcalLaserEventFilter, &b_Flag_hcalLaserEventFilter);
+   //fChain->SetBranchAddress("Flag_trkPOG_logErrorTooManyClusters", &Flag_trkPOG_logErrorTooManyClusters, &b_Flag_trkPOG_logErrorTooManyClusters);
+   //fChain->SetBranchAddress("Flag_trkPOGFilters", &Flag_trkPOGFilters, &b_Flag_trkPOGFilters);
+   //fChain->SetBranchAddress("Flag_trackingFailureFilter", &Flag_trackingFailureFilter, &b_Flag_trackingFailureFilter);
+   //fChain->SetBranchAddress("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter, &b_Flag_CSCTightHaloFilter);
+   //fChain->SetBranchAddress("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter, &b_Flag_HBHENoiseFilter);
+   //fChain->SetBranchAddress("Flag_HBHENoiseIsoFilter", &Flag_HBHENoiseIsoFilter, &b_Flag_HBHENoiseIsoFilter);
+   //fChain->SetBranchAddress("Flag_goodVertices", &Flag_goodVertices, &b_Flag_goodVertices);
+   //fChain->SetBranchAddress("Flag_METFilters", &Flag_METFilters, &b_Flag_METFilters);
+   //fChain->SetBranchAddress("Flag_eeBadScFilter", &Flag_eeBadScFilter, &b_Flag_eeBadScFilter);
    fChain->SetBranchAddress("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter, &b_Flag_EcalDeadCellTriggerPrimitiveFilter);
-   fChain->SetBranchAddress("Flag_trkPOG_manystripclus53X", &Flag_trkPOG_manystripclus53X, &b_Flag_trkPOG_manystripclus53X);
-   fChain->SetBranchAddress("Flag_ecalLaserCorrFilter", &Flag_ecalLaserCorrFilter, &b_Flag_ecalLaserCorrFilter);
-   fChain->SetBranchAddress("Flag_trkPOG_toomanystripclus53X", &Flag_trkPOG_toomanystripclus53X, &b_Flag_trkPOG_toomanystripclus53X);
-   fChain->SetBranchAddress("Flag_hcalLaserEventFilter", &Flag_hcalLaserEventFilter, &b_Flag_hcalLaserEventFilter);
-   fChain->SetBranchAddress("Flag_trkPOG_logErrorTooManyClusters", &Flag_trkPOG_logErrorTooManyClusters, &b_Flag_trkPOG_logErrorTooManyClusters);
-   fChain->SetBranchAddress("Flag_trkPOGFilters", &Flag_trkPOGFilters, &b_Flag_trkPOGFilters);
-   fChain->SetBranchAddress("Flag_trackingFailureFilter", &Flag_trackingFailureFilter, &b_Flag_trackingFailureFilter);
-   fChain->SetBranchAddress("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter, &b_Flag_CSCTightHaloFilter);
-   fChain->SetBranchAddress("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter, &b_Flag_HBHENoiseFilter);
    fChain->SetBranchAddress("Flag_HBHENoiseIsoFilter", &Flag_HBHENoiseIsoFilter, &b_Flag_HBHENoiseIsoFilter);
    fChain->SetBranchAddress("Flag_goodVertices", &Flag_goodVertices, &b_Flag_goodVertices);
-   fChain->SetBranchAddress("Flag_METFilters", &Flag_METFilters, &b_Flag_METFilters);
+   fChain->SetBranchAddress("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter, &b_Flag_HBHENoiseFilter);
+   fChain->SetBranchAddress("Flag_CSCTightHalo2015Filter", &Flag_CSCTightHalo2015Filter, &b_Flag_CSCTightHalo2015Filter);
    fChain->SetBranchAddress("Flag_eeBadScFilter", &Flag_eeBadScFilter, &b_Flag_eeBadScFilter);
+   fChain->SetBranchAddress("Flag_globalTightHalo2016Filter", &Flag_globalTightHalo2016Filter, &b_Flag_globalTightHalo2016Filter);
    fChain->SetBranchAddress("puWeight", &puWeight, &b_puWeight);
    fChain->SetBranchAddress("nTrueInt", &nTrueInt, &b_nTrueInt);
    fChain->SetBranchAddress("genWeight", &genWeight, &b_genWeight);
    fChain->SetBranchAddress("rho", &rho, &b_rho);
    fChain->SetBranchAddress("nVert", &nVert, &b_nVert);
-   fChain->SetBranchAddress("GenHeaviestQCDFlavour", &GenHeaviestQCDFlavour, &b_GenHeaviestQCDFlavour);
-   fChain->SetBranchAddress("LepEff_1lep", &LepEff_1lep, &b_LepEff_1lep);
-   fChain->SetBranchAddress("LepEff_2lep", &LepEff_2lep, &b_LepEff_2lep);
    fChain->SetBranchAddress("genQScale", &genQScale, &b_genQScale);
    fChain->SetBranchAddress("met_rawPt", &met_rawPt, &b_met_rawPt);
    fChain->SetBranchAddress("met_rawPhi", &met_rawPhi, &b_met_rawPhi);
@@ -724,17 +710,6 @@ void ZGTree::Init(TTree *tree)
      fChain->SetBranchAddress("genLep_charge", genLep_charge, &b_genLep_charge);
      fChain->SetBranchAddress("genLep_status", genLep_status, &b_genLep_status);
      fChain->SetBranchAddress("genLep_sourceId", genLep_sourceId, &b_genLep_sourceId);
-     fChain->SetBranchAddress("nGenP6StatusThree", &nGenP6StatusThree, &b_nGenP6StatusThree);
-     fChain->SetBranchAddress("GenP6StatusThree_pt", GenP6StatusThree_pt, &b_GenP6StatusThree_pt);
-     fChain->SetBranchAddress("GenP6StatusThree_eta", GenP6StatusThree_eta, &b_GenP6StatusThree_eta);
-     fChain->SetBranchAddress("GenP6StatusThree_phi", GenP6StatusThree_phi, &b_GenP6StatusThree_phi);
-     fChain->SetBranchAddress("GenP6StatusThree_mass", GenP6StatusThree_mass, &b_GenP6StatusThree_mass);
-     fChain->SetBranchAddress("GenP6StatusThree_pdgId", GenP6StatusThree_pdgId, &b_GenP6StatusThree_pdgId);
-     fChain->SetBranchAddress("GenP6StatusThree_charge", GenP6StatusThree_charge, &b_GenP6StatusThree_charge);
-     fChain->SetBranchAddress("GenP6StatusThree_status", GenP6StatusThree_status, &b_GenP6StatusThree_status);
-     fChain->SetBranchAddress("GenP6StatusThree_motherId", GenP6StatusThree_motherId, &b_GenP6StatusThree_motherId);
-     fChain->SetBranchAddress("GenP6StatusThree_motherIndex", GenP6StatusThree_motherIndex, &b_GenP6StatusThree_motherIndex);
-     fChain->SetBranchAddress("GenP6StatusThree_grandmaId", GenP6StatusThree_grandmaId, &b_GenP6StatusThree_grandmaId);
    }
    fChain->SetBranchAddress("njet", &njet, &b_njet);
    fChain->SetBranchAddress("jet_pt", jet_pt, &b_jet_pt);
@@ -886,7 +861,14 @@ void ZGTree::Show(Long64_t entry)
 
 
 Bool_t ZGTree::passFilters() const {
-  return nVert>0 && Flag_HBHENoiseFilter && Flag_HBHENoiseIsoFilter && Flag_eeBadScFilter; // Beam halo from txt file
+  bool pass = Flag_HBHENoiseFilter 
+           && Flag_HBHENoiseIsoFilter 
+           && Flag_CSCTightHalo2015Filter 
+           && Flag_EcalDeadCellTriggerPrimitiveFilter 
+           && Flag_goodVertices 
+           && Flag_eeBadScFilter;
+  return pass;
+  //return nVert>0 && Flag_HBHENoiseFilter && Flag_HBHENoiseIsoFilter && Flag_eeBadScFilter; // Beam halo from txt file
 }
 
 
