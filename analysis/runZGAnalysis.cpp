@@ -39,8 +39,10 @@ void addTreeToFile( TFile* file, ZGSample sample, const ZGConfig& cfg );
 void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSample> samples, const ZGConfig& cfg, int idMin=-1, int idMax=-1 );
 void smearEmEnergy     ( TLorentzVector& p );
 void applyEmEnergyScale( TLorentzVector& p );
+float getPUweight( TH1D* h1_pu, float nTrueInt );
 
-TLorentzVector selectPhoton( const ZGConfig& cfg, const ZGTree& myTree, int index, const TLorentzVector& lept0, const TLorentzVector& lept1 );
+//TLorentzVector selectPhoton( const ZGConfig& cfg, const ZGTree& myTree, int index, const TLorentzVector& lept0, const TLorentzVector& lept1 );
+TLorentzVector selectPhoton( const ZGConfig& cfg, const ZGTree& myTree, int index, const TLorentzVector& lept0, const TLorentzVector& lept1, EnergyScaleCorrection_class egcor );
 
 
 TRandom3 myRandom_(13);
@@ -140,7 +142,7 @@ int main( int argc, char* argv[] ) {
 
 
     //addTreeToFile( outfile, "zg", fSamples, cfg);
-    addTreeToFile( outfile, "zg", fSamples, cfg, 851 );
+    addTreeToFile( outfile, "zg", fSamples, cfg, 851, 852 );
     addTreeToFile( outfile, "dy", fSamples, cfg, 700, 710 );
     //addTreeToFile( outfile, "top", fSamples, cfg, 300, 499 ); // irrelevant
     
@@ -251,6 +253,10 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
   //TFile* puFile_mc = TFile::Open("puMC.root");
   //TH1D* h1_nVert_mc = (TH1D*)puFile_mc->Get("nVert");
 
+  // for pu reweighting:
+  TFile* puFile = TFile::Open("DoubleEG_cert_210.root");
+  TH1D* h1_pu = (TH1D*)puFile->Get("pileup");
+
 
   ZGTree myTree;
   myTree.loadGenStuff = false;
@@ -303,6 +309,8 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
   outTree->Branch( "HLT_DoubleEle33", &HLT_DoubleEle33, "HLT_DoubleEle33/O" );
   bool HLT_DoubleMu;
   outTree->Branch( "HLT_DoubleMu", &HLT_DoubleMu, "HLT_DoubleMu/O" );
+  bool HLT_Mu30_TkMu11;
+  outTree->Branch( "HLT_Mu30_TkMu11", &HLT_Mu30_TkMu11, "HLT_Mu30_TkMu11/O" );
   bool HLT_SingleMu;
   outTree->Branch( "HLT_SingleMu", &HLT_SingleMu, "HLT_SingleMu/O" );
   bool passStandardIso;
@@ -389,13 +397,15 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
 
 
 
+
+
   //// for muon rochester corrections
   //rochcor2015 *rmcor = new rochcor2015();
 
-  //// for photon energy scale/smearings (76X only)
-  //EnergyScaleCorrection_class egcor("76X_16DecRereco_2015");
-  //egcor.doScale=true;
-  //egcor.doSmearings=false;
+  // for photon energy scale/smearings (76X only)
+  EnergyScaleCorrection_class egcor("Golden10June_plus_DCS");
+  egcor.doSmearings=true;
+  egcor.doScale=false;
 
  
   int nentries = tree->GetEntries();
@@ -443,10 +453,11 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     // remove overlap from DY:
     if( id>=700 && id<710 ) {
       if( myTree.ngamma>0 && myTree.gamma_mcMatchId[0]==22 ) continue;
-      //if( myTree.ngamma==0 ) continue;
-      //bool isFake = myTree.gamma_mcMatchId[0]!=22;
-      //bool okFromDY = isFake || (!isFake && myTree.gamma_drMinParton[0]<0.05);
-      //if( !okFromDY ) continue;
+      //if( myTree.ngamma>0 ) {
+      //  bool isFake = myTree.gamma_mcMatchId[0]!=22;
+      //  bool okFromDY = isFake || (!isFake && myTree.gamma_drMinParton[0]<0.05);
+      //  if( !okFromDY ) continue;
+      //}
     }
 
     if( myTree.nVert==0 ) continue;
@@ -455,7 +466,7 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     
     // filters 
     if( myTree.isData ) {
-      //if( !myTree.passFilters() ) continue;
+      if( !myTree.passFilters() ) continue;
     }
 
     isGolden = myTree.isGolden;
@@ -464,6 +475,7 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     HLT_Photon165   = myTree.HLT_Photon165_HE10;
     HLT_DoubleEle   = myTree.HLT_DoubleEl;
     HLT_DoubleMu    = myTree.HLT_DoubleMu;
+    HLT_Mu30_TkMu11 = myTree.HLT_Mu30_TkMu11;
     HLT_DoubleEle33 = myTree.HLT_DoubleEle33;
     HLT_SingleMu    = myTree.HLT_SingleMu;
 
@@ -472,9 +484,9 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
       if( !myTree.isGolden ) continue;
       //if( !myTree.isSilver ) continue;
       passHLT = false;
-      if( id==5 ) passHLT = myTree.HLT_DoubleMu; //DoubleMu PD
-      if( id==8 ) passHLT = myTree.HLT_SingleMu && !myTree.HLT_DoubleMu; //SingleMu PD
-      if( id==4 ) passHLT = (myTree.HLT_DoubleEl || myTree.HLT_DoubleEle33) && !myTree.HLT_DoubleMu && !myTree.HLT_SingleMu; //DoubleEG PD
+      if( id==5 ) passHLT = myTree.HLT_DoubleMu || myTree.HLT_Mu30_TkMu11; //DoubleMu PD
+      if( id==8 ) passHLT = myTree.HLT_SingleMu && !myTree.HLT_DoubleMu && !myTree.HLT_Mu30_TkMu11; //SingleMu PD
+      if( id==4 ) passHLT = (myTree.HLT_DoubleEl || myTree.HLT_DoubleEle33) && !myTree.HLT_DoubleMu && !myTree.HLT_Mu30_TkMu11 && !myTree.HLT_SingleMu; //DoubleEG PD
       //if( id==7 ) passHLT = myTree.HLT_Photon165_HE10 && !myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu; //SinglePhoton PD
       //if( id==5 ) passHLT = myTree.HLT_DoubleMu; //DoubleMu PD
       //if( id==4 ) passHLT = myTree.HLT_DoubleEl && !myTree.HLT_DoubleMu && !myTree.HLT_SingleMu; //DoubleEG PD
@@ -482,8 +494,8 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     } else {
       // hlt on mc:
       passHLT = true; // no HLT in 80X MC
-      //passHLT = ( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_DoubleEl33 );
-      //passHLT = ( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_DoubleEle33 || myTree.HLT_SingleMu );
+      //passHLT = ( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_Mu30_TkMu11 || myTree.HLT_DoubleEle33 );
+      //passHLT = ( myTree.HLT_DoubleEl || myTree.HLT_DoubleMu || myTree.HLT_Mu30_TkMu11 || myTree.HLT_DoubleEle33 || myTree.HLT_SingleMu );
     }
 
     if( !passHLT && cfg.additionalStuff()!="noHLT" ) continue;
@@ -511,13 +523,28 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
 
       weight = myTree.evt_scale1fb*cfg.lumi();
       // pu reweighting:
+      //puWeight = getPUweight( h1_pu, myTree.nTrueInt );
       puWeight = myTree.puWeight;
-      //weight *= puWeight;
+      weight *= puWeight;
+
       // lepton SF:
+      float leptonSF = 1.;
+      if( leptType==13 ) {
+        float isoSF = 0.9997;
+        float idSF_loose = 0.997;
+        float idSF_tight = 0.983;
+        float idSF = idSF_loose*idSF_tight;
+        if( myTree.lep_tightId[0]==1 && myTree.lep_tightId[1]==1 )
+          idSF = 2.*idSF_loose*idSF_tight - idSF_tight*idSF_tight;
+
+        leptonSF = isoSF*idSF;
+      }
+      weight *= leptonSF; 
+          
       //weight *= myTree.weight_lepsf;
       //// hlt SF:
-      //float hltSF = (leptType==11) ? 1.02 : 0.94;
-      //weight *= hltSF;
+      float hltSF = (leptType==11) ? 1.0 : 0.989;
+      weight *= hltSF;
 
       weight_lep = myTree.weight_lepsf_UP;
       weight_scale = weight; // will compute later
@@ -539,6 +566,7 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     if( leptType==11 ) {
       if( myTree.lep_tightId[0]==0 || myTree.lep_tightId[1]==0 ) continue; // loose electron ID
     } else {
+      //if( myTree.lep_tightId[0]==0 || myTree.lep_tightId[1]==0 ) continue; // tight muon ID on both
       if( !( (myTree.lep_tightId[0]==1 && myTree.lep_tightId[0]>=0) 
           || (myTree.lep_tightId[1]==1 && myTree.lep_tightId[1]>=0)) ) continue; // tight muon ID on at least one of the muons
     }
@@ -595,12 +623,12 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
       if( myTree.ngamma==0 ) continue; // photon
       if( event == DEBUG_EVENT )  std::cout << " -> passed ngamma requirement " << std::endl;
 
-      photon  = selectPhoton(cfg, myTree, 0, lept0, lept1);
+      photon  = selectPhoton(cfg, myTree, 0, lept0, lept1, egcor);
 
       if( photon.Pt()<1. ) continue;
       if( event == DEBUG_EVENT )  std::cout << " -> passed photon requirement " << std::endl;
 
-      photon2 = selectPhoton(cfg, myTree, 1, lept0, lept1);
+      photon2 = selectPhoton(cfg, myTree, 1, lept0, lept1, egcor);
 
       foundSecondPhoton = photon2.Pt()>10.;
 
@@ -670,7 +698,7 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     met = myTree.met_pt;
 
     if( cfg.selection()=="v0" )
-      if( gamma_pt/boss_mass< 40./150. ) continue;
+      if( gamma_pt/boss_mass < 40./150. ) continue;
 
     if( cfg.selection()=="Qv0" ) {
       if( myTree.njet==0 ) continue;
@@ -765,6 +793,8 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
  
   outTree->Write();
 
+  puFile->Close();
+
 }
 
 
@@ -811,7 +841,7 @@ void applyEmEnergyScale( TLorentzVector& p ) {
 }
 
 
-TLorentzVector selectPhoton( const ZGConfig& cfg, const ZGTree& myTree, int index, const TLorentzVector& lept0, const TLorentzVector& lept1 ) {
+TLorentzVector selectPhoton( const ZGConfig& cfg, const ZGTree& myTree, int index, const TLorentzVector& lept0, const TLorentzVector& lept1, EnergyScaleCorrection_class egcor ) {
 
   TLorentzVector photon;
   if( myTree.ngamma<=index ) {
@@ -819,6 +849,18 @@ TLorentzVector selectPhoton( const ZGConfig& cfg, const ZGTree& myTree, int inde
     return photon;
   }
   photon.SetPtEtaPhiM( myTree.gamma_pt[index], myTree.gamma_eta[index], myTree.gamma_phi[index], myTree.gamma_mass[index] );
+
+  //// photon energy corrections/smearing 
+  //if( !myTree.isData ) {
+  //  float smearSigma =  egcor.getSmearingSigma(myTree.run, fabs(photon.Eta())<1.479, myTree.gamma_r9[0], photon.Eta(), photon.Pt(), 0., 0.);
+  //  std::cout << "eta: " << photon.Eta() << " pt: " << photon.Pt() << " r9: " << myTree.gamma_r9[0] << " smear: " << smearSigma << std::endl;
+  //  exit(11);
+  //  //smearEmEnergy( photon ); // 74X smearings
+  //} else {
+  //  //applyEmEnergyScale( photon );
+  //  float cor = egcor.ScaleCorrection(myTree.run, fabs(photon.Eta())<1.479, myTree.gamma_r9[0], photon.Eta(), photon.Pt());
+  //  photon.SetPtEtaPhiM( photon.Pt()*cor, photon.Eta(), photon.Phi(), photon.M() );
+  //}
 
   bool goodPhoton = true;
   if( photon.Pt()<40. ) goodPhoton=false;
@@ -834,20 +876,20 @@ TLorentzVector selectPhoton( const ZGConfig& cfg, const ZGTree& myTree, int inde
   float deltaR_thresh = 0.4;
   if( photon.DeltaR(lept0)<deltaR_thresh || photon.DeltaR(lept1)<deltaR_thresh ) goodPhoton=false;
 
-  //// photon energy corrections/smearing NOT done at heppy (in 74X, will be in for 76X)
-  //if( !myTree.isData ) {
-  //  if( cfg.smearing() ) {
-  //    smearEmEnergy( photon ); // 74X smearings
-  //  }
-  //} else {
-  //  applyEmEnergyScale( photon );
-  //  //float cor = egcor.ScaleCorrection(run, fabs(photon.Eta())<1.479, myTree.gamma_r9[0], photon.Eta(), photon.Pt());
-  //  //photon.SetPtEtaPhiM( photon.Pt()*cor, photon.Eta(), photon.Phi(), photon.M() );
-  //}
 
   if( !goodPhoton )
     photon.SetPtEtaPhiM( 0.01, 0., 0., 0. );
 
   return photon;
+
+}
+
+
+float getPUweight( TH1D* h1_pu, float nTrueInt ) {
+
+  int bin = h1_pu->FindBin(nTrueInt);
+  float w = h1_pu->GetBinContent(bin)/h1_pu->Integral();
+
+  return w;
 
 }
