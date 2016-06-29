@@ -54,9 +54,9 @@ int main( int argc, char* argv[] ) {
   std::string limitsFile( Form( "%s/limits_w%s_%s.txt", cfg.getEventYieldDir().c_str(), width.c_str(), fitName.c_str() ) );
 
   drawSingleLimitPlot( cfg, limitsFile, file_eff, fitName, width, "Zllgamma", true );
-  drawSingleLimitPlot( cfg, limitsFile, file_eff, fitName, width, "Zllgamma", false );
+  //drawSingleLimitPlot( cfg, limitsFile, file_eff, fitName, width, "Zllgamma", false );
   drawSingleLimitPlot( cfg, limitsFile, file_eff, fitName, width, "Zgamma"  , true   );
-  drawSingleLimitPlot( cfg, limitsFile, file_eff, fitName, width, "Zgamma"  , false   );
+  //drawSingleLimitPlot( cfg, limitsFile, file_eff, fitName, width, "Zgamma"  , false   );
 
   return 0;
 
@@ -70,17 +70,14 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
 
 
   std::string axisName;
-  float br = 1.;
+  float conversion = 1.;
   if( name=="Zgamma" ) {
     axisName = "#sigma(pp#rightarrowA+X#rightarrowZ#gamma+X) [fb]";
-    //axisName = "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma) [fb]";
-    if( cat=="fit_em" || cat=="fit_v0" )      br = 2.*0.0337;
-    else if( cat=="fit_ee" || cat=="fit_mm" ) br = 0.0337;
   } else if( name=="Zllgamma" ) {
     std::string leptType = "l";
+    conversion = 0.03366;
     if( cat=="fit_em" || cat=="fit_v0" ) {
       leptType="l";
-      br = 2.;
     }
     if( cat=="fit_ee" ) leptType="e";
     if( cat=="fit_mm" ) leptType="#mu";
@@ -132,15 +129,16 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
     float thisEff = (f1_eff!=0 ) ? f1_eff->Eval(m) : 1.;
 
 
-    float conversion = (cat=="comb_all") ? 1. : thisEff*cfg.lumi()*br;
+    //float conversion = (cat=="comb_all") ? 1. : thisEff*cfg.lumi()*br;
+    //float conversion = 1.; // taken care of in combine maker now
     //float conversion = 2.*eff*lumi;
 
-    obs    /=conversion;
-    exp    /=conversion;
-    exp_m1s/=conversion;
-    exp_m2s/=conversion;
-    exp_p1s/=conversion;
-    exp_p2s/=conversion;
+    obs    *=conversion;
+    exp    *=conversion;
+    exp_m1s*=conversion;
+    exp_m2s*=conversion;
+    exp_p1s*=conversion;
+    exp_p2s*=conversion;
     std::cout << "m: " << m << " obs: " << obs << " exp: " << exp << " exp_m1s: " << exp_m1s << " exp_m2s: " << exp_m2s << " exp_p1s: " << exp_p1s << " exp_p2s: " << exp_p2s << std::endl;
 
 
@@ -151,10 +149,11 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
       iPointObs++;
     }
 
-    bool okForExp = ((m==348.) || (m==2000.) || (m==748.)
-                  || (m>=400. && m<900.  && (int(m) % 50 == 0) && m!=750.) 
-                  //|| (m>=700. && m<1100. && (int(m) % 100 == 0))
-                  || (m>=900. && (int(m-100) % 200 == 0))  );
+    bool okForExp = true; //m>350.;
+    //bool okForExp = ((m==348.) || (m==2000.) || (m==748.)
+    //              || (m>=400. && m<900.  && (int(m) % 50 == 0) && m!=750.) 
+    //              //|| (m>=700. && m<1100. && (int(m) % 100 == 0))
+    //              || (m>=900. && (int(m-100) % 200 == 0))  );
     if( okForExp ) {
       gr_exp       ->SetPoint( iPointExp, m, exp );
       gr_exp_1sigma->SetPoint( iPointExp, m, exp );
@@ -184,12 +183,13 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
   c1->cd();
 
   float yMax = (cfg.lumi()<10.) ? 10. : 2.;
-  if( cfg.lumi()*br<1. ) yMax = 300.;
-  if( cat=="fit_ee" || cat=="fit_mm" ) yMax *= 2.;
+  yMax = (name=="Zllgamma") ? 20. : 300.;
+  //if( cfg.lumi()*br<1. ) yMax = 300.;
+  //if( cat=="fit_ee" || cat=="fit_mm" ) yMax *= 2.;
   if( width=="5p6" ) yMax *= 2.;
   if( cat=="comb_all" ) yMax = 5.;
 
-  TH2D* h2_axes = new TH2D("axes", "", 10, 350., 1000., 10, 0., yMax );
+  TH2D* h2_axes = new TH2D("axes", "", 10, 300., 1000., 10, 0., yMax );
   h2_axes->SetYTitle( axisName.c_str() );
   //h2_axes->SetYTitle( "95\% CL UL on #sigma #times BR(A#rightarrowZ#gamma#rightarrowl^{+}l^{-}#gamma) [fb]");
   h2_axes->SetXTitle( "Resonance Mass [GeV]");
@@ -255,7 +255,7 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
 
   c1->Clear();
 
-  TH2D* h2_axes_long = new TH2D("axes_long", "", 10, 350., 2000., 10, 0., yMax );
+  TH2D* h2_axes_long = new TH2D("axes_long", "", 10, 300., 2000., 10, 0., yMax );
   h2_axes_long->SetYTitle( axisName.c_str() );
   h2_axes_long->SetXTitle( "Resonance Mass [GeV]");
   h2_axes_long->Draw();
@@ -288,6 +288,22 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
     c1->SaveAs( Form("%s/limit_%s_w%s_%s_long.pdf", cfg.getEventYieldDir().c_str(), name.c_str(), width.c_str(), cat.c_str()) );
     c1->SaveAs( Form("%s/limit_%s_w%s_%s_long.root", cfg.getEventYieldDir().c_str(), name.c_str(), width.c_str(), cat.c_str()) );
     c1->SaveAs( Form("%s/limit_%s_w%s_%s_long.C", cfg.getEventYieldDir().c_str(), name.c_str(), width.c_str(), cat.c_str()) );
+  }
+
+  c1->SetLogx();
+  h2_axes_long->GetXaxis()->SetMoreLogLabels();
+  h2_axes_long->GetXaxis()->SetNoExponent();
+
+  if( onlyExpected ) {
+    c1->SaveAs( Form("%s/limitExp_%s_w%s_%s_long_logx.eps", cfg.getEventYieldDir().c_str(), name.c_str(), width.c_str(), cat.c_str()) );
+    c1->SaveAs( Form("%s/limitExp_%s_w%s_%s_long_logx.pdf", cfg.getEventYieldDir().c_str(), name.c_str(), width.c_str(), cat.c_str()) );
+    c1->SaveAs( Form("%s/limitExp_%s_w%s_%s_long_logx.root", cfg.getEventYieldDir().c_str(), name.c_str(), width.c_str(), cat.c_str()) );
+    c1->SaveAs( Form("%s/limitExp_%s_w%s_%s_long_logx.C", cfg.getEventYieldDir().c_str(), name.c_str(), width.c_str(), cat.c_str()) );
+  } else {
+    c1->SaveAs( Form("%s/limit_%s_w%s_%s_long_logx.eps", cfg.getEventYieldDir().c_str(), name.c_str(), width.c_str(), cat.c_str()) );
+    c1->SaveAs( Form("%s/limit_%s_w%s_%s_long_logx.pdf", cfg.getEventYieldDir().c_str(), name.c_str(), width.c_str(), cat.c_str()) );
+    c1->SaveAs( Form("%s/limit_%s_w%s_%s_long_logx.root", cfg.getEventYieldDir().c_str(), name.c_str(), width.c_str(), cat.c_str()) );
+    c1->SaveAs( Form("%s/limit_%s_w%s_%s_long_logx.C", cfg.getEventYieldDir().c_str(), name.c_str(), width.c_str(), cat.c_str()) );
   }
 
 
