@@ -127,9 +127,9 @@ TH1D* optimizeCut( const std::string& outdir, TTree* tree_zg, TTree* tree_sig, f
 
     float thisCutEffSig = h1_ptOm_massCut_sig->Integral( binMin, binMax )/h1_ptOm_massCut_sig->Integral();
 
-    float thisSig = crossSec * eff_sel * thisCutEffSig * effMassCutSig * 2.*0.0033;
+    float thisSig = crossSec * eff_sel * thisCutEffSig * effMassCutSig * 2.*0.033;
 
-    thisBG  *= lumi;
+    thisBG  *= lumi / 2.07;
     thisSig *= lumi;
 
     std::cout << " bg: " << thisBG << std::endl;
