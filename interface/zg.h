@@ -224,6 +224,7 @@ public :
    Int_t           lep_mcMatchId[5];   //[nlep]
    Int_t           lep_mcMatchAny[5];   //[nlep]
    Int_t           lep_mcMatchTau[5];   //[nlep]
+   Float_t         lep_r9[5];   //[nlep]
    Int_t           ngenLepFromTau;
    Float_t         genLepFromTau_pt[5];   //[ngenLepFromTau]
    Float_t         genLepFromTau_eta[5];   //[ngenLepFromTau]
@@ -468,6 +469,7 @@ public :
    TBranch        *b_lep_mcMatchId;   //!
    TBranch        *b_lep_mcMatchAny;   //!
    TBranch        *b_lep_mcMatchTau;   //!
+   TBranch        *b_lep_r9;   //!
    TBranch        *b_ngenLepFromTau;   //!
    TBranch        *b_genLepFromTau_pt;   //!
    TBranch        *b_genLepFromTau_eta;   //!
@@ -788,6 +790,7 @@ void ZGTree::Init(TTree *tree)
    fChain->SetBranchAddress("lep_mcMatchId", lep_mcMatchId, &b_lep_mcMatchId);
    fChain->SetBranchAddress("lep_mcMatchAny", lep_mcMatchAny, &b_lep_mcMatchAny);
    fChain->SetBranchAddress("lep_mcMatchTau", lep_mcMatchTau, &b_lep_mcMatchTau);
+   fChain->SetBranchAddress("lep_r9", lep_r9, &b_lep_r9);
    fChain->SetBranchAddress("ngamma", &ngamma, &b_ngamma);
    fChain->SetBranchAddress("gamma_pt", gamma_pt, &b_gamma_pt);
    fChain->SetBranchAddress("gamma_eta", gamma_eta, &b_gamma_eta);
