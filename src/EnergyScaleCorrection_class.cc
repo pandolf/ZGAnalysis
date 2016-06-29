@@ -28,14 +28,14 @@ EnergyScaleCorrection_class::EnergyScaleCorrection_class(std::string correctionF
     }
   }
   
-  //if(correctionFileName.size() > 0) { 
-  //  std::string filename = correctionFileName+"_smearings.dat";
-  //  ReadSmearingFromFile(filename);
-  //  if(smearings.empty()) {
-  //    std::cerr << "[ERROR] scale correction map empty" << std::endl;
-  //    exit(1);
-  //  }
-  //}
+  if(correctionFileName.size() > 0) { 
+    std::string filename = correctionFileName+"_smearings.dat";
+    ReadSmearingFromFile(filename);
+    if(smearings.empty()) {
+      std::cerr << "[ERROR] scale correction map empty" << std::endl;
+      exit(1);
+    }
+  }
   
   return;
 }
