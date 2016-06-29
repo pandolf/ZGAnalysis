@@ -20,7 +20,7 @@
 #include "../interface/rochcor2015.h"
 #include "../interface/muresolution_run2.h"
 
-// photon smearing/scales for 76X
+// photon smearing/scales
 #include "../interface/EnergyScaleCorrection_class.hh"
 
 
@@ -37,8 +37,8 @@ bool doSyst = false;
 
 void addTreeToFile( TFile* file, ZGSample sample, const ZGConfig& cfg );
 void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSample> samples, const ZGConfig& cfg, int idMin=-1, int idMax=-1 );
-void smearEmEnergy     ( TLorentzVector& p );
-void applyEmEnergyScale( TLorentzVector& p );
+void smearEmEnergy( const EnergyScaleCorrection_class& egcor, TLorentzVector& p, const ZGTree& myTree, float r9 );
+void applyEmEnergyScale( const EnergyScaleCorrection_class& egcor, TLorentzVector& p, const ZGTree& myTree, float r9 );
 float getPUweight( TH1D* h1_pu, float nTrueInt );
 
 //TLorentzVector selectPhoton( const ZGConfig& cfg, const ZGTree& myTree, int index, const TLorentzVector& lept0, const TLorentzVector& lept1 );
@@ -402,10 +402,10 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
   //// for muon rochester corrections
   //rochcor2015 *rmcor = new rochcor2015();
 
-  // for photon energy scale/smearings (76X only)
+
   EnergyScaleCorrection_class egcor("Golden10June_plus_DCS");
-  egcor.doSmearings=true;
-  egcor.doScale=false;
+  //egcor.doSmearings=true;
+  //egcor.doScale=false;
 
  
   int nentries = tree->GetEntries();
@@ -421,6 +421,21 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     event = myTree.evt;
     id    = myTree.evt_id;
 
+
+    if( iEntry==0 ) { // initialize stuff
+
+      if( id<100 ) {
+        egcor.doScale=true;
+        egcor.doSmearings=false;
+      } else {
+        egcor.doScale=false;
+        egcor.doSmearings=true;
+      }
+
+    }
+
+
+
     if( event == DEBUG_EVENT ) {
       std::cout << "++++ STARTING DEBUG COUT FOR: " << std::endl;
       std::cout << "    Run: " << run << std::endl;
@@ -428,7 +443,7 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
       std::cout << "    Event : " << event << std::endl;
     }
 
-    bool doSystForThisSample =  doSyst && (id==851 || id==4301 || id==4302);
+    bool doSystForThisSample =  doSyst && (id==851 || id==852 || id==4301 || id==4302);
 
     if( iEntry==0 && doSystForThisSample ) { // allocate all of the PDF stuff
 
@@ -459,6 +474,7 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
       //  if( !okFromDY ) continue;
       //}
     }
+
 
     if( myTree.nVert==0 ) continue;
     nVert = myTree.nVert;
@@ -591,14 +607,13 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
 
     } else if( leptType==11 ) {
 
-      // already applied at heppy level
-      //if( !myTree.isData ) {
-      //  smearEmEnergy( lept0 );
-      //  smearEmEnergy( lept1 );
-      //} else {
-      //  applyEmEnergyScale( lept0 );
-      //  applyEmEnergyScale( lept1 );
-      //}
+      if( !myTree.isData ) {
+        smearEmEnergy( egcor, lept0, myTree, myTree.lep_r9[0] );
+        smearEmEnergy( egcor, lept1, myTree, myTree.lep_r9[1] );
+      } else {
+        applyEmEnergyScale( egcor, lept0, myTree, myTree.lep_r9[0] );
+        applyEmEnergyScale( egcor, lept1, myTree, myTree.lep_r9[1] );
+      }
 
       bool passStandardIso0 = (fabs(myTree.lep_eta[0])<1.479) ? myTree.lep_relIso03[0]<0.0893 : myTree.lep_relIso03[0]<0.121;
       bool passStandardIso1 = (fabs(myTree.lep_eta[1])<1.479) ? myTree.lep_relIso03[1]<0.0893 : myTree.lep_relIso03[1]<0.121;
@@ -646,6 +661,8 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
       boss2 = zBoson + photon + photon2;
     else
       boss2.SetPtEtaPhiM( 0.1, 0., 0., 0.);
+
+    //if( id==851 && boss.M()>600. ) continue;
 
 
     lept0_pt   = lept0.Pt();
@@ -799,46 +816,23 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
 
 
 
-void smearEmEnergy( TLorentzVector& p ) {
+void smearEmEnergy( const EnergyScaleCorrection_class& egcor, TLorentzVector& p, const ZGTree& myTree, float r9 ) {
 
-  float smearEBlowEta     = 0.013898;
-  float smearEBhighEta    = 0.0189895;
-  float smearEElowEta     = 0.027686;
-  float smearEEhighEta    = 0.031312;
-  float theGaussMean      = 1.;
-  float pt = p.Pt();
-  float eta = p.Eta();
-  float phi = p.Phi();
-  float mass = p.M();
-  float theSmear = 0.;
-  if      (fabs(eta)<1.                   )  theSmear = smearEBlowEta;
-  else if (fabs(eta)>=1.  && fabs(eta)<1.5)  theSmear = smearEBhighEta;
-  else if (fabs(eta)>=1.5 && fabs(eta)<2. )  theSmear = smearEElowEta;
-  else if (fabs(eta)>=2.  && fabs(eta)<2.5)  theSmear = smearEEhighEta;
-  float fromGauss = myRandom_.Gaus(theGaussMean,theSmear);
-  p.SetPtEtaPhiM( fromGauss*pt, eta, phi, mass ); // keep mass and direction same
+  float smearSigma =  egcor.getSmearingSigma(myTree.run, fabs(p.Eta())<1.479, r9, p.Eta(), p.Pt(), 0., 0.);
+  float cor = myRandom_.Gaus( 1., smearSigma );
+  p.SetPtEtaPhiM( p.Pt()*cor, p.Eta(), p.Phi(), p.M() ); 
 
 }
 
 
-void applyEmEnergyScale( TLorentzVector& p ) {
+void applyEmEnergyScale( const EnergyScaleCorrection_class& egcor, TLorentzVector& p, const ZGTree& myTree, float r9 ) {
 
-  float scaleEBlowEta  = 2./(0.99544 + 0.99882);
-  float scaleEBhighEta = 2./(0.99662 + 1.0065);
-  float scaleEElowEta  = 2./(0.98633 + 0.99536);
-  float scaleEEhighEta = 2./(0.97859 + 0.98567);
-  float pt = p.Pt();
-  float eta = p.Eta();
-  float phi = p.Phi();
-  float mass = p.M();
-  float theScale = 1.;
-  if      (fabs(eta)<1.                     ) theScale = scaleEBlowEta;
-  else if (fabs(eta)>=1.  && fabs(eta)<1.5  ) theScale = scaleEBhighEta;
-  else if (fabs(eta)>=1.5 && fabs(eta)<2.   ) theScale = scaleEElowEta;
-  else if (fabs(eta)>=2.  && fabs(eta)<2.5  ) theScale = scaleEEhighEta;
-  p.SetPtEtaPhiM( theScale*pt, eta, phi, mass ); // keep mass and direction same
+  float cor = egcor.ScaleCorrection(myTree.run, fabs(p.Eta())<1.479, r9, p.Eta(), p.Pt());
+  p.SetPtEtaPhiM( p.Pt()*cor, p.Eta(), p.Phi(), p.M() );
 
 }
+
+
 
 
 TLorentzVector selectPhoton( const ZGConfig& cfg, const ZGTree& myTree, int index, const TLorentzVector& lept0, const TLorentzVector& lept1, EnergyScaleCorrection_class egcor ) {
@@ -850,17 +844,17 @@ TLorentzVector selectPhoton( const ZGConfig& cfg, const ZGTree& myTree, int inde
   }
   photon.SetPtEtaPhiM( myTree.gamma_pt[index], myTree.gamma_eta[index], myTree.gamma_phi[index], myTree.gamma_mass[index] );
 
-  //// photon energy corrections/smearing 
-  //if( !myTree.isData ) {
-  //  float smearSigma =  egcor.getSmearingSigma(myTree.run, fabs(photon.Eta())<1.479, myTree.gamma_r9[0], photon.Eta(), photon.Pt(), 0., 0.);
-  //  std::cout << "eta: " << photon.Eta() << " pt: " << photon.Pt() << " r9: " << myTree.gamma_r9[0] << " smear: " << smearSigma << std::endl;
-  //  exit(11);
-  //  //smearEmEnergy( photon ); // 74X smearings
-  //} else {
-  //  //applyEmEnergyScale( photon );
-  //  float cor = egcor.ScaleCorrection(myTree.run, fabs(photon.Eta())<1.479, myTree.gamma_r9[0], photon.Eta(), photon.Pt());
-  //  photon.SetPtEtaPhiM( photon.Pt()*cor, photon.Eta(), photon.Phi(), photon.M() );
-  //}
+  // photon energy corrections/smearing 
+  if( !myTree.isData ) {
+    //float smearSigma =  egcor.getSmearingSigma(myTree.run, fabs(photon.Eta())<1.479, myTree.gamma_r9[0], photon.Eta(), photon.Pt(), 0., 0.);
+    //float cor = myRandom_.Gaus( 1., smearSigma );
+    //photon.SetPtEtaPhiM( photon.Pt()*cor, photon.Eta(), photon.Phi(), photon.M() ); 
+    smearEmEnergy( egcor, photon, myTree, myTree.gamma_r9[0] ); 
+  } else {
+    applyEmEnergyScale( egcor, photon, myTree, myTree.gamma_r9[0] );
+    //float cor = egcor.ScaleCorrection(myTree.run, fabs(photon.Eta())<1.479, myTree.gamma_r9[0], photon.Eta(), photon.Pt());
+    //photon.SetPtEtaPhiM( photon.Pt()*cor, photon.Eta(), photon.Phi(), photon.M() );
+  }
 
   bool goodPhoton = true;
   if( photon.Pt()<40. ) goodPhoton=false;
