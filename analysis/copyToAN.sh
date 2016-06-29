@@ -10,6 +10,14 @@ scp \
     EventYields_presel_stitchPt/plots/ptLept1_log.pdf \
     EventYields_presel_stitchPt/plots/ptZ_log.pdf \
     EventYields_presel_stitchPt/plots/ptGamma_log.pdf \
+    EventYields_presel_stitchPt/plots/ptEle0_log.pdf \
+    EventYields_presel_stitchPt/plots/ptEle1_log.pdf \
+    EventYields_presel_stitchPt/plots/ptZ_ee_log.pdf \
+    EventYields_presel_stitchPt/plots/ptGamma_ee_log.pdf \
+    EventYields_presel_stitchPt/plots/ptMu0_log.pdf \
+    EventYields_presel_stitchPt/plots/ptMu1_log.pdf \
+    EventYields_presel_stitchPt/plots/ptZ_mm_log.pdf \
+    EventYields_presel_stitchPt/plots/ptGamma_mm_log.pdf \
     EventYields_v0_stitchPt/plots_MConly/mZg_ee_log.pdf \
     EventYields_v0_stitchPt/plots_MConly/mZg_mm_log.pdf \
     EventYields_v0_2016v3/limitExp_Zgamma_*fit_em_long.pdf \
