@@ -113,6 +113,8 @@ int main( int argc, char* argv[] ) {
   dt.drawPlot( "mZmm_bossCut" , "z_mass", "leptType==13 && boss_mass>200. && boss_mass<500.", 50, 50., 150., "M(#mu^{+}#mu^{-})", "GeV" );
 
   dt.drawPlot( "ptZ"        , "z_pt"    , ""              , 30, 0. , 300., "Z p_{T}"      , "GeV" );
+  dt.drawPlot( "ptZ_mm"     , "z_pt"    , "leptType==13"  , 30, 0. , 300., "Z p_{T}"      , "GeV" );
+  dt.drawPlot( "ptZ_ee"     , "z_pt"    , "leptType==11"  , 30, 0. , 300., "Z p_{T}"      , "GeV" );
   dt.drawPlot( "ptZ_metCut" , "z_pt"    , "met<50."       , 30, 0. , 300., "Z p_{T}"      , "GeV" );
   dt.drawPlot( "ptZ_bossCut", "z_pt"    , "boss_mass>200. && boss_mass<500.", 20, 0. , 300., "Z p_{T}"      , "GeV" );
 
@@ -134,6 +136,11 @@ int main( int argc, char* argv[] ) {
   dt.drawPlot( "ptMu1" , "lept1_pt" , "leptType==13", 30, 25., 225., "Trailing Muon p_{T}" , "GeV" );
   dt.drawPlot( "etaMu0" , "lept0_eta", "leptType==13", 30, -3.,   3., "Leading Muon #eta" );
   dt.drawPlot( "etaMu1" , "lept1_eta", "leptType==13", 30, -3.,   3., "Trailing Muon #eta" );
+
+  dt.drawPlot( "ptEle0"  , "lept0_pt" , "leptType==11", 30, 25., 525., "Leading Electron p_{T}" , "GeV" );
+  dt.drawPlot( "ptEle1"  , "lept1_pt" , "leptType==11", 30, 25., 225., "Trailing Electron p_{T}" , "GeV" );
+  dt.drawPlot( "etaEle0" , "lept0_eta", "leptType==11", 30, -3.,   3., "Leading Electron #eta" );
+  dt.drawPlot( "etaEle1" , "lept1_eta", "leptType==11", 30, -3.,   3., "Trailing Electron #eta" );
 
   //dt.drawPlot( "z_mass_mu370"  , "z_mass"   , "leptType==13 && boss_mass>350. && boss_mass<400.", 25, 50., 130., "M(#mu^{+}#mu^{-})"  , "GeV" );
   //dt.drawPlot( "lept0_pt_mu370", "lept0_pt" , "leptType==13 && boss_mass>350. && boss_mass<400.", 25, 25., 325., "Leading Muon p_{T}" , "GeV" );
