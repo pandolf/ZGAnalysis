@@ -1,0 +1,4 @@
+lumi 3.99
+mcSamples mc2016_v2
+dataSamples data2016_v5
+selection presel
