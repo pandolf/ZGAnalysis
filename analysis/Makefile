@@ -36,6 +36,9 @@ drawOptimizeCut: drawOptimizeCut.cpp ZGDrawTools.o ZGConfig.o
 compareMCsignals: compareMCsignals.cpp ZGDrawTools.o ZGConfig.o
 	$(CC) -Wall $(INCLUDES) -o compareMCsignals compareMCsignals.cpp ZGDrawTools.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
 
+compareSmearing: compareSmearing.cpp ZGDrawTools.o ZGConfig.o
+	$(CC) -Wall $(INCLUDES) -o compareSmearing compareSmearing.cpp ZGDrawTools.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
+
 
 drawZG: drawZG.cpp ZGDrawTools.o ZGConfig.o
 	$(CC) -Wall $(INCLUDES) -o drawZG drawZG.cpp ZGDrawTools.o ZGConfig.o $(ROOTFLAG) $(EXTRALIBS)
