@@ -25,7 +25,7 @@ class Signal {
 };
 
 
-void drawVar( const std::string& outdir, TTree* tree_yesSmear, TTree* tree_noSmear, const Signal& signal, const std::string& savename, const std::string& name, int nBins, float xMin, float xMax, const std::string& selection="" );
+void drawVar( const std::string& outdir, TTree* tree_yesSmear, TTree* tree_noSmear, const Signal& signal, const std::string& savename, const std::string& name, const std::string& axisName, int nBins, float xMin, float xMax, const std::string& selection="" );
 
 int main() {
 
@@ -52,11 +52,11 @@ int main() {
     TTree* tree_yesSmear = (TTree*)file_yesSmear->Get(signalName.c_str());
     TTree* tree_noSmear  = (TTree*)file_noSmear->Get(signalName.c_str());
 
-    drawVar( outdir, tree_yesSmear, tree_noSmear, signals[i], "gamma_pt","gamma_pt", 100, signals[i].mass*0.2, signals[i].mass*2.);
-    drawVar( outdir, tree_yesSmear, tree_noSmear, signals[i], "mZg_ee", "boss_mass", 100, signals[i].mass*0.7, signals[i].mass*1.1, "leptType==11");
-    drawVar( outdir, tree_yesSmear, tree_noSmear, signals[i], "mZg_mm", "boss_mass", 100, signals[i].mass*0.7, signals[i].mass*1.1, "leptType==13");
-    drawVar( outdir, tree_yesSmear, tree_noSmear, signals[i], "mZee", "z_mass", 80, 50., 130., "leptType==11");
-    drawVar( outdir, tree_yesSmear, tree_noSmear, signals[i], "mZmm", "z_mass", 80, 50., 130., "leptType==13");
+    drawVar( outdir, tree_yesSmear, tree_noSmear, signals[i], "gamma_pt", "gamma_pt" , "Photon p_{T} [GeV]", 100, signals[i].mass*0.2, signals[i].mass*2.);
+    drawVar( outdir, tree_yesSmear, tree_noSmear, signals[i], "mZg_ee"  , "boss_mass", "M(e^{+}e^{-}#gamma) [GeV]", 100, signals[i].mass*0.7, signals[i].mass*1.1, "leptType==11");
+    drawVar( outdir, tree_yesSmear, tree_noSmear, signals[i], "mZg_mm"  , "boss_mass", "M(#mu^{+}#mu^{-}#gamma) [GeV]", 100, signals[i].mass*0.7, signals[i].mass*1.1, "leptType==13");
+    drawVar( outdir, tree_yesSmear, tree_noSmear, signals[i], "mZee"    , "z_mass"   , "M(e^{+}e^{-}) [GeV]", 80 , 50., 120., "leptType==11");
+    drawVar( outdir, tree_yesSmear, tree_noSmear, signals[i], "mZmm"    , "z_mass"   , "M(#mu^{+}#mu^{-}) [GeV]", 80 , 50., 120., "leptType==13");
 
   }
 
@@ -66,7 +66,7 @@ int main() {
 
 
 
-void drawVar( const std::string& outdir, TTree* tree_yesSmear, TTree* tree_noSmear, const Signal& signal, const std::string& savename, const std::string& name, int nBins, float xMin, float xMax, const std::string& selection ) {
+void drawVar( const std::string& outdir, TTree* tree_yesSmear, TTree* tree_noSmear, const Signal& signal, const std::string& savename, const std::string& name, const std::string& axisName, int nBins, float xMin, float xMax, const std::string& selection ) {
 
   TCanvas* c1 = new TCanvas("c1", "", 600, 600);
   c1->cd();
@@ -79,20 +79,17 @@ void drawVar( const std::string& outdir, TTree* tree_yesSmear, TTree* tree_noSme
   h1_yesSmear->Sumw2();
   h1_noSmear->Sumw2();
 
-  h1_noSmear->SetXTitle( name.c_str() );
-  h1_noSmear->SetYTitle( "Events" );
+  h1_noSmear->SetXTitle( axisName.c_str() );
+  h1_noSmear->SetYTitle( "Normalized to Unity" );
 
   h1_yesSmear->SetLineWidth(2);
   h1_noSmear->SetLineWidth(2);
 
-  float sf74 = 2.6;
-  std::string name74 = name;
-
   if( selection=="" ) {
-    tree_yesSmear->Project("h1_yesSmear", name74.c_str(), Form("weight*%f", sf74));
+    tree_yesSmear->Project("h1_yesSmear", name.c_str(), "weight");
     tree_noSmear->Project("h1_noSmear", name.c_str(), "weight");
   } else {
-    tree_yesSmear->Project("h1_yesSmear", name74.c_str(), Form("weight*%f*(%s)", sf74, selection.c_str()));
+    tree_yesSmear->Project("h1_yesSmear", name.c_str(), Form("weight*(%s)", selection.c_str()));
     tree_noSmear->Project("h1_noSmear", name.c_str(), Form("weight*(%s)", selection.c_str()));
   }
   h1_noSmear ->SetLineColor(kBlack);
@@ -100,14 +97,15 @@ void drawVar( const std::string& outdir, TTree* tree_yesSmear, TTree* tree_noSme
   h1_noSmear ->DrawNormalized("same");
   h1_yesSmear->DrawNormalized("same");
 
-  ZGDrawTools::addLabels( c1, 2.6 );
+  ZGDrawTools::addLabels( c1, -1., "CMS Simulation" );
 
   std::string legendTitle( Form( "M=%.0f GeV, %s", signal.mass, signal.width.c_str()) );
-  TLegend* legend;
-  if( name=="boss_mass" )
-    legend = new TLegend( 0.2, 0.72, 0.55, 0.9 );
-  else
-    legend = new TLegend( 0.65, 0.72, 0.9 , 0.9 );
+  TLegend* legend = new TLegend( 0.2, 0.7, 0.55, 0.9 );
+  //TLegend* legend;
+  //if( name=="boss_mass" )
+  //  legend = new TLegend( 0.2, 0.72, 0.55, 0.9 );
+  //else
+  //  legend = new TLegend( 0.65, 0.72, 0.9 , 0.9 );
   legend->SetFillColor(0);
   legend->SetTextSize(0.038);
   legend->SetTextFont(42);
