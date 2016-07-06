@@ -15,8 +15,8 @@ EXTRALIBS := -L$(ROOTSYS)/lib -L$(ROOFIT_LIBDIR)/ -L$(CMSSW_BASE)/lib/slc6_amd64
 
 all: runZGAnalysis
 
-runZGAnalysis: runZGAnalysis.cpp ZGSample.o ZGConfig.o ZGCommonTools.o muresolution_run2.o rochcor2015.o EnergyScaleCorrection_class.o
-	$(CC) -Wall $(INCLUDES) -o runZGAnalysis runZGAnalysis.cpp ZGSample.o ZGConfig.o ZGCommonTools.o muresolution_run2.o rochcor2015.o EnergyScaleCorrection_class.o $(ROOTFLAG) $(EXTRALIBS)
+runZGAnalysis: runZGAnalysis.cpp ZGSample.o ZGConfig.o ZGCommonTools.o RoccoR.o rochcor2016.o EnergyScaleCorrection_class.o
+	$(CC) -Wall $(INCLUDES) -o runZGAnalysis runZGAnalysis.cpp ZGSample.o ZGConfig.o ZGCommonTools.o RoccoR.o rochcor2016.o EnergyScaleCorrection_class.o $(ROOTFLAG) $(EXTRALIBS)
 
 convertSNTtrees: convertSNTtrees.cpp
 	$(CC) -Wall $(INCLUDES) -o convertSNTtrees convertSNTtrees.cpp $(ROOTFLAG) $(EXTRALIBS)
@@ -171,6 +171,12 @@ muresolution_run2.o: ../src/muresolution_run2.cc
 
 rochcor2015.o: ../src/rochcor2015.cc
 	$(CC) -Wall $(INCLUDES) -c ../src/rochcor2015.cc $(ROOTFLAG) $(EXTRALIBS)
+
+rochcor2016.o: ../src/rochcor2016.cc
+	$(CC) -Wall $(INCLUDES) -c ../src/rochcor2016.cc $(ROOTFLAG) $(EXTRALIBS)
+
+RoccoR.o: ../src/RoccoR.cc
+	$(CC) -Wall $(INCLUDES) -c ../src/RoccoR.cc $(ROOTFLAG) $(EXTRALIBS)
 
 EnergyScaleCorrection_class.o: ../src/EnergyScaleCorrection_class.cc
 	$(CC) -Wall $(INCLUDES) -c ../src/EnergyScaleCorrection_class.cc $(ROOTFLAG) $(EXTRALIBS)
