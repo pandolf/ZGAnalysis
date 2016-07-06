@@ -1,4 +1,4 @@
 lumi 3.99
-mcSamples mc2016_v2
+mcSamples mc2016_v2_stitchPt
 dataSamples data2016_v5
 selection presel
