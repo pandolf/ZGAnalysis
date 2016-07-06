@@ -17,8 +17,8 @@
 #include "interface/ZGCommonTools.h"
 
 // muon rochester corrections:
-#include "../interface/rochcor2015.h"
-#include "../interface/muresolution_run2.h"
+#include "../interface/rochcor2016.h"
+//#include "../interface/muresolution_run2.h"
 
 // photon smearing/scales
 #include "../interface/EnergyScaleCorrection_class.hh"
@@ -399,13 +399,11 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
 
 
 
-  //// for muon rochester corrections
-  //rochcor2015 *rmcor = new rochcor2015();
+  // for muon rochester corrections
+  rochcor2016 *rmcor = new rochcor2016();
 
 
   EnergyScaleCorrection_class egcor("Golden10June_plus_DCS");
-  //egcor.doSmearings=true;
-  //egcor.doScale=false;
 
  
   int nentries = tree->GetEntries();
@@ -593,26 +591,30 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
 
       // instructions taken from https://twiki.cern.ch/twiki/pub/CMS/RochcorMuon/manual_rochcor_run2.pdf
       // linked from twiki: https://twiki.cern.ch/twiki/bin/viewauth/CMS/RochcorMuon
-      //float qter = 1.0; 
+      float qter = 1.0; 
 
-      //if( !myTree.isData ) {
-      //  rmcor->momcor_mc(lept0, myTree.lep_pdgId[0]/(abs(myTree.lep_pdgId[0])), 0, qter);
-      //  rmcor->momcor_mc(lept1, myTree.lep_pdgId[1]/(abs(myTree.lep_pdgId[1])), 0, qter);
-      //} else {
-      //  rmcor->momcor_data(lept0, myTree.lep_pdgId[0]/(abs(myTree.lep_pdgId[0])), 0, qter);
-      //  rmcor->momcor_data(lept1, myTree.lep_pdgId[1]/(abs(myTree.lep_pdgId[1])), 0, qter);
-      //}
+      if( !myTree.isData ) {
+        rmcor->momcor_mc(lept0, myTree.lep_pdgId[0]/(abs(myTree.lep_pdgId[0])), 0, qter);
+        rmcor->momcor_mc(lept1, myTree.lep_pdgId[1]/(abs(myTree.lep_pdgId[1])), 0, qter);
+      } else {
+        rmcor->momcor_data(lept0, myTree.lep_pdgId[0]/(abs(myTree.lep_pdgId[0])), 0, qter);
+        rmcor->momcor_data(lept1, myTree.lep_pdgId[1]/(abs(myTree.lep_pdgId[1])), 0, qter);
+      }
 
       passStandardIso = (myTree.lep_relIso04[0]<0.25 && myTree.lep_relIso04[1]<0.25);
 
     } else if( leptType==11 ) {
 
       if( !myTree.isData ) {
-        smearEmEnergy( egcor, lept0, myTree, myTree.lep_r9[0] );
-        smearEmEnergy( egcor, lept1, myTree, myTree.lep_r9[1] );
+        if( cfg.smearing() ) {
+          smearEmEnergy( egcor, lept0, myTree, myTree.lep_r9[0] );
+          smearEmEnergy( egcor, lept1, myTree, myTree.lep_r9[1] );
+        }
       } else {
-        applyEmEnergyScale( egcor, lept0, myTree, myTree.lep_r9[0] );
-        applyEmEnergyScale( egcor, lept1, myTree, myTree.lep_r9[1] );
+        if( cfg.smearing() ) {
+          applyEmEnergyScale( egcor, lept0, myTree, myTree.lep_r9[0] );
+          applyEmEnergyScale( egcor, lept1, myTree, myTree.lep_r9[1] );
+        }
       }
 
       bool passStandardIso0 = (fabs(myTree.lep_eta[0])<1.479) ? myTree.lep_relIso03[0]<0.0893 : myTree.lep_relIso03[0]<0.121;
@@ -846,14 +848,13 @@ TLorentzVector selectPhoton( const ZGConfig& cfg, const ZGTree& myTree, int inde
 
   // photon energy corrections/smearing 
   if( !myTree.isData ) {
-    //float smearSigma =  egcor.getSmearingSigma(myTree.run, fabs(photon.Eta())<1.479, myTree.gamma_r9[0], photon.Eta(), photon.Pt(), 0., 0.);
-    //float cor = myRandom_.Gaus( 1., smearSigma );
-    //photon.SetPtEtaPhiM( photon.Pt()*cor, photon.Eta(), photon.Phi(), photon.M() ); 
-    smearEmEnergy( egcor, photon, myTree, myTree.gamma_r9[0] ); 
+    if( cfg.smearing() ) {
+      smearEmEnergy( egcor, photon, myTree, myTree.gamma_r9[0] ); 
+    }
   } else {
-    applyEmEnergyScale( egcor, photon, myTree, myTree.gamma_r9[0] );
-    //float cor = egcor.ScaleCorrection(myTree.run, fabs(photon.Eta())<1.479, myTree.gamma_r9[0], photon.Eta(), photon.Pt());
-    //photon.SetPtEtaPhiM( photon.Pt()*cor, photon.Eta(), photon.Phi(), photon.M() );
+    if( cfg.smearing() ) {
+      applyEmEnergyScale( egcor, photon, myTree, myTree.gamma_r9[0] );
+    }
   }
 
   bool goodPhoton = true;
