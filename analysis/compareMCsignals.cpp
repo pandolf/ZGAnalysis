@@ -56,8 +56,14 @@ int main() {
       tree_74 = (TTree*)file_74->Get(signalName.c_str());
     TTree* tree_80 = (TTree*)file_80->Get(signalName.c_str());
 
-    drawVar( outdir, tree_74, tree_80, signals[i], "boss_mass", "boss_mass", 100, signals[i].mass*0.7, signals[i].mass*1.2);
-    drawVar( outdir, tree_74, tree_80, signals[i], "gamma_pt","gamma_pt", 100, 0., 1000.);
+    drawVar( outdir, tree_74, tree_80, signals[i], "gamma_pt","gamma_pt", 100, signals[i].mass*0.2, signals[i].mass*2.);
+    if( signals[i].width=="0p014" ) {
+      drawVar( outdir, tree_74, tree_80, signals[i], "mZg_ee", "boss_mass", 100, signals[i].mass*0.7, signals[i].mass*1.2, "leptType==11");
+      drawVar( outdir, tree_74, tree_80, signals[i], "mZg_mm", "boss_mass", 100, signals[i].mass*0.7, signals[i].mass*1.2, "leptType==13");
+    } else {
+      drawVar( outdir, tree_74, tree_80, signals[i], "mZg_ee", "boss_mass", 50, signals[i].mass*0.5, signals[i].mass*1.3, "leptType==11");
+      drawVar( outdir, tree_74, tree_80, signals[i], "mZg_mm", "boss_mass", 50, signals[i].mass*0.5, signals[i].mass*1.3, "leptType==13");
+    }
     drawVar( outdir, tree_74, tree_80, signals[i], "mZee", "z_mass", 80, 50., 130., "leptType==11");
     drawVar( outdir, tree_74, tree_80, signals[i], "mZmm", "z_mass", 80, 50., 130., "leptType==13");
 
@@ -108,7 +114,7 @@ void drawVar( const std::string& outdir, TTree* tree_74, TTree* tree_80, const S
   std::string legendTitle( Form( "M=%.0f GeV, %s", signal.mass, signal.width.c_str()) );
   TLegend* legend;
   if( name=="boss_mass" )
-    legend = new TLegend( 0.25, 0.72, 0.55, 0.9 );
+    legend = new TLegend( 0.2, 0.72, 0.55, 0.9 );
   else
     legend = new TLegend( 0.65, 0.72, 0.9 , 0.9 );
   legend->SetFillColor(0);
