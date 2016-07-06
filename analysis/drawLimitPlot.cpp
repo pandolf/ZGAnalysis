@@ -139,7 +139,10 @@ void drawSingleLimitPlot( const ZGConfig& cfg, const std::string& limitsFile, TF
     exp_m2s*=conversion;
     exp_p1s*=conversion;
     exp_p2s*=conversion;
-    std::cout << "m: " << m << " obs: " << obs << " exp: " << exp << " exp_m1s: " << exp_m1s << " exp_m2s: " << exp_m2s << " exp_p1s: " << exp_p1s << " exp_p2s: " << exp_p2s << std::endl;
+    if( onlyExpected ) 
+      std::cout << "m: " << m << " exp: " << exp << " exp_m1s: " << exp_m1s << " exp_m2s: " << exp_m2s << " exp_p1s: " << exp_p1s << " exp_p2s: " << exp_p2s << std::endl;
+    else
+      std::cout << "m: " << m << " obs: " << obs << " exp: " << exp << " exp_m1s: " << exp_m1s << " exp_m2s: " << exp_m2s << " exp_p1s: " << exp_p1s << " exp_p2s: " << exp_p2s << std::endl;
 
 
     bool okForObs = !( ((m==1500||m==1310) && width=="5p6") || ((m==985 || m==995 || m==1140) && width=="0p014") );
