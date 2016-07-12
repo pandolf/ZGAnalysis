@@ -353,6 +353,7 @@ void drawCompare( const ZGConfig& cfg, const std::string& width, TGraphErrors* g
 void addEfficiencyPoint( TGraphErrors* gr_eff, const ZGSample& sample, const ZGConfig& cfg, const std::string& sel ) {
 
   std::string name = sample.name;
+  TString name_tstr(name);
 
   float nTotalGenEvents = (float)sample.nevents;
   nTotalGenEvents = nTotalGenEvents*2./3.; // fuck taus
@@ -375,10 +376,18 @@ void addEfficiencyPoint( TGraphErrors* gr_eff, const ZGSample& sample, const ZGC
   float thisEff = (float)nPassEvents/((float)nTotalGenEvents);
   float thisEffErr = sqrt( thisEff*(1.-thisEff)/((float)nTotalGenEvents) );
 
-  std::string delimiter = "M_";
-  std::string mass_str = name.substr(name.find(delimiter)+delimiter.length(), 4);
-  int mass = atoi(mass_str.c_str());
-  if( mass > xMax ) return;
+  int mass = 0;
+  if( name_tstr.BeginsWith("GluGlu") ) {
+    std::string delimiter = "M";
+    std::string mass_str = name.substr(name.find(delimiter)+delimiter.length(), 4);
+    mass = atoi(mass_str.c_str());
+  } else {
+    std::string delimiter = "M_";
+    std::string mass_str = name.substr(name.find(delimiter)+delimiter.length(), 4);
+    mass = atoi(mass_str.c_str());
+  }
+
+  if( mass > xMax || mass==0 ) return;
 
   int iPoint = gr_eff->GetN();
   gr_eff->SetPoint( iPoint, mass, thisEff );
