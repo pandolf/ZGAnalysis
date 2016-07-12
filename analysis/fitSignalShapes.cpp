@@ -45,11 +45,11 @@ int main( int argc, char* argv[] ) {
   
   std::vector<float> masses;
   masses.push_back( 350. );
-  masses.push_back( 375. );
+  masses.push_back( 400. );
   masses.push_back( 450. );
-  masses.push_back( 600. );
+  masses.push_back( 500. );
   masses.push_back( 750. );
-  masses.push_back( 900. );
+  masses.push_back( 1000. );
   masses.push_back( 1500. );
   masses.push_back( 2000. );
   //masses.push_back( 300. );
@@ -75,7 +75,7 @@ int main( int argc, char* argv[] ) {
     TFile* outfile = TFile::Open(Form("%s/signalShapeParameters_w%s.root", outdir.c_str(), widths[iw].c_str()), "recreate");
     outfile->cd();
 
-    fitGraphs( cfg, masses, widths[iw], outdir, outfile, "all" );
+    //fitGraphs( cfg, masses, widths[iw], outdir, outfile, "all" );
     fitGraphs( cfg, masses, widths[iw], outdir, outfile, "ee", "leptType==11" );
     fitGraphs( cfg, masses, widths[iw], outdir, outfile, "mm", "leptType==13" );
 
@@ -135,7 +135,13 @@ void fitGraphs( const ZGConfig& cfg, const std::vector<float> masses, const std:
     float thisMass = masses[i];
     std::cout << "-> Starting mass: " << thisMass << std::endl;
 
-    TTree* tree0 = (TTree*)file->Get( Form("XZg_Spin0_ZToLL_W_%s_M_%.0f", width.c_str(), thisMass ));
+    std::string signalName;
+    if( thisMass <= 500. ) {
+      signalName = std::string(Form("XZg_Spin0ToZG_ZToLL_W_%s_M_%.0f", width.c_str(), thisMass ));
+    } else {
+      signalName = std::string(Form("GluGluSpin0ToZG_ZToLL_W%s_M%.0f", width.c_str(), thisMass ));
+    }
+    TTree* tree0 = (TTree*)file->Get( signalName.c_str() );
     if( tree0 == 0 ) continue;
     TTree* tree;
     if( sel=="" ) {
