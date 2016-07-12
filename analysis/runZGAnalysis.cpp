@@ -527,47 +527,6 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
 
 
       
-    weight = 1.;
-    puWeight = 1.;
-    weight_scale = 1.;
-    weight_pdf = 1.;
-    weight_lep = 1.;
-    
-    if( !myTree.isData ) {
-
-      weight = myTree.evt_scale1fb*cfg.lumi();
-      // pu reweighting:
-      //puWeight = getPUweight( h1_pu, myTree.nTrueInt );
-      puWeight = myTree.puWeight;
-      weight *= puWeight;
-
-      // lepton SF:
-      float leptonSF = 1.;
-      if( leptType==13 ) {
-        float isoSF = 0.9997;
-        float idSF_loose = 0.997;
-        float idSF_tight = 0.983;
-        float idSF = idSF_loose*idSF_tight;
-        if( myTree.lep_tightId[0]==1 && myTree.lep_tightId[1]==1 )
-          idSF = 2.*idSF_loose*idSF_tight - idSF_tight*idSF_tight;
-
-        leptonSF = isoSF*idSF;
-      }
-      weight *= leptonSF; 
-          
-      //weight *= myTree.weight_lepsf;
-      //// hlt SF:
-      float hltSF = (leptType==11) ? 1.0 : 0.989;
-      weight *= hltSF;
-
-      weight_lep = myTree.weight_lepsf_UP;
-      weight_scale = weight; // will compute later
-      weight_pdf = weight; // will compute later
-
-    }
-    
-
-
     
     TLorentzVector lept0;
     lept0.SetPtEtaPhiM( myTree.lep_pt[0], myTree.lep_eta[0], myTree.lep_phi[0], myTree.lep_mass[0] );
@@ -630,6 +589,67 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     lept0_pdgId = myTree.lep_pdgId[0];
     lept1_pdgId = myTree.lep_pdgId[1];
 
+
+
+    weight = 1.;
+    puWeight = 1.;
+    weight_scale = 1.;
+    weight_pdf = 1.;
+    weight_lep = 1.;
+    
+    if( !myTree.isData ) {
+
+      weight = myTree.evt_scale1fb*cfg.lumi();
+      // pu reweighting:
+      //puWeight = getPUweight( h1_pu, myTree.nTrueInt );
+      puWeight = myTree.puWeight;
+      weight *= puWeight;
+
+      // lepton SF:
+      float leptonSF = 1.;
+      if( leptType==13 ) {
+        float isoSF = 0.9997;
+        float idSF_loose = 0.997;
+        float idSF_tight = 0.983;
+        float idSF = idSF_loose*idSF_tight;
+        if( myTree.lep_tightId[0]==1 && myTree.lep_tightId[1]==1 )
+          idSF = 2.*idSF_loose*idSF_tight - idSF_tight*idSF_tight;
+
+        leptonSF = isoSF*idSF;
+      }
+      weight *= leptonSF; 
+
+
+          
+      // trigger SF:
+
+      float hltSF = 1.;
+
+      if( leptType==11 ) { // electrons
+
+        if( lept0.Pt()<35. || lept1.Pt()<35. ) {
+          hltSF = 0.965;
+        } else {
+          hltSF = 1.;
+        }
+
+      } else { // muons
+
+        hltSF = 0.989;
+
+      }
+
+      weight *= hltSF;
+
+      weight_lep = myTree.weight_lepsf_UP;
+      weight_scale = weight; // will compute later
+      weight_pdf = weight; // will compute later
+
+    }
+    
+
+
+
     TLorentzVector photon;
     TLorentzVector photon2;
     bool foundSecondPhoton = false;
@@ -664,7 +684,7 @@ void addTreeToFile( TFile* file, const std::string& treeName, std::vector<ZGSamp
     else
       boss2.SetPtEtaPhiM( 0.1, 0., 0., 0.);
 
-    //if( id==851 && boss.M()>600. ) continue;
+    if( id==851 && boss.M()>410. ) continue;
 
 
     lept0_pt   = lept0.Pt();
