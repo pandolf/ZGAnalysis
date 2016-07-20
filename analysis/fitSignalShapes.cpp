@@ -44,13 +44,15 @@ int main( int argc, char* argv[] ) {
   ZGDrawTools::setStyle();
   
   std::vector<float> masses;
-  masses.push_back( 350. );
+  //masses.push_back( 350. );
   masses.push_back( 400. );
   masses.push_back( 450. );
   masses.push_back( 500. );
   masses.push_back( 750. );
   masses.push_back( 1000. );
+  masses.push_back( 1250. );
   masses.push_back( 1500. );
+  masses.push_back( 1750. );
   masses.push_back( 2000. );
   //masses.push_back( 300. );
   //masses.push_back( 400. );
@@ -130,9 +132,14 @@ void fitGraphs( const ZGConfig& cfg, const std::vector<float> masses, const std:
 
   outfile->cd();
 
+  int iPoint = 0;
+
   for( unsigned i=0; i<masses.size(); ++i ) {
 
+
     float thisMass = masses[i];
+    if( thisMass==1250. && name=="mm" && width=="0p014" ) continue;
+
     std::cout << "-> Starting mass: " << thisMass << std::endl;
 
     std::string signalName;
@@ -189,22 +196,24 @@ void fitGraphs( const ZGConfig& cfg, const std::vector<float> masses, const std:
 
     delete c1;
 
-    gr_mean->SetPoint( i, thisMass, mean.getVal() );
-    gr_sigma->SetPoint( i, thisMass, sigma.getVal() );
-    gr_width->SetPoint( i, thisMass, sigma.getVal()/mean.getVal() );
-    gr_alpha1->SetPoint( i, thisMass, alpha1.getVal() );
-    gr_n1->SetPoint( i, thisMass, n1.getVal() );
-    gr_alpha2->SetPoint( i, thisMass, alpha2.getVal() );
-    gr_n2->SetPoint( i, thisMass, n2.getVal() );
+    gr_mean  ->SetPoint( iPoint, thisMass, mean.getVal() );
+    gr_sigma ->SetPoint( iPoint, thisMass, sigma.getVal() );
+    gr_width ->SetPoint( iPoint, thisMass, sigma.getVal()/mean.getVal() );
+    gr_alpha1->SetPoint( iPoint, thisMass, alpha1.getVal() );
+    gr_n1    ->SetPoint( iPoint, thisMass, n1.getVal() );
+    gr_alpha2->SetPoint( iPoint, thisMass, alpha2.getVal() );
+    gr_n2    ->SetPoint( iPoint, thisMass, n2.getVal() );
 
-    gr_mean->SetPointError( i, 0., mean.getError() );
-    gr_sigma->SetPointError( i, 0., sigma.getError() );
-    gr_width->SetPointError( i, 0., sigma.getError()/mean.getVal() ); // random
-    //gr_width->SetPointError( i, 0., sqrt( sigma.getError()*sigma.getError()/(mean.getVal()*mean.getVal()) + sigma.getVal()*sigma.getVal()*mean.getError()*mean.getError()/(mean.getError()*mean.getError()*mean.getError()*mean.getError()) ) );
-    gr_alpha1->SetPointError( i, 0., alpha1.getError() );
-    gr_n1->SetPointError( i, 0., n1.getError() );
-    gr_alpha2->SetPointError( i, 0., alpha2.getError() );
-    gr_n2->SetPointError( i, 0., n2.getError() );
+    gr_mean  ->SetPointError( iPoint, 0., mean.getError() );
+    gr_sigma ->SetPointError( iPoint, 0., sigma.getError() );
+    gr_width ->SetPointError( iPoint, 0., sigma.getError()/mean.getVal() ); // random
+    gr_alpha1->SetPointError( iPoint, 0., alpha1.getError() );
+    gr_n1    ->SetPointError( iPoint, 0., n1.getError() );
+    gr_alpha2->SetPointError( iPoint, 0., alpha2.getError() );
+    gr_n2    ->SetPointError( iPoint, 0., n2.getError() );
+    //gr_width->SetPointError( iPoint, 0., sqrt( sigma.getError()*sigma.getError()/(mean.getVal()*mean.getVal()) + sigma.getVal()*sigma.getVal()*mean.getError()*mean.getError()/(mean.getError()*mean.getError()*mean.getError()*mean.getError()) ) );
+
+    iPoint++;
 
     delete tree;
     delete data;
@@ -248,11 +257,17 @@ TF1* fitGraph( const std::string& outdir, TGraphErrors* graph, const std::string
   float xMin = 300.;
 
   TString grName_tstr(graph->GetName());
+
   std::string formula = "[0] + [1]*x";
   if( (grName_tstr.Contains("sigma") && grName_tstr.Contains("mm") && xMax>1100.) )
     formula = "[0] + [1]*x + [2]*x*x";
-  if( (grName_tstr.Contains("n1") && grName_tstr.Contains("5p6") ) ) 
+  if( ((grName_tstr.Contains("n2") || grName_tstr.Contains("alpha1") || grName_tstr.Contains("alpha2") ) && grName_tstr.Contains("5p6") ) ) 
+    formula = "[0] + [1]*(x-2000.)*(x-2000.)";
+  if( grName_tstr.Contains("n1") && grName_tstr.Contains("5p6") ) 
     formula = "[0] + [1]*(x-2000.)*(x-2000.) + [2]*(x-2000.)*(x-2000.)*(x-2000.)*(x-2000.) + [3]*(x-2000.)*(x-2000.)*(x-2000.)*(x-2000.)*(x-2000.)*(x-2000.)";
+  //if( grName_tstr.Contains("alpha1") && grName_tstr.Contains("0p014") ) 
+  //  formula = "[0] + [1]*(x-2000.)*(x-2000.)  + [2]*(x-2000.)*(x-2000.)*(x-2000.)*(x-2000.)*(x-2000.)*(x-2000.)";
+
   TF1* f1 = new TF1( Form("f1_%s", graph->GetName()), formula.c_str(), xMin, xMax );
   //TF1* f1 = new TF1( Form("f1_%s", graph->GetName()), "[0] + [1]*x + [2]*x*x + [3]*x*x*x + [4]*x*x*x*x + [5]*x*x*x*x*x", xMin, xMax );
   f1->SetLineColor(46);
@@ -298,6 +313,7 @@ TF1* fitGraph( const std::string& outdir, TGraphErrors* graph, const std::string
 
   band->Draw("CE3same");
   graph->Draw("psame");
+
   
   ZGDrawTools::addLabels(c1, -1., "CMS Simulation");
   gPad->RedrawAxis();
